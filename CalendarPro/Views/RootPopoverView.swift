@@ -3,7 +3,6 @@ import SwiftUI
 struct RootPopoverView: View {
     @ObservedObject var settingsStore: SettingsStore
     @StateObject private var viewModel = CalendarPopoverViewModel()
-    let onOpenSettings: () -> Void
     let onQuit: () -> Void
 
     var body: some View {
@@ -18,7 +17,9 @@ struct RootPopoverView: View {
             onNextMonth: {
                 viewModel.showNextMonth(using: displayCalendar)
             },
-            onOpenSettings: onOpenSettings,
+            onResetToToday: {
+                viewModel.resetToToday()
+            },
             onQuit: onQuit
         )
     }

@@ -7,7 +7,7 @@ struct CalendarPopoverView: View {
     let regionSummary: String
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
-    let onOpenSettings: () -> Void
+    let onResetToToday: () -> Void
     let onQuit: () -> Void
 
     var body: some View {
@@ -31,12 +31,21 @@ struct CalendarPopoverView: View {
                 .padding(.horizontal, -16)
 
             HStack {
-                Button(action: onOpenSettings) {
+                SettingsLink {
                     Label("设置", systemImage: "gearshape")
                         .font(.system(size: 12))
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut(",", modifiers: .command)
+
+                Spacer()
+
+                Button(action: onResetToToday) {
+                    Label("今日", systemImage: "calendar")
+                        .font(.system(size: 12))
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut("t", modifiers: .command)
 
                 Spacer()
 

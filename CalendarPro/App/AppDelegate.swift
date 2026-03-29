@@ -28,7 +28,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let hostingController = NSHostingController(
             rootView: RootPopoverView(
                 settingsStore: settingsStore,
-                onOpenSettings: { NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil) },
                 onQuit: { NSApp.terminate(nil) }
             )
         )

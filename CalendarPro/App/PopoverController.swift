@@ -31,19 +31,11 @@ final class PopoverController {
         popover.contentViewController = NSHostingController(
             rootView: RootPopoverView(
                 settingsStore: settingsStore,
-                onOpenSettings: { [weak self] in
-                    self?.openSettings()
-                },
                 onQuit: { [weak self] in
                     self?.quitApp()
                 }
             )
         )
-    }
-
-    private func openSettings() {
-        popover.performClose(nil)
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
     }
 
     private func quitApp() {

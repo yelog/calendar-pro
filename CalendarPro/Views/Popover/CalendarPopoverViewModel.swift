@@ -16,6 +16,10 @@ final class CalendarPopoverViewModel: ObservableObject {
         displayedMonth = calendar.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
     }
 
+    func resetToToday() {
+        displayedMonth = .now
+    }
+
     func weekdaySymbols(using calendar: Calendar) -> [String] {
         let formatter = DateFormatter()
         formatter.locale = calendar.locale ?? .autoupdatingCurrent

@@ -32,25 +32,73 @@ private struct CalendarDayCellView: View {
     let day: CalendarDay
 
     var body: some View {
-        VStack(spacing: 2) {
-            Text(day.solarText)
-                .font(.system(size: 13, weight: day.isToday ? .semibold : .regular, design: .rounded))
-                .foregroundStyle(day.isInDisplayedMonth ? Color.primary : Color.secondary.opacity(0.5))
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 2) {
+                Text(day.solarText)
+                    .font(.system(size: 13, weight: day.isToday ? .semibold : .regular, design: .rounded))
+                    .foregroundStyle(day.isInDisplayedMonth ? Color.primary : Color.secondary.opacity(0.5))
 
-            Text(day.badges.first?.text ?? day.lunarText ?? "")
-                .font(.system(size: 9, weight: .regular, design: .rounded))
-                .foregroundStyle(subtitleColor)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                Text(day.badges.first?.text ?? day.lunarText ?? "")
+                    .font(.system(size: 9, weight: .regular, design: .rounded))
+                    .foregroundStyle(subtitleColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .frame(maxWidth: .infinity, minHeight: 34)
+            .padding(.vertical, 2)
+
+            if let badge = day.badges.first, badge.kind == .statutoryHoliday || badge.kind == .publicHoliday {
+                Text("休")
+                    .font(.system(size: 8, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 3)
+                    .padding(.vertical, 1)
+                    .background(
+                        Capsule()
+                            .fill(Color.red.opacity(0.85))
+                    )
+                    .offset(x: 2, y: -2)
+            }
+
+            if let badge = day.badges.first, badge.kind == .workingAdjustmentDay {
+                Text("班")
+                    .font(.system(size: 8, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 3)
+                    .padding(.vertical, 1)
+                    .background(
+                        Capsule()
+                            .fill(Color.blue.opacity(0.85))
+                    )
+                    .offset(x: 2, y: -2)
+            }
         }
         .frame(maxWidth: .infinity, minHeight: 34)
         .padding(.vertical, 2)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(day.isToday ? Color.accentColor.opacity(0.18) : Color.clear)
-        )
+        .padding(.horizontal, 4)
+        .background(cellBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(dayIdentifier)
+    }
+
+    private var cellBackground: some View {
+        Group {
+            if day.isToday {
+                Color.accentColor.opacity(0.15)
+            } else if let badge = day.badges.first {
+                switch badge.kind {
+                case .statutoryHoliday, .publicHoliday:
+                    Color.red.opacity(0.08)
+                case .workingAdjustmentDay:
+                    Color.blue.opacity(0.08)
+                case .festival:
+                    Color.clear
+                }
+            } else {
+                Color.clear
+            }
+        }
     }
 
     private var dayIdentifier: String {
@@ -75,9 +123,9 @@ private struct CalendarDayCellView: View {
         case .festival:
             return .orange
         case .publicHoliday, .statutoryHoliday:
-            return .red
+            return .red.opacity(0.8)
         case .workingAdjustmentDay:
-            return .blue
+            return .blue.opacity(0.8)
         }
     }
 }
