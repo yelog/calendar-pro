@@ -37,8 +37,9 @@ struct RootPopoverView: View {
             onQuit: onQuit
         )
         .onAppear {
+            // 每次显示时重新检查授权状态
             eventService.checkAuthorizationStatus()
-            if settingsStore.menuBarPreferences.showEvents {
+            if eventService.isAuthorized && settingsStore.menuBarPreferences.showEvents {
                 eventService.fetchCalendars()
             }
         }
