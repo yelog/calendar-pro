@@ -35,6 +35,7 @@ struct CalendarPopoverView: View {
                     .padding(.horizontal, -16)
                 
                 EventListView(events: events, isLoading: isLoadingEvents)
+                    .frame(maxHeight: 200)
             }
             
             Text(regionSummary)
@@ -74,7 +75,8 @@ struct CalendarPopoverView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .frame(width: 340, height: dynamicHeight)
+        .frame(width: 340)
+        .fixedSize(horizontal: false, vertical: true)
         .background(
             LinearGradient(
                 colors: [
@@ -85,12 +87,5 @@ struct CalendarPopoverView: View {
                 endPoint: .bottomTrailing
             )
         )
-    }
-    
-    private var dynamicHeight: CGFloat {
-        if showEvents, selectedDate != nil {
-            return 540
-        }
-        return 400
     }
 }
