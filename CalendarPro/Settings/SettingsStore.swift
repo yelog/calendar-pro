@@ -103,6 +103,22 @@ final class SettingsStore: ObservableObject {
         holidayDataRevision += 1
     }
 
+    func setShowEvents(_ show: Bool) {
+        menuBarPreferences.showEvents = show
+    }
+
+    func setCalendarEnabled(_ enabled: Bool, calendarID: String) {
+        var ids = menuBarPreferences.enabledCalendarIDs
+        if enabled {
+            if !ids.contains(calendarID) {
+                ids.append(calendarID)
+            }
+        } else {
+            ids.removeAll { $0 == calendarID }
+        }
+        menuBarPreferences.enabledCalendarIDs = ids
+    }
+
     private func persistMenuBarPreferences() {
         guard let data = try? encoder.encode(menuBarPreferences) else { return }
         userDefaults.set(data, forKey: menuBarPreferencesKey)
