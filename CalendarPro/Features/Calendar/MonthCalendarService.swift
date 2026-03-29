@@ -23,6 +23,7 @@ struct MonthCalendarService {
                 date: date,
                 isInDisplayedMonth: calendar.isDate(date, equalTo: monthStart, toGranularity: .month),
                 isToday: calendar.isDate(date, inSameDayAs: now()),
+                isSelected: false,
                 solarText: String(calendar.component(.day, from: date)),
                 lunarText: nil,
                 badges: []

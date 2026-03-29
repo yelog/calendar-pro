@@ -7,6 +7,7 @@ struct CalendarPopoverView: View {
     let regionSummary: String
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
+    let onSelectDate: (Date) -> Void
     let onResetToToday: () -> Void
     let onQuit: () -> Void
 
@@ -20,7 +21,8 @@ struct CalendarPopoverView: View {
 
             CalendarGridView(
                 weekdaySymbols: weekdaySymbols,
-                monthDays: monthDays
+                monthDays: monthDays,
+                onSelectDate: onSelectDate
             )
 
             Text(regionSummary)

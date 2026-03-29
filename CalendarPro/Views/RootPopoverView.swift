@@ -17,8 +17,12 @@ struct RootPopoverView: View {
             onNextMonth: {
                 viewModel.showNextMonth(using: displayCalendar)
             },
+            onSelectDate: { date in
+                viewModel.selectDate(date)
+            },
             onResetToToday: {
                 viewModel.resetToToday()
+                viewModel.clearSelectedDate()
             },
             onQuit: onQuit
         )
@@ -38,7 +42,8 @@ struct RootPopoverView: View {
         let factory = CalendarDayFactory(calendar: displayCalendar, registry: .live)
         return (try? factory.makeMonthGrid(
             for: viewModel.displayedMonth,
-            preferences: settingsStore.menuBarPreferences
+            preferences: settingsStore.menuBarPreferences,
+            selectedDate: viewModel.selectedDate
         )) ?? monthService.makeMonthGrid(for: viewModel.displayedMonth)
     }
 

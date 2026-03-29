@@ -20,7 +20,8 @@ struct CalendarDayFactory {
     func makeDay(
         for date: Date,
         displayedMonth: Date? = nil,
-        preferences: MenuBarPreferences = .default
+        preferences: MenuBarPreferences = .default,
+        selectedDate: Date? = nil
     ) throws -> CalendarDay {
         let lunarDescriptor = lunarService.describe(date: date, timeZone: calendar.timeZone)
         let holidays = try holidayResolver.holidays(
@@ -33,6 +34,7 @@ struct CalendarDayFactory {
             date: date,
             isInDisplayedMonth: calendar.isDate(date, equalTo: displayedMonth ?? date, toGranularity: .month),
             isToday: calendar.isDate(date, inSameDayAs: monthService.now()),
+            isSelected: selectedDate != nil && calendar.isDate(date, inSameDayAs: selectedDate!),
             solarText: String(calendar.component(.day, from: date)),
             lunarText: lunarDescriptor.displayText,
             badges: holidays.map(\.dayBadge)
@@ -41,7 +43,8 @@ struct CalendarDayFactory {
 
     func makeMonthGrid(
         for month: Date,
-        preferences: MenuBarPreferences = .default
+        preferences: MenuBarPreferences = .default,
+        selectedDate: Date? = nil
     ) throws -> [CalendarDay] {
         let baseDays = monthService.makeMonthGrid(for: month)
         let holidayMap = try holidayResolver.holidaysByDay(
@@ -58,6 +61,7 @@ struct CalendarDayFactory {
                 date: day.date,
                 isInDisplayedMonth: day.isInDisplayedMonth,
                 isToday: day.isToday,
+                isSelected: selectedDate != nil && calendar.isDate(day.date, inSameDayAs: selectedDate!),
                 solarText: day.solarText,
                 lunarText: lunarDescriptor.displayText,
                 badges: resolvedBadges
