@@ -37,6 +37,25 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertEqual(symbols.first, "Sun")
     }
 
+    func testInitialSelectedDateIsNil() {
+        let viewModel = CalendarPopoverViewModel()
+        XCTAssertNil(viewModel.selectedDate)
+    }
+
+    func testSelectDate() {
+        let viewModel = CalendarPopoverViewModel()
+        let date = makeDate(year: 2026, month: 3, day: 29)
+        viewModel.selectDate(date)
+        XCTAssertEqual(viewModel.selectedDate, date)
+    }
+
+    func testClearSelectedDate() {
+        let viewModel = CalendarPopoverViewModel()
+        viewModel.selectDate(makeDate(year: 2026, month: 3, day: 29))
+        viewModel.clearSelectedDate()
+        XCTAssertNil(viewModel.selectedDate)
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         DateComponents(
             calendar: Calendar.gregorianMondayFirst,
