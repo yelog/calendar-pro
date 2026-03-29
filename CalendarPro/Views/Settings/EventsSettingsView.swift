@@ -41,21 +41,26 @@ struct EventsSettingsView: View {
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                     } else {
-                        ForEach(eventService.calendars, id: \.calendarIdentifier) { calendar in
-                            HStack {
-                                Circle()
-                                    .fill(Color(nsColor: calendar.color))
-                                    .frame(width: 12, height: 12)
-                                
-                                Text(calendar.title)
-                                    .font(.system(size: 12))
-                                
-                                Spacer()
-                                
-                                Toggle("", isOn: calendarEnabledBinding(for: calendar.calendarIdentifier))
-                                    .toggleStyle(.checkbox)
+                        ScrollView {
+                            VStack(spacing: 8) {
+                                ForEach(eventService.calendars, id: \.calendarIdentifier) { calendar in
+                                    HStack {
+                                        Circle()
+                                            .fill(Color(nsColor: calendar.color))
+                                            .frame(width: 12, height: 12)
+                                        
+                                        Text(calendar.title)
+                                            .font(.system(size: 12))
+                                        
+                                        Spacer()
+                                        
+                                        Toggle("", isOn: calendarEnabledBinding(for: calendar.calendarIdentifier))
+                                            .toggleStyle(.checkbox)
+                                    }
+                                }
                             }
                         }
+                        .frame(maxHeight: 200)
                     }
                 }
             }
