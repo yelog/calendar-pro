@@ -26,7 +26,9 @@ final class ClockRenderServiceTests: XCTestCase {
             showLunarInMenuBar: true,
             activeRegionIDs: ["mainland-cn"],
             enabledHolidayIDs: [],
-            weekStart: .monday
+            weekStart: .monday,
+            showEvents: true,
+            enabledCalendarIDs: []
         )
 
         let text = renderer.render(
