@@ -1,16 +1,21 @@
 import SwiftUI
+import EventKit
 
 struct CalendarPopoverView: View {
     let displayedMonth: Date
     let weekdaySymbols: [String]
     let monthDays: [CalendarDay]
     let regionSummary: String
+    let showEvents: Bool
+    let selectedDate: Date?
+    let events: [EKEvent]
+    let isLoadingEvents: Bool
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
     let onSelectDate: (Date) -> Void
     let onResetToToday: () -> Void
     let onQuit: () -> Void
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             MonthHeaderView(
@@ -18,20 +23,27 @@ struct CalendarPopoverView: View {
                 onPreviousMonth: onPreviousMonth,
                 onNextMonth: onNextMonth
             )
-
+            
             CalendarGridView(
                 weekdaySymbols: weekdaySymbols,
                 monthDays: monthDays,
                 onSelectDate: onSelectDate
             )
-
+            
+            if showEvents, let date = selectedDate {
+                Divider()
+                    .padding(.horizontal, -16)
+                
+                EventListView(events: events, isLoading: isLoadingEvents)
+            }
+            
             Text(regionSummary)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-
+            
             Divider()
                 .padding(.horizontal, -16)
-
+            
             HStack {
                 SettingsLink {
                     Label("设置", systemImage: "gearshape")
@@ -39,18 +51,18 @@ struct CalendarPopoverView: View {
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut(",", modifiers: .command)
-
+                
                 Spacer()
-
+                
                 Button(action: onResetToToday) {
                     Label("今日", systemImage: "calendar")
                         .font(.system(size: 12))
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut("t", modifiers: .command)
-
+                
                 Spacer()
-
+                
                 Button(action: onQuit) {
                     Label("退出", systemImage: "power")
                         .font(.system(size: 12))
@@ -62,7 +74,7 @@ struct CalendarPopoverView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .frame(width: 340, height: 400)
+        .frame(width: 340, height: dynamicHeight)
         .background(
             LinearGradient(
                 colors: [
@@ -73,5 +85,12 @@ struct CalendarPopoverView: View {
                 endPoint: .bottomTrailing
             )
         )
+    }
+    
+    private var dynamicHeight: CGFloat {
+        if showEvents, selectedDate != nil {
+            return 540
+        }
+        return 400
     }
 }

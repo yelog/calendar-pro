@@ -1,6 +1,7 @@
 import XCTest
 @testable import CalendarPro
 
+@MainActor
 final class EventServiceTests: XCTestCase {
     func testInitialAuthorizationStatusIsNotDetermined() {
         let service = EventService()

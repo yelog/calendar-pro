@@ -7,522 +7,518 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0ACE3DF0292EABE4C9AA1FFB /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABDB0AA65B55806692E48597 /* SettingsRootView.swift */; };
-		0EB4AF515DE559EF9A476F97 /* CalendarPopoverViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7A4C273FEC3B07D28C60D1 /* CalendarPopoverViewModel.swift */; };
-		26F6A7B8167D19ED27FA172E /* HolidayCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38C5804577AB67EFDBCDCE48 /* HolidayCacheStore.swift */; };
-		2A5952E6960F6C53289268EA /* CalendarPopoverUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCDC8C8C004EF7315699BE7 /* CalendarPopoverUITests.swift */; };
-		2E7A32FBE0B0F56F32BDF676 /* CalendarProApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED0152E6A9904DE6DAD24BCE /* CalendarProApp.swift */; };
-		2EDFAF65F0899B60AEC8700C /* RegionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AC3478057BB7034208070FC /* RegionSettingsView.swift */; };
-		300F931BE559006183084BBA /* LunarDateDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A83CEBC650B526D6C7BF5D /* LunarDateDescriptor.swift */; };
-		307309FDBBCAAAABED433DE7 /* HolidayFeedManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F62B82BD7951AD1C20869FF /* HolidayFeedManifest.swift */; };
-		363C7B6633FAA753C633D114 /* CalendarDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43EE76ADA1F85DD3BB6F203D /* CalendarDay.swift */; };
-		36C04ECDFFEFEC16C90E5E1F /* CalendarGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF096E61A494C22656BA3B09 /* CalendarGridView.swift */; };
-		36FFAB3E702BF070382329E7 /* MonthCalendarServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28C638E849CBA1027CF8CAAE /* MonthCalendarServiceTests.swift */; };
-		39C7AFB3B8E95F3C49BCC9DD /* HolidayProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68630B5D6EEEBC9A0360E0F4 /* HolidayProvider.swift */; };
-		404375F7C0C4D6E8779EE327 /* HolidayProviderRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 913A2F2D659D89263A9A5684 /* HolidayProviderRegistryTests.swift */; };
-		417823686B708B40C93451A0 /* TraditionalFestivalResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A44570720416AA7C2B15A72 /* TraditionalFestivalResolver.swift */; };
-		4772301507F5EC5A2C82E276 /* LunarServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858A6C050F88B1398CC0F55A /* LunarServiceTests.swift */; };
-		4DF98A3C032EDF6F207AE3D3 /* MonthCalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 976A7A9739F4E2D1DBFDF528 /* MonthCalendarService.swift */; };
-		53A4D97FA869D8B839D90D0E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300A4E139C9469C81D4E5EA3 /* AppDelegate.swift */; };
-		540A904C983FFCABCE0E0EB7 /* RootPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E22039202224B333F14543 /* RootPopoverView.swift */; };
-		59BB4B143707162E53F4BCF8 /* HolidayOccurrence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C8B28455D2754630451BE57 /* HolidayOccurrence.swift */; };
-		59EE6BF0ECB3D56EF84212C5 /* HolidayFeedClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C23FD56FE000E01F21450F /* HolidayFeedClientTests.swift */; };
-		5A40D6F6C115D0FB3174DA67 /* MonthHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49A0543E922FB07716D04B46 /* MonthHeaderView.swift */; };
-		5AAC60B1B9C4527A2B581548 /* CalendarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5B7D174B2183018563FA255 /* CalendarPopoverView.swift */; };
-		5B5AF945A772D07BB351E524 /* MenuBarPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0808A6C5A1EB238319BBC58D /* MenuBarPreferences.swift */; };
-		5DA1F1E24CFAE634C3DEB9A1 /* CalendarDayFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F192B79C8F61FF3546A6550 /* CalendarDayFactoryTests.swift */; };
-		5E1FDA634568373EBF7269D2 /* HongKongProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F43F61AECE8528DC7DED7F99 /* HongKongProvider.swift */; };
-		6761B94506435E5FD08D795A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFC123E43117F86A6B7178BC /* Cocoa.framework */; };
-		6D8AE3E342CF2E706ADEA1AB /* ClockRenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17DF6CAA4C1BB91BA27684C /* ClockRenderService.swift */; };
-		73F987925B0ECE7E86D55DFA /* HolidayFeedClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9D30A3AEDFA8B3B8D68555F /* HolidayFeedClient.swift */; };
-		7DB18069A95F3A78FA9B245F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFC123E43117F86A6B7178BC /* Cocoa.framework */; };
-		7F4E031FB3ADD4F26CA02AF2 /* PopoverController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EB62D66725660A5C6A9EDE /* PopoverController.swift */; };
-		83BABA8E0BE72E84D0FE5259 /* MainlandCNProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF73484622ECF1603A69191E /* MainlandCNProviderTests.swift */; };
-		865BE78C336518CF960A3C44 /* LunarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CBADEA71913F20775AD63A /* LunarService.swift */; };
-		8DEA77AD80E8412781CE974C /* SettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5479E6880E7503766BD5DCF /* SettingsStoreTests.swift */; };
-		8E7B595906341133F8B05B42 /* MainlandCNProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B62C6A1C55923B50BD9C192 /* MainlandCNProvider.swift */; };
-		8EAD063D374C200F85995E11 /* MenuBarSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BF6D604BC4C23348CDF821B /* MenuBarSettingsView.swift */; };
-		99BA3B03CD35B45570FF43E5 /* RegionSettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8862C1D3F2CCED21FED382 /* RegionSettingsViewModelTests.swift */; };
-		9CDB977F7A9E2F14371781AE /* mainland-cn-2026.json in Resources */ = {isa = PBXBuildFile; fileRef = 7058E924E88003F6BC8B337A /* mainland-cn-2026.json */; };
-		A4670A8084D7214F0F48B82D /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01137A42AD84DCA2868AF2A /* StatusBarController.swift */; };
-		A7203260ED1442B6A905E858 /* CalendarProTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B95E6860B477EC049EA5444 /* CalendarProTests.swift */; };
-		B13271BB3C716DAD607584F2 /* CalendarDayFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58506327B5ABB01389FDA442 /* CalendarDayFactory.swift */; };
-		B35AFB98549D611F0D0DC507 /* MenuBarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607B5368739692523D4654DD /* MenuBarViewModel.swift */; };
-		B5BAD5AB4EBA9AA74E4C76EC /* HolidayProviderRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5384C21972E6E4104C4C1206 /* HolidayProviderRegistry.swift */; };
-		C1211384272F4B94F4B1FC25 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFC123E43117F86A6B7178BC /* Cocoa.framework */; };
-		CECEA7D69EF47C0EA2DF67AF /* RegionSettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A96AE80FA870900E5D172F /* RegionSettingsViewModel.swift */; };
-		D447B645F6C5A87029EBED55 /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD659C682E63B73012EF7A52 /* GeneralSettingsView.swift */; };
-		E80DBC59826660E206179F30 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF7F4E8BA52358D426FAB48 /* SettingsStore.swift */; };
-		E947DEE6F317596926B84813 /* hong-kong-2026.json in Resources */ = {isa = PBXBuildFile; fileRef = 9BDC662EA6E4A1316FAFE3E5 /* hong-kong-2026.json */; };
-		EBCCA0C9D025A30465ABF44D /* ClockRenderServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD4CB6C7BC6A4FD0CD1DC9E6 /* ClockRenderServiceTests.swift */; };
-		F06D24657121998CE55AB341 /* CalendarPopoverViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90475B75E6878A38918927A4 /* CalendarPopoverViewModelTests.swift */; };
-		F8AB5B821F41AEB4C0E64233 /* MenuBarViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA665BB7824F51FD1BA01594 /* MenuBarViewModelTests.swift */; };
-		F904B74A80A2EF7FDD8E4D04 /* HolidayResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 439A61CE1AA94F77B749927A /* HolidayResolver.swift */; };
+		0021DBBD9C6B26326AD29A05 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074904F0985B217DC8AAC099 /* StatusBarController.swift */; };
+		02400DBB56311E5F6937927E /* MonthCalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B4C975E5011BDCD46CAD97 /* MonthCalendarService.swift */; };
+		03BE3E1D037EC0BDC5A4C8AA /* ClockRenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA651F253BDA3E79A8FA370 /* ClockRenderService.swift */; };
+		05A529D9B28347FA79C133C9 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97FBA46B256D859F420ED6E0 /* Cocoa.framework */; };
+		0B66F65A26D7822F2124CD61 /* RootPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC9A12F7723D2BC270BCE48 /* RootPopoverView.swift */; };
+		0F84B84515A7FC51C1C3CB97 /* CalendarProApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F89E875B8542008AE9E821A /* CalendarProApp.swift */; };
+		0FF15F18A687AA851E6399AA /* MenuBarPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47CC535BF92134DB2514F354 /* MenuBarPreferencesTests.swift */; };
+		14D59D38C1971B8318713316 /* mainland-cn-2026.json in Resources */ = {isa = PBXBuildFile; fileRef = 01BB163F32E1F79D7019373A /* mainland-cn-2026.json */; };
+		198B83C12AE2D425E6952826 /* CalendarGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 071CFCDB95D46AD4EA6B236E /* CalendarGridView.swift */; };
+		1B0D571B70E44C25565A13BF /* HolidayFeedManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1AB1A11C3CB8D23E1D4BCF /* HolidayFeedManifest.swift */; };
+		1B35B0A37BB2CE50E0551966 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6830328B699F3741530FB54C /* SettingsRootView.swift */; };
+		24E7DF9286A79963FD3B89BF /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00CCCC8A4762A7723FF9245B /* GeneralSettingsView.swift */; };
+		25A46D1A2EA5BD3F796E5A89 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97FBA46B256D859F420ED6E0 /* Cocoa.framework */; };
+		32D6653CFE377D45A9EDDB12 /* hong-kong-2026.json in Resources */ = {isa = PBXBuildFile; fileRef = 1560FCD415FB77D25147645A /* hong-kong-2026.json */; };
+		362A0191C7108F2BA42B75D6 /* PopoverController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26F317003A32B5BF6FDAC780 /* PopoverController.swift */; };
+		3D82C93B3B022AE799A5DFCD /* MenuBarSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3717C89554A23C7D66160C39 /* MenuBarSettingsView.swift */; };
+		47CDED6E1C964F60039EA9A3 /* RegionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 559E02B3781941981F08EA84 /* RegionSettingsView.swift */; };
+		4C411BAE7B207EA1DC32AAC9 /* HolidayProviderRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7036BAD724815332F007AA9C /* HolidayProviderRegistry.swift */; };
+		4EF29D04C3007F603D4EE0D2 /* HolidayResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25720588E85F5C4DA38F4572 /* HolidayResolver.swift */; };
+		52793FBD4C1B498CBB5B7CC3 /* LunarDateDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04812713FB5E678AEF29BA29 /* LunarDateDescriptor.swift */; };
+		58EBDA1A4781BC92D2169377 /* MainlandCNProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B268D3DBEA9C32D01D6AC5 /* MainlandCNProviderTests.swift */; };
+		67C856072FC19B799CCBD12E /* MenuBarViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D959C1BD79FF96DA891402F1 /* MenuBarViewModelTests.swift */; };
+		67DA5B52CB7ACB4EC4E70404 /* CalendarDayFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFC0692A81CBAAE8FC3AC3BC /* CalendarDayFactory.swift */; };
+		6AA28841051BEC7F0C1DCBB5 /* HolidayProviderRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BAB5BC4562580A125056001 /* HolidayProviderRegistryTests.swift */; };
+		70BE9BCE9CA21555DA134EF6 /* CalendarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06DC8F4AE165EAFD2C027B9B /* CalendarPopoverView.swift */; };
+		734215067A9A23151058B683 /* HolidayProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99EF2C9772AD1DE8E3A6E4F3 /* HolidayProvider.swift */; };
+		7B03C3E303C17D4644231370 /* MonthHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EEC36B3ED08222EC9D81D55 /* MonthHeaderView.swift */; };
+		822B24DA9CDEF18C5C573326 /* MainlandCNProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 224F71F73E651D6ABE9FF435 /* MainlandCNProvider.swift */; };
+		95163E8F3D1B5FB72291416C /* HongKongProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C024FE314B38B55B5879D03 /* HongKongProvider.swift */; };
+		97983586171255816ADB7FB8 /* CalendarDayFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8DC1F3C4083E8D9C92027B /* CalendarDayFactoryTests.swift */; };
+		9AB7FCC1562D7178914EE3CE /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBB073DBB2C7AE7EA7D71AF /* SettingsStore.swift */; };
+		9F0567A39CC414CE9BFD5254 /* RegionSettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94EDD5E86AB1859F1E7B63D2 /* RegionSettingsViewModelTests.swift */; };
+		A626D38A77D252F1C11E1376 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 361F19B5E3A24582BF964381 /* AppDelegate.swift */; };
+		AB727B76826DB1926BEB0A5C /* RegionSettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78529A2C212BFB1F9463F1A /* RegionSettingsViewModel.swift */; };
+		AE69E9C9D94BEB48A4627676 /* CalendarDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F06D8F458C67F568F878F43 /* CalendarDay.swift */; };
+		AE769D09BC9A57401E751C71 /* EventCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83AD08778222FBAB0A8C2505 /* EventCardView.swift */; };
+		B73D109E30EACC359EFCA714 /* CalendarPopoverUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6385B27D204E55390005328 /* CalendarPopoverUITests.swift */; };
+		B8A3AC8C49F54BA1F398F6B6 /* MonthCalendarServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E09F2F4154D0767181DC88 /* MonthCalendarServiceTests.swift */; };
+		BB1D40DA7374AC9A4A36204D /* ClockRenderServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A87855E0837C3388888416 /* ClockRenderServiceTests.swift */; };
+		BF922AA70527C000FABBB841 /* HolidayOccurrence.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5009701B77E7B2278B1B65 /* HolidayOccurrence.swift */; };
+		C1E22E5F1DC15F120CCAF75C /* LunarServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E51F426B7EF666BE8BC93956 /* LunarServiceTests.swift */; };
+		C255C422799A12416EF460EB /* CalendarProTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBCAD426CA3E6615F12258DA /* CalendarProTests.swift */; };
+		C7B71A18E17B2272B206D108 /* HolidayFeedClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52A006E76A2D1C318F5DCA55 /* HolidayFeedClient.swift */; };
+		C90CE4538EDCE4A7CA291315 /* CalendarPopoverViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 328496A5C00FB3260539B18D /* CalendarPopoverViewModelTests.swift */; };
+		C924DACB87A215F997EC531A /* MenuBarPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6BACAC727B3B53D7CB6BB2E /* MenuBarPreferences.swift */; };
+		CDBC37576CF211241CC1EE06 /* MenuBarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FDCF616353CA35BA21E2701 /* MenuBarViewModel.swift */; };
+		D33E3829283255A54142607C /* HolidayFeedClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72E932339434E08B6B387034 /* HolidayFeedClientTests.swift */; };
+		DC3B579A1ED224DACD8539C8 /* EventServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26B3674002176DE4F1836D9D /* EventServiceTests.swift */; };
+		E1526BC1A1F8F0AFD9391300 /* TraditionalFestivalResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0676CD6E17DBCE41F7F94C67 /* TraditionalFestivalResolver.swift */; };
+		E3664D1A854CB6E247E06B08 /* CalendarPopoverViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2647C9043AA36450B455038C /* CalendarPopoverViewModel.swift */; };
+		E41730B483EF3EBDC9358E82 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97FBA46B256D859F420ED6E0 /* Cocoa.framework */; };
+		EF4D7A9B9A0070A391C99027 /* HolidayCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CAE6A6471F464768B8742A6 /* HolidayCacheStore.swift */; };
+		F70B2896612EEE0F475D6D57 /* EventListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FDD772EA83504DC6D61149 /* EventListView.swift */; };
+		FC8B0804C1F417D475AEBB9E /* SettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 715725634511D2596E03DE3E /* SettingsStoreTests.swift */; };
+		FDB5B37B6657EC991723DF0D /* EventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 888F2903AD41629B15D2C8E8 /* EventService.swift */; };
+		FFB9C7449AED7EC5A874ADC8 /* LunarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B574B95A8851F12B9C9584 /* LunarService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		307F077416BBE8B8905491D7 /* PBXContainerItemProxy */ = {
+		48E69AFEF59E74A78D2120F2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 0B4A75CEC6379D1ED3385C52 /* Project object */;
+			containerPortal = D7ABF9C3A778C7DF297396E2 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = E12AEEEB69417160AA0A00E4;
+			remoteGlobalIDString = 1C647EDF012CFAD51A4FE57E;
 			remoteInfo = CalendarPro;
 		};
-		6582EAEA8BDB1D23A12BA86E /* PBXContainerItemProxy */ = {
+		9657EB7B788BB976360679A1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 0B4A75CEC6379D1ED3385C52 /* Project object */;
+			containerPortal = D7ABF9C3A778C7DF297396E2 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = E12AEEEB69417160AA0A00E4;
+			remoteGlobalIDString = 1C647EDF012CFAD51A4FE57E;
 			remoteInfo = CalendarPro;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0808A6C5A1EB238319BBC58D /* MenuBarPreferences.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarPreferences.swift; sourceTree = "<group>"; };
-		14E22039202224B333F14543 /* RootPopoverView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RootPopoverView.swift; sourceTree = "<group>"; };
-		1C8B28455D2754630451BE57 /* HolidayOccurrence.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayOccurrence.swift; sourceTree = "<group>"; };
-		28C638E849CBA1027CF8CAAE /* MonthCalendarServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MonthCalendarServiceTests.swift; sourceTree = "<group>"; };
-		2A44570720416AA7C2B15A72 /* TraditionalFestivalResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TraditionalFestivalResolver.swift; sourceTree = "<group>"; };
-		300A4E139C9469C81D4E5EA3 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		30C23FD56FE000E01F21450F /* HolidayFeedClientTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayFeedClientTests.swift; sourceTree = "<group>"; };
-		38C5804577AB67EFDBCDCE48 /* HolidayCacheStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayCacheStore.swift; sourceTree = "<group>"; };
-		3BCDC8C8C004EF7315699BE7 /* CalendarPopoverUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverUITests.swift; sourceTree = "<group>"; };
-		439A61CE1AA94F77B749927A /* HolidayResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayResolver.swift; sourceTree = "<group>"; };
-		43A96AE80FA870900E5D172F /* RegionSettingsViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RegionSettingsViewModel.swift; sourceTree = "<group>"; };
-		43EE76ADA1F85DD3BB6F203D /* CalendarDay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarDay.swift; sourceTree = "<group>"; };
-		44C2E6E737185B2A7B426A7E /* CalendarProTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalendarProTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		49A0543E922FB07716D04B46 /* MonthHeaderView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MonthHeaderView.swift; sourceTree = "<group>"; };
-		4BF6D604BC4C23348CDF821B /* MenuBarSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarSettingsView.swift; sourceTree = "<group>"; };
-		5384C21972E6E4104C4C1206 /* HolidayProviderRegistry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayProviderRegistry.swift; sourceTree = "<group>"; };
-		58506327B5ABB01389FDA442 /* CalendarDayFactory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarDayFactory.swift; sourceTree = "<group>"; };
-		607B5368739692523D4654DD /* MenuBarViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarViewModel.swift; sourceTree = "<group>"; };
-		64CBADEA71913F20775AD63A /* LunarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LunarService.swift; sourceTree = "<group>"; };
-		68630B5D6EEEBC9A0360E0F4 /* HolidayProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayProvider.swift; sourceTree = "<group>"; };
-		6B62C6A1C55923B50BD9C192 /* MainlandCNProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainlandCNProvider.swift; sourceTree = "<group>"; };
-		6F192B79C8F61FF3546A6550 /* CalendarDayFactoryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarDayFactoryTests.swift; sourceTree = "<group>"; };
-		7058E924E88003F6BC8B337A /* mainland-cn-2026.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "mainland-cn-2026.json"; sourceTree = "<group>"; };
-		7AC3478057BB7034208070FC /* RegionSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RegionSettingsView.swift; sourceTree = "<group>"; };
-		83A83CEBC650B526D6C7BF5D /* LunarDateDescriptor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LunarDateDescriptor.swift; sourceTree = "<group>"; };
-		858A6C050F88B1398CC0F55A /* LunarServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LunarServiceTests.swift; sourceTree = "<group>"; };
-		8B95E6860B477EC049EA5444 /* CalendarProTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarProTests.swift; sourceTree = "<group>"; };
-		8BF7F4E8BA52358D426FAB48 /* SettingsStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
-		90475B75E6878A38918927A4 /* CalendarPopoverViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverViewModelTests.swift; sourceTree = "<group>"; };
-		913A2F2D659D89263A9A5684 /* HolidayProviderRegistryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayProviderRegistryTests.swift; sourceTree = "<group>"; };
-		976A7A9739F4E2D1DBFDF528 /* MonthCalendarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MonthCalendarService.swift; sourceTree = "<group>"; };
-		9BDC662EA6E4A1316FAFE3E5 /* hong-kong-2026.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "hong-kong-2026.json"; sourceTree = "<group>"; };
-		9E8862C1D3F2CCED21FED382 /* RegionSettingsViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RegionSettingsViewModelTests.swift; sourceTree = "<group>"; };
-		9F62B82BD7951AD1C20869FF /* HolidayFeedManifest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayFeedManifest.swift; sourceTree = "<group>"; };
-		A5479E6880E7503766BD5DCF /* SettingsStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsStoreTests.swift; sourceTree = "<group>"; };
-		ABDB0AA65B55806692E48597 /* SettingsRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
-		AD4CB6C7BC6A4FD0CD1DC9E6 /* ClockRenderServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClockRenderServiceTests.swift; sourceTree = "<group>"; };
-		AF096E61A494C22656BA3B09 /* CalendarGridView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarGridView.swift; sourceTree = "<group>"; };
-		B01137A42AD84DCA2868AF2A /* StatusBarController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
-		B9D30A3AEDFA8B3B8D68555F /* HolidayFeedClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayFeedClient.swift; sourceTree = "<group>"; };
-		BFC123E43117F86A6B7178BC /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
-		C5B7D174B2183018563FA255 /* CalendarPopoverView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverView.swift; sourceTree = "<group>"; };
-		CD659C682E63B73012EF7A52 /* GeneralSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
-		EA665BB7824F51FD1BA01594 /* MenuBarViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarViewModelTests.swift; sourceTree = "<group>"; };
-		EAAC588AE0CBDA0A6E565C5A /* CalendarProUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalendarProUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		ED0152E6A9904DE6DAD24BCE /* CalendarProApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarProApp.swift; sourceTree = "<group>"; };
-		EF73484622ECF1603A69191E /* MainlandCNProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainlandCNProviderTests.swift; sourceTree = "<group>"; };
-		EF7A4C273FEC3B07D28C60D1 /* CalendarPopoverViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverViewModel.swift; sourceTree = "<group>"; };
-		EFB2FB7EFB3960B783E2BA6B /* CalendarPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CalendarPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F17DF6CAA4C1BB91BA27684C /* ClockRenderService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClockRenderService.swift; sourceTree = "<group>"; };
-		F43F61AECE8528DC7DED7F99 /* HongKongProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HongKongProvider.swift; sourceTree = "<group>"; };
-		F7EB62D66725660A5C6A9EDE /* PopoverController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PopoverController.swift; sourceTree = "<group>"; };
+		00CCCC8A4762A7723FF9245B /* GeneralSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
+		01BB163F32E1F79D7019373A /* mainland-cn-2026.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "mainland-cn-2026.json"; sourceTree = "<group>"; };
+		04812713FB5E678AEF29BA29 /* LunarDateDescriptor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LunarDateDescriptor.swift; sourceTree = "<group>"; };
+		0676CD6E17DBCE41F7F94C67 /* TraditionalFestivalResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TraditionalFestivalResolver.swift; sourceTree = "<group>"; };
+		06DC8F4AE165EAFD2C027B9B /* CalendarPopoverView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverView.swift; sourceTree = "<group>"; };
+		071CFCDB95D46AD4EA6B236E /* CalendarGridView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarGridView.swift; sourceTree = "<group>"; };
+		074904F0985B217DC8AAC099 /* StatusBarController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		11B268D3DBEA9C32D01D6AC5 /* MainlandCNProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainlandCNProviderTests.swift; sourceTree = "<group>"; };
+		1560FCD415FB77D25147645A /* hong-kong-2026.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "hong-kong-2026.json"; sourceTree = "<group>"; };
+		1C024FE314B38B55B5879D03 /* HongKongProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HongKongProvider.swift; sourceTree = "<group>"; };
+		224F71F73E651D6ABE9FF435 /* MainlandCNProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainlandCNProvider.swift; sourceTree = "<group>"; };
+		25720588E85F5C4DA38F4572 /* HolidayResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayResolver.swift; sourceTree = "<group>"; };
+		2647C9043AA36450B455038C /* CalendarPopoverViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverViewModel.swift; sourceTree = "<group>"; };
+		26B3674002176DE4F1836D9D /* EventServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventServiceTests.swift; sourceTree = "<group>"; };
+		26F317003A32B5BF6FDAC780 /* PopoverController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PopoverController.swift; sourceTree = "<group>"; };
+		2AB09F373BC6CEEC38CE3924 /* CalendarPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CalendarPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2EEC36B3ED08222EC9D81D55 /* MonthHeaderView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MonthHeaderView.swift; sourceTree = "<group>"; };
+		328496A5C00FB3260539B18D /* CalendarPopoverViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverViewModelTests.swift; sourceTree = "<group>"; };
+		32E09F2F4154D0767181DC88 /* MonthCalendarServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MonthCalendarServiceTests.swift; sourceTree = "<group>"; };
+		361F19B5E3A24582BF964381 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3717C89554A23C7D66160C39 /* MenuBarSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarSettingsView.swift; sourceTree = "<group>"; };
+		47CC535BF92134DB2514F354 /* MenuBarPreferencesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarPreferencesTests.swift; sourceTree = "<group>"; };
+		4D1AB1A11C3CB8D23E1D4BCF /* HolidayFeedManifest.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayFeedManifest.swift; sourceTree = "<group>"; };
+		4FDCF616353CA35BA21E2701 /* MenuBarViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarViewModel.swift; sourceTree = "<group>"; };
+		52A006E76A2D1C318F5DCA55 /* HolidayFeedClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayFeedClient.swift; sourceTree = "<group>"; };
+		559E02B3781941981F08EA84 /* RegionSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RegionSettingsView.swift; sourceTree = "<group>"; };
+		5CAE6A6471F464768B8742A6 /* HolidayCacheStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayCacheStore.swift; sourceTree = "<group>"; };
+		6830328B699F3741530FB54C /* SettingsRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
+		6EBB073DBB2C7AE7EA7D71AF /* SettingsStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		6F06D8F458C67F568F878F43 /* CalendarDay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarDay.swift; sourceTree = "<group>"; };
+		7036BAD724815332F007AA9C /* HolidayProviderRegistry.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayProviderRegistry.swift; sourceTree = "<group>"; };
+		715725634511D2596E03DE3E /* SettingsStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsStoreTests.swift; sourceTree = "<group>"; };
+		72E932339434E08B6B387034 /* HolidayFeedClientTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayFeedClientTests.swift; sourceTree = "<group>"; };
+		76B574B95A8851F12B9C9584 /* LunarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LunarService.swift; sourceTree = "<group>"; };
+		7BAB5BC4562580A125056001 /* HolidayProviderRegistryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayProviderRegistryTests.swift; sourceTree = "<group>"; };
+		83AD08778222FBAB0A8C2505 /* EventCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventCardView.swift; sourceTree = "<group>"; };
+		888F2903AD41629B15D2C8E8 /* EventService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventService.swift; sourceTree = "<group>"; };
+		8F89E875B8542008AE9E821A /* CalendarProApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarProApp.swift; sourceTree = "<group>"; };
+		94EDD5E86AB1859F1E7B63D2 /* RegionSettingsViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RegionSettingsViewModelTests.swift; sourceTree = "<group>"; };
+		97FBA46B256D859F420ED6E0 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		99EF2C9772AD1DE8E3A6E4F3 /* HolidayProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayProvider.swift; sourceTree = "<group>"; };
+		9DEC30ACA7C355B578DAA691 /* CalendarProUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalendarProUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A6BACAC727B3B53D7CB6BB2E /* MenuBarPreferences.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarPreferences.swift; sourceTree = "<group>"; };
+		ADC9A12F7723D2BC270BCE48 /* RootPopoverView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RootPopoverView.swift; sourceTree = "<group>"; };
+		B6385B27D204E55390005328 /* CalendarPopoverUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverUITests.swift; sourceTree = "<group>"; };
+		C3A87855E0837C3388888416 /* ClockRenderServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClockRenderServiceTests.swift; sourceTree = "<group>"; };
+		C8B17F3F655E084F950FF664 /* CalendarProTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalendarProTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD8DC1F3C4083E8D9C92027B /* CalendarDayFactoryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarDayFactoryTests.swift; sourceTree = "<group>"; };
+		CDA651F253BDA3E79A8FA370 /* ClockRenderService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClockRenderService.swift; sourceTree = "<group>"; };
+		D959C1BD79FF96DA891402F1 /* MenuBarViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarViewModelTests.swift; sourceTree = "<group>"; };
+		E1FDD772EA83504DC6D61149 /* EventListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventListView.swift; sourceTree = "<group>"; };
+		E51F426B7EF666BE8BC93956 /* LunarServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LunarServiceTests.swift; sourceTree = "<group>"; };
+		EB5009701B77E7B2278B1B65 /* HolidayOccurrence.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayOccurrence.swift; sourceTree = "<group>"; };
+		EFC0692A81CBAAE8FC3AC3BC /* CalendarDayFactory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarDayFactory.swift; sourceTree = "<group>"; };
+		F3B4C975E5011BDCD46CAD97 /* MonthCalendarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MonthCalendarService.swift; sourceTree = "<group>"; };
+		F78529A2C212BFB1F9463F1A /* RegionSettingsViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RegionSettingsViewModel.swift; sourceTree = "<group>"; };
+		FBCAD426CA3E6615F12258DA /* CalendarProTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarProTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		24D85E42FA30DA02A365CEE5 /* Frameworks */ = {
+		0CE5C697D070DC156996B373 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C1211384272F4B94F4B1FC25 /* Cocoa.framework in Frameworks */,
+				25A46D1A2EA5BD3F796E5A89 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AB16CC78847AA1BF52D2B3D4 /* Frameworks */ = {
+		E51AE9DACCEBBB060967294C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6761B94506435E5FD08D795A /* Cocoa.framework in Frameworks */,
+				05A529D9B28347FA79C133C9 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		DD209300BD6F59D9D9995127 /* Frameworks */ = {
+		FAFD75D04BC8A5F595258568 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7DB18069A95F3A78FA9B245F /* Cocoa.framework in Frameworks */,
+				E41730B483EF3EBDC9358E82 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		005110723DE534314C0FC834 /* Holidays */ = {
+		0580E061E7A7094D05C885E7 /* Popover */ = {
 			isa = PBXGroup;
 			children = (
-				913A2F2D659D89263A9A5684 /* HolidayProviderRegistryTests.swift */,
-				EF73484622ECF1603A69191E /* MainlandCNProviderTests.swift */,
-			);
-			name = Holidays;
-			path = Holidays;
-			sourceTree = "<group>";
-		};
-		0849C0A764FD698484139EBE /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				EFB2FB7EFB3960B783E2BA6B /* CalendarPro.app */,
-				44C2E6E737185B2A7B426A7E /* CalendarProTests.xctest */,
-				EAAC588AE0CBDA0A6E565C5A /* CalendarProUITests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		0959436922DDDA86B387502D = {
-			isa = PBXGroup;
-			children = (
-				0849C0A764FD698484139EBE /* Products */,
-				2E1DC99F0B76752CA48D8EBD /* Frameworks */,
-				EF355A4C869E5BF927F5F77A /* CalendarPro */,
-				7A6DE0950997C9FEF20E050F /* CalendarProTests */,
-				A0F35499DDCB96A09F8B41AA /* CalendarProUITests */,
-			);
-			sourceTree = "<group>";
-		};
-		09CF089E22D44BFDAEFA5C38 /* MenuBar */ = {
-			isa = PBXGroup;
-			children = (
-				F17DF6CAA4C1BB91BA27684C /* ClockRenderService.swift */,
-				607B5368739692523D4654DD /* MenuBarViewModel.swift */,
-			);
-			name = MenuBar;
-			path = MenuBar;
-			sourceTree = "<group>";
-		};
-		17EC578CCCC9B1A2153C9895 /* hong-kong */ = {
-			isa = PBXGroup;
-			children = (
-				9BDC662EA6E4A1316FAFE3E5 /* hong-kong-2026.json */,
-			);
-			name = "hong-kong";
-			path = "hong-kong";
-			sourceTree = "<group>";
-		};
-		2E1DC99F0B76752CA48D8EBD /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				767AA84F0AE3D11E98FE3DCA /* OS X */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		319009168CBBC2FDD4893F59 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				B8A1E96B161735B95C8BDD46 /* Popover */,
-				14E22039202224B333F14543 /* RootPopoverView.swift */,
-				3853A14488218A5746972827 /* Settings */,
-			);
-			name = Views;
-			path = Views;
-			sourceTree = "<group>";
-		};
-		3192E3DA004DF8FBAC5DB208 /* App */ = {
-			isa = PBXGroup;
-			children = (
-				300A4E139C9469C81D4E5EA3 /* AppDelegate.swift */,
-				F7EB62D66725660A5C6A9EDE /* PopoverController.swift */,
-				B01137A42AD84DCA2868AF2A /* StatusBarController.swift */,
-			);
-			name = App;
-			path = App;
-			sourceTree = "<group>";
-		};
-		3853A14488218A5746972827 /* Settings */ = {
-			isa = PBXGroup;
-			children = (
-				CD659C682E63B73012EF7A52 /* GeneralSettingsView.swift */,
-				4BF6D604BC4C23348CDF821B /* MenuBarSettingsView.swift */,
-				7AC3478057BB7034208070FC /* RegionSettingsView.swift */,
-				ABDB0AA65B55806692E48597 /* SettingsRootView.swift */,
-			);
-			name = Settings;
-			path = Settings;
-			sourceTree = "<group>";
-		};
-		3D361187361C9D307A4D7630 /* Settings */ = {
-			isa = PBXGroup;
-			children = (
-				9E8862C1D3F2CCED21FED382 /* RegionSettingsViewModelTests.swift */,
-				A5479E6880E7503766BD5DCF /* SettingsStoreTests.swift */,
-			);
-			name = Settings;
-			path = Settings;
-			sourceTree = "<group>";
-		};
-		4248DF1280F52236F41F98E1 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				F1F821A46133E3636E849161 /* Holidays */,
-			);
-			name = Resources;
-			path = Resources;
-			sourceTree = "<group>";
-		};
-		4C93D1049CAE1C4A3CE92C4A /* Popover */ = {
-			isa = PBXGroup;
-			children = (
-				90475B75E6878A38918927A4 /* CalendarPopoverViewModelTests.swift */,
+				071CFCDB95D46AD4EA6B236E /* CalendarGridView.swift */,
+				06DC8F4AE165EAFD2C027B9B /* CalendarPopoverView.swift */,
+				2647C9043AA36450B455038C /* CalendarPopoverViewModel.swift */,
+				83AD08778222FBAB0A8C2505 /* EventCardView.swift */,
+				E1FDD772EA83504DC6D61149 /* EventListView.swift */,
+				2EEC36B3ED08222EC9D81D55 /* MonthHeaderView.swift */,
 			);
 			name = Popover;
 			path = Popover;
 			sourceTree = "<group>";
 		};
-		4ED0638F47D70CBB1AFF63D6 /* Data */ = {
+		1AE9A13AFA336CE2B1A1595E /* Calendar */ = {
 			isa = PBXGroup;
 			children = (
-				30C23FD56FE000E01F21450F /* HolidayFeedClientTests.swift */,
+				6F06D8F458C67F568F878F43 /* CalendarDay.swift */,
+				EFC0692A81CBAAE8FC3AC3BC /* CalendarDayFactory.swift */,
+				F3B4C975E5011BDCD46CAD97 /* MonthCalendarService.swift */,
+			);
+			name = Calendar;
+			path = Calendar;
+			sourceTree = "<group>";
+		};
+		1E4A95BD9ED1CC02B63858EF /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				5CAE6A6471F464768B8742A6 /* HolidayCacheStore.swift */,
+				52A006E76A2D1C318F5DCA55 /* HolidayFeedClient.swift */,
+				4D1AB1A11C3CB8D23E1D4BCF /* HolidayFeedManifest.swift */,
 			);
 			name = Data;
 			path = Data;
 			sourceTree = "<group>";
 		};
-		767AA84F0AE3D11E98FE3DCA /* OS X */ = {
+		2B48F350229F54858C5288E4 = {
 			isa = PBXGroup;
 			children = (
-				BFC123E43117F86A6B7178BC /* Cocoa.framework */,
+				C38A8D6BBF79F5FE9B263261 /* Products */,
+				AD186578E1DBA44F8FB5FB27 /* Frameworks */,
+				CD239E20618470A2550D3FBF /* CalendarPro */,
+				6C169C2162136A3FB6AF77D5 /* CalendarProTests */,
+				AB9C7DD588FC8730B2560E24 /* CalendarProUITests */,
 			);
-			name = "OS X";
 			sourceTree = "<group>";
 		};
-		7A6DE0950997C9FEF20E050F /* CalendarProTests */ = {
+		305341E8E418EBF170E2CA4D /* Holidays */ = {
 			isa = PBXGroup;
 			children = (
-				F4E4AEFCD2F0613F12D777EA /* Calendar */,
-				8B95E6860B477EC049EA5444 /* CalendarProTests.swift */,
-				4ED0638F47D70CBB1AFF63D6 /* Data */,
-				005110723DE534314C0FC834 /* Holidays */,
-				C782EE36EC9D91C3BDF227AC /* Lunar */,
-				FAAFCEC94CFFB9EE4D463D83 /* MenuBar */,
-				4C93D1049CAE1C4A3CE92C4A /* Popover */,
-				3D361187361C9D307A4D7630 /* Settings */,
-			);
-			name = CalendarProTests;
-			path = CalendarProTests;
-			sourceTree = "<group>";
-		};
-		A0F35499DDCB96A09F8B41AA /* CalendarProUITests */ = {
-			isa = PBXGroup;
-			children = (
-				3BCDC8C8C004EF7315699BE7 /* CalendarPopoverUITests.swift */,
-			);
-			name = CalendarProUITests;
-			path = CalendarProUITests;
-			sourceTree = "<group>";
-		};
-		A92EE3C5B85C1236456AD854 /* Lunar */ = {
-			isa = PBXGroup;
-			children = (
-				83A83CEBC650B526D6C7BF5D /* LunarDateDescriptor.swift */,
-				64CBADEA71913F20775AD63A /* LunarService.swift */,
-				2A44570720416AA7C2B15A72 /* TraditionalFestivalResolver.swift */,
-			);
-			name = Lunar;
-			path = Lunar;
-			sourceTree = "<group>";
-		};
-		B8A1E96B161735B95C8BDD46 /* Popover */ = {
-			isa = PBXGroup;
-			children = (
-				AF096E61A494C22656BA3B09 /* CalendarGridView.swift */,
-				C5B7D174B2183018563FA255 /* CalendarPopoverView.swift */,
-				EF7A4C273FEC3B07D28C60D1 /* CalendarPopoverViewModel.swift */,
-				49A0543E922FB07716D04B46 /* MonthHeaderView.swift */,
-			);
-			name = Popover;
-			path = Popover;
-			sourceTree = "<group>";
-		};
-		BF8439544BC23180DEFDE982 /* Holidays */ = {
-			isa = PBXGroup;
-			children = (
-				1C8B28455D2754630451BE57 /* HolidayOccurrence.swift */,
-				68630B5D6EEEBC9A0360E0F4 /* HolidayProvider.swift */,
-				5384C21972E6E4104C4C1206 /* HolidayProviderRegistry.swift */,
-				439A61CE1AA94F77B749927A /* HolidayResolver.swift */,
-				F43F61AECE8528DC7DED7F99 /* HongKongProvider.swift */,
-				6B62C6A1C55923B50BD9C192 /* MainlandCNProvider.swift */,
+				860EA35991A827516ADA9F22 /* hong-kong */,
+				EB3E189C4E94E32247C7638C /* mainland-cn */,
 			);
 			name = Holidays;
 			path = Holidays;
 			sourceTree = "<group>";
 		};
-		C7144FEA9384D97394921A2C /* Settings */ = {
+		30B3E5707EB65B9FA7A67563 /* Popover */ = {
 			isa = PBXGroup;
 			children = (
-				0808A6C5A1EB238319BBC58D /* MenuBarPreferences.swift */,
-				43A96AE80FA870900E5D172F /* RegionSettingsViewModel.swift */,
-				8BF7F4E8BA52358D426FAB48 /* SettingsStore.swift */,
+				328496A5C00FB3260539B18D /* CalendarPopoverViewModelTests.swift */,
+			);
+			name = Popover;
+			path = Popover;
+			sourceTree = "<group>";
+		};
+		3236D32591EF48C1FC3433E2 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				47CC535BF92134DB2514F354 /* MenuBarPreferencesTests.swift */,
+				94EDD5E86AB1859F1E7B63D2 /* RegionSettingsViewModelTests.swift */,
+				715725634511D2596E03DE3E /* SettingsStoreTests.swift */,
 			);
 			name = Settings;
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		C782EE36EC9D91C3BDF227AC /* Lunar */ = {
+		35D69D047C95AB90868211D9 /* Lunar */ = {
 			isa = PBXGroup;
 			children = (
-				858A6C050F88B1398CC0F55A /* LunarServiceTests.swift */,
+				04812713FB5E678AEF29BA29 /* LunarDateDescriptor.swift */,
+				76B574B95A8851F12B9C9584 /* LunarService.swift */,
+				0676CD6E17DBCE41F7F94C67 /* TraditionalFestivalResolver.swift */,
 			);
 			name = Lunar;
 			path = Lunar;
 			sourceTree = "<group>";
 		};
-		CB7CEB667E533816456E25E4 /* mainland-cn */ = {
+		3C05B89E284CEDE0E4CE4391 /* Holidays */ = {
 			isa = PBXGroup;
 			children = (
-				7058E924E88003F6BC8B337A /* mainland-cn-2026.json */,
+				EB5009701B77E7B2278B1B65 /* HolidayOccurrence.swift */,
+				99EF2C9772AD1DE8E3A6E4F3 /* HolidayProvider.swift */,
+				7036BAD724815332F007AA9C /* HolidayProviderRegistry.swift */,
+				25720588E85F5C4DA38F4572 /* HolidayResolver.swift */,
+				1C024FE314B38B55B5879D03 /* HongKongProvider.swift */,
+				224F71F73E651D6ABE9FF435 /* MainlandCNProvider.swift */,
 			);
-			name = "mainland-cn";
-			path = "mainland-cn";
+			name = Holidays;
+			path = Holidays;
 			sourceTree = "<group>";
 		};
-		DBFF21D52016AFF0299E88EE /* Features */ = {
+		3F283B483766F63CBB5CC685 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				F818D3E798AF6061C137FF17 /* Calendar */,
-				BF8439544BC23180DEFDE982 /* Holidays */,
-				A92EE3C5B85C1236456AD854 /* Lunar */,
-				09CF089E22D44BFDAEFA5C38 /* MenuBar */,
+				00CCCC8A4762A7723FF9245B /* GeneralSettingsView.swift */,
+				3717C89554A23C7D66160C39 /* MenuBarSettingsView.swift */,
+				559E02B3781941981F08EA84 /* RegionSettingsView.swift */,
+				6830328B699F3741530FB54C /* SettingsRootView.swift */,
 			);
-			name = Features;
-			path = Features;
+			name = Settings;
+			path = Settings;
 			sourceTree = "<group>";
 		};
-		DDE182DB4954DD5763EA1291 /* Infrastructure */ = {
+		6AD89CD647B47D55705B4640 /* Infrastructure */ = {
 			isa = PBXGroup;
 			children = (
-				EB73AFC0DA901B26B0195509 /* Data */,
+				1E4A95BD9ED1CC02B63858EF /* Data */,
 			);
 			name = Infrastructure;
 			path = Infrastructure;
 			sourceTree = "<group>";
 		};
-		EB73AFC0DA901B26B0195509 /* Data */ = {
+		6B3A57C542B94294FDFE4897 /* Events */ = {
 			isa = PBXGroup;
 			children = (
-				38C5804577AB67EFDBCDCE48 /* HolidayCacheStore.swift */,
-				B9D30A3AEDFA8B3B8D68555F /* HolidayFeedClient.swift */,
-				9F62B82BD7951AD1C20869FF /* HolidayFeedManifest.swift */,
+				888F2903AD41629B15D2C8E8 /* EventService.swift */,
 			);
-			name = Data;
-			path = Data;
+			name = Events;
+			path = Events;
 			sourceTree = "<group>";
 		};
-		EF355A4C869E5BF927F5F77A /* CalendarPro */ = {
+		6C169C2162136A3FB6AF77D5 /* CalendarProTests */ = {
 			isa = PBXGroup;
 			children = (
-				3192E3DA004DF8FBAC5DB208 /* App */,
-				ED0152E6A9904DE6DAD24BCE /* CalendarProApp.swift */,
-				DBFF21D52016AFF0299E88EE /* Features */,
-				DDE182DB4954DD5763EA1291 /* Infrastructure */,
-				4248DF1280F52236F41F98E1 /* Resources */,
-				C7144FEA9384D97394921A2C /* Settings */,
-				319009168CBBC2FDD4893F59 /* Views */,
+				B22ACAA2F98F373536F5364E /* Calendar */,
+				FBCAD426CA3E6615F12258DA /* CalendarProTests.swift */,
+				D24321B93F1E09494FC3578B /* Data */,
+				C4E59BC23429D8FD11126EF8 /* Events */,
+				F5A2E3FCDC5BDFB6A39EE419 /* Holidays */,
+				A7373A10725DE6C3BDEE5D5F /* Lunar */,
+				A7686E2688F14CAD74605B2E /* MenuBar */,
+				30B3E5707EB65B9FA7A67563 /* Popover */,
+				3236D32591EF48C1FC3433E2 /* Settings */,
 			);
-			name = CalendarPro;
-			path = CalendarPro;
+			name = CalendarProTests;
+			path = CalendarProTests;
 			sourceTree = "<group>";
 		};
-		F1F821A46133E3636E849161 /* Holidays */ = {
+		860EA35991A827516ADA9F22 /* hong-kong */ = {
 			isa = PBXGroup;
 			children = (
-				17EC578CCCC9B1A2153C9895 /* hong-kong */,
-				CB7CEB667E533816456E25E4 /* mainland-cn */,
+				1560FCD415FB77D25147645A /* hong-kong-2026.json */,
 			);
-			name = Holidays;
-			path = Holidays;
+			name = "hong-kong";
+			path = "hong-kong";
 			sourceTree = "<group>";
 		};
-		F4E4AEFCD2F0613F12D777EA /* Calendar */ = {
+		8CE8B099C3AE2BE16E0029F7 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				6F192B79C8F61FF3546A6550 /* CalendarDayFactoryTests.swift */,
-				28C638E849CBA1027CF8CAAE /* MonthCalendarServiceTests.swift */,
+				361F19B5E3A24582BF964381 /* AppDelegate.swift */,
+				26F317003A32B5BF6FDAC780 /* PopoverController.swift */,
+				074904F0985B217DC8AAC099 /* StatusBarController.swift */,
 			);
-			name = Calendar;
-			path = Calendar;
+			name = App;
+			path = App;
 			sourceTree = "<group>";
 		};
-		F818D3E798AF6061C137FF17 /* Calendar */ = {
+		945D8D1AE631C2DBDAD8CE46 /* OS X */ = {
 			isa = PBXGroup;
 			children = (
-				43EE76ADA1F85DD3BB6F203D /* CalendarDay.swift */,
-				58506327B5ABB01389FDA442 /* CalendarDayFactory.swift */,
-				976A7A9739F4E2D1DBFDF528 /* MonthCalendarService.swift */,
+				97FBA46B256D859F420ED6E0 /* Cocoa.framework */,
 			);
-			name = Calendar;
-			path = Calendar;
+			name = "OS X";
 			sourceTree = "<group>";
 		};
-		FAAFCEC94CFFB9EE4D463D83 /* MenuBar */ = {
+		9B33A7C24AD89EE16B2FE8B8 /* Features */ = {
 			isa = PBXGroup;
 			children = (
-				AD4CB6C7BC6A4FD0CD1DC9E6 /* ClockRenderServiceTests.swift */,
-				EA665BB7824F51FD1BA01594 /* MenuBarViewModelTests.swift */,
+				1AE9A13AFA336CE2B1A1595E /* Calendar */,
+				6B3A57C542B94294FDFE4897 /* Events */,
+				3C05B89E284CEDE0E4CE4391 /* Holidays */,
+				35D69D047C95AB90868211D9 /* Lunar */,
+				BC3F3E29328835DD2EE090CD /* MenuBar */,
+			);
+			name = Features;
+			path = Features;
+			sourceTree = "<group>";
+		};
+		A7373A10725DE6C3BDEE5D5F /* Lunar */ = {
+			isa = PBXGroup;
+			children = (
+				E51F426B7EF666BE8BC93956 /* LunarServiceTests.swift */,
+			);
+			name = Lunar;
+			path = Lunar;
+			sourceTree = "<group>";
+		};
+		A7686E2688F14CAD74605B2E /* MenuBar */ = {
+			isa = PBXGroup;
+			children = (
+				C3A87855E0837C3388888416 /* ClockRenderServiceTests.swift */,
+				D959C1BD79FF96DA891402F1 /* MenuBarViewModelTests.swift */,
 			);
 			name = MenuBar;
 			path = MenuBar;
 			sourceTree = "<group>";
 		};
+		A99B20B6A593DF2D91D4D5DD /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A6BACAC727B3B53D7CB6BB2E /* MenuBarPreferences.swift */,
+				F78529A2C212BFB1F9463F1A /* RegionSettingsViewModel.swift */,
+				6EBB073DBB2C7AE7EA7D71AF /* SettingsStore.swift */,
+			);
+			name = Settings;
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		AB9C7DD588FC8730B2560E24 /* CalendarProUITests */ = {
+			isa = PBXGroup;
+			children = (
+				B6385B27D204E55390005328 /* CalendarPopoverUITests.swift */,
+			);
+			name = CalendarProUITests;
+			path = CalendarProUITests;
+			sourceTree = "<group>";
+		};
+		AD186578E1DBA44F8FB5FB27 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				945D8D1AE631C2DBDAD8CE46 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B22ACAA2F98F373536F5364E /* Calendar */ = {
+			isa = PBXGroup;
+			children = (
+				CD8DC1F3C4083E8D9C92027B /* CalendarDayFactoryTests.swift */,
+				32E09F2F4154D0767181DC88 /* MonthCalendarServiceTests.swift */,
+			);
+			name = Calendar;
+			path = Calendar;
+			sourceTree = "<group>";
+		};
+		B6F8B8E5847AA118BD1E19D7 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				305341E8E418EBF170E2CA4D /* Holidays */,
+			);
+			name = Resources;
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		BC3F3E29328835DD2EE090CD /* MenuBar */ = {
+			isa = PBXGroup;
+			children = (
+				CDA651F253BDA3E79A8FA370 /* ClockRenderService.swift */,
+				4FDCF616353CA35BA21E2701 /* MenuBarViewModel.swift */,
+			);
+			name = MenuBar;
+			path = MenuBar;
+			sourceTree = "<group>";
+		};
+		C38A8D6BBF79F5FE9B263261 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2AB09F373BC6CEEC38CE3924 /* CalendarPro.app */,
+				C8B17F3F655E084F950FF664 /* CalendarProTests.xctest */,
+				9DEC30ACA7C355B578DAA691 /* CalendarProUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C4E59BC23429D8FD11126EF8 /* Events */ = {
+			isa = PBXGroup;
+			children = (
+				26B3674002176DE4F1836D9D /* EventServiceTests.swift */,
+			);
+			name = Events;
+			path = Events;
+			sourceTree = "<group>";
+		};
+		CD239E20618470A2550D3FBF /* CalendarPro */ = {
+			isa = PBXGroup;
+			children = (
+				8CE8B099C3AE2BE16E0029F7 /* App */,
+				8F89E875B8542008AE9E821A /* CalendarProApp.swift */,
+				9B33A7C24AD89EE16B2FE8B8 /* Features */,
+				6AD89CD647B47D55705B4640 /* Infrastructure */,
+				B6F8B8E5847AA118BD1E19D7 /* Resources */,
+				A99B20B6A593DF2D91D4D5DD /* Settings */,
+				DECD93D6FE287C80191389DA /* Views */,
+			);
+			name = CalendarPro;
+			path = CalendarPro;
+			sourceTree = "<group>";
+		};
+		D24321B93F1E09494FC3578B /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				72E932339434E08B6B387034 /* HolidayFeedClientTests.swift */,
+			);
+			name = Data;
+			path = Data;
+			sourceTree = "<group>";
+		};
+		DECD93D6FE287C80191389DA /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				0580E061E7A7094D05C885E7 /* Popover */,
+				ADC9A12F7723D2BC270BCE48 /* RootPopoverView.swift */,
+				3F283B483766F63CBB5CC685 /* Settings */,
+			);
+			name = Views;
+			path = Views;
+			sourceTree = "<group>";
+		};
+		EB3E189C4E94E32247C7638C /* mainland-cn */ = {
+			isa = PBXGroup;
+			children = (
+				01BB163F32E1F79D7019373A /* mainland-cn-2026.json */,
+			);
+			name = "mainland-cn";
+			path = "mainland-cn";
+			sourceTree = "<group>";
+		};
+		F5A2E3FCDC5BDFB6A39EE419 /* Holidays */ = {
+			isa = PBXGroup;
+			children = (
+				7BAB5BC4562580A125056001 /* HolidayProviderRegistryTests.swift */,
+				11B268D3DBEA9C32D01D6AC5 /* MainlandCNProviderTests.swift */,
+			);
+			name = Holidays;
+			path = Holidays;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D9546BD5273477F9F1DE5823 /* CalendarProTests */ = {
+		1C647EDF012CFAD51A4FE57E /* CalendarPro */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = BD9977887B875C7D86389568 /* Build configuration list for PBXNativeTarget "CalendarProTests" */;
+			buildConfigurationList = 64EAF924951EAC97CE6E740F /* Build configuration list for PBXNativeTarget "CalendarPro" */;
 			buildPhases = (
-				406578F13E53CB2EC441DCB1 /* Sources */,
-				24D85E42FA30DA02A365CEE5 /* Frameworks */,
-				40001DD8C8CD89A221104153 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				BEAF5D02C94B48F0930A2092 /* PBXTargetDependency */,
-			);
-			name = CalendarProTests;
-			productName = CalendarProTests;
-			productReference = 44C2E6E737185B2A7B426A7E /* CalendarProTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		E10041447867B1A6734E7482 /* CalendarProUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 8CFAD99D0B0BD5D545F66817 /* Build configuration list for PBXNativeTarget "CalendarProUITests" */;
-			buildPhases = (
-				FCA2E7F3F8182E9BCC0DDBAF /* Sources */,
-				AB16CC78847AA1BF52D2B3D4 /* Frameworks */,
-				BD978D1A8DA03061305F9CAF /* Resources */,
-				FC447632880B4AF2B7D4D446 /* Embed Testing Interop */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F0767B3F2F6944B59CFA7DEA /* PBXTargetDependency */,
-			);
-			name = CalendarProUITests;
-			productName = CalendarProUITests;
-			productReference = EAAC588AE0CBDA0A6E565C5A /* CalendarProUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
-		E12AEEEB69417160AA0A00E4 /* CalendarPro */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 8C15F32BE76E049C8C1CC788 /* Build configuration list for PBXNativeTarget "CalendarPro" */;
-			buildPhases = (
-				BF31BC7F0207CB5B2A19D543 /* Sources */,
-				DD209300BD6F59D9D9995127 /* Frameworks */,
-				66C281898E69F0ED8114E653 /* Resources */,
+				9D49A833C581AD8B5F57A68D /* Sources */,
+				0CE5C697D070DC156996B373 /* Frameworks */,
+				B01B8009C8AEA77821937A54 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -530,19 +526,56 @@
 			);
 			name = CalendarPro;
 			productName = CalendarPro;
-			productReference = EFB2FB7EFB3960B783E2BA6B /* CalendarPro.app */;
+			productReference = 2AB09F373BC6CEEC38CE3924 /* CalendarPro.app */;
 			productType = "com.apple.product-type.application";
+		};
+		7AC999559D082253F2366928 /* CalendarProTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 701A9E7172F65EC2282CE1F1 /* Build configuration list for PBXNativeTarget "CalendarProTests" */;
+			buildPhases = (
+				682BC25ECA775DBD2F131416 /* Sources */,
+				FAFD75D04BC8A5F595258568 /* Frameworks */,
+				597C2C1BB235B1FC3218F31A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BEAF3F09D472413210652C10 /* PBXTargetDependency */,
+			);
+			name = CalendarProTests;
+			productName = CalendarProTests;
+			productReference = C8B17F3F655E084F950FF664 /* CalendarProTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		FBEFA1E597DE3E89E6656707 /* CalendarProUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5F9859755D14C9BE66963167 /* Build configuration list for PBXNativeTarget "CalendarProUITests" */;
+			buildPhases = (
+				540ECDB9D28D55F1DCD10326 /* Sources */,
+				E51AE9DACCEBBB060967294C /* Frameworks */,
+				B536BE7219FC008830BBE113 /* Resources */,
+				85BEA466E7D9A864144470E7 /* Embed Testing Interop */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				16EC27BFFB4589DE3F10FCE8 /* PBXTargetDependency */,
+			);
+			name = CalendarProUITests;
+			productName = CalendarProUITests;
+			productReference = 9DEC30ACA7C355B578DAA691 /* CalendarProUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		0B4A75CEC6379D1ED3385C52 /* Project object */ = {
+		D7ABF9C3A778C7DF297396E2 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1600;
 				LastUpgradeCheck = 1600;
 			};
-			buildConfigurationList = 56734DA58848BF08E1008B8D /* Build configuration list for PBXProject "CalendarPro" */;
+			buildConfigurationList = 7F26B35E3197307ED990BC5F /* Build configuration list for PBXProject "CalendarPro" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -550,38 +583,38 @@
 				en,
 				Base,
 			);
-			mainGroup = 0959436922DDDA86B387502D;
+			mainGroup = 2B48F350229F54858C5288E4;
 			minimizedProjectReferenceProxies = 0;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 0849C0A764FD698484139EBE /* Products */;
+			productRefGroup = C38A8D6BBF79F5FE9B263261 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E12AEEEB69417160AA0A00E4 /* CalendarPro */,
-				D9546BD5273477F9F1DE5823 /* CalendarProTests */,
-				E10041447867B1A6734E7482 /* CalendarProUITests */,
+				1C647EDF012CFAD51A4FE57E /* CalendarPro */,
+				7AC999559D082253F2366928 /* CalendarProTests */,
+				FBEFA1E597DE3E89E6656707 /* CalendarProUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		40001DD8C8CD89A221104153 /* Resources */ = {
+		597C2C1BB235B1FC3218F31A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		66C281898E69F0ED8114E653 /* Resources */ = {
+		B01B8009C8AEA77821937A54 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E947DEE6F317596926B84813 /* hong-kong-2026.json in Resources */,
-				9CDB977F7A9E2F14371781AE /* mainland-cn-2026.json in Resources */,
+				32D6653CFE377D45A9EDDB12 /* hong-kong-2026.json in Resources */,
+				14D59D38C1971B8318713316 /* mainland-cn-2026.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		BD978D1A8DA03061305F9CAF /* Resources */ = {
+		B536BE7219FC008830BBE113 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -591,7 +624,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		FC447632880B4AF2B7D4D446 /* Embed Testing Interop */ = {
+		85BEA466E7D9A864144470E7 /* Embed Testing Interop */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -612,110 +645,97 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		406578F13E53CB2EC441DCB1 /* Sources */ = {
+		540ECDB9D28D55F1DCD10326 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5DA1F1E24CFAE634C3DEB9A1 /* CalendarDayFactoryTests.swift in Sources */,
-				36FFAB3E702BF070382329E7 /* MonthCalendarServiceTests.swift in Sources */,
-				A7203260ED1442B6A905E858 /* CalendarProTests.swift in Sources */,
-				59EE6BF0ECB3D56EF84212C5 /* HolidayFeedClientTests.swift in Sources */,
-				404375F7C0C4D6E8779EE327 /* HolidayProviderRegistryTests.swift in Sources */,
-				83BABA8E0BE72E84D0FE5259 /* MainlandCNProviderTests.swift in Sources */,
-				4772301507F5EC5A2C82E276 /* LunarServiceTests.swift in Sources */,
-				EBCCA0C9D025A30465ABF44D /* ClockRenderServiceTests.swift in Sources */,
-				F8AB5B821F41AEB4C0E64233 /* MenuBarViewModelTests.swift in Sources */,
-				F06D24657121998CE55AB341 /* CalendarPopoverViewModelTests.swift in Sources */,
-				99BA3B03CD35B45570FF43E5 /* RegionSettingsViewModelTests.swift in Sources */,
-				8DEA77AD80E8412781CE974C /* SettingsStoreTests.swift in Sources */,
+				B73D109E30EACC359EFCA714 /* CalendarPopoverUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		BF31BC7F0207CB5B2A19D543 /* Sources */ = {
+		682BC25ECA775DBD2F131416 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				53A4D97FA869D8B839D90D0E /* AppDelegate.swift in Sources */,
-				7F4E031FB3ADD4F26CA02AF2 /* PopoverController.swift in Sources */,
-				A4670A8084D7214F0F48B82D /* StatusBarController.swift in Sources */,
-				2E7A32FBE0B0F56F32BDF676 /* CalendarProApp.swift in Sources */,
-				363C7B6633FAA753C633D114 /* CalendarDay.swift in Sources */,
-				B13271BB3C716DAD607584F2 /* CalendarDayFactory.swift in Sources */,
-				4DF98A3C032EDF6F207AE3D3 /* MonthCalendarService.swift in Sources */,
-				59BB4B143707162E53F4BCF8 /* HolidayOccurrence.swift in Sources */,
-				39C7AFB3B8E95F3C49BCC9DD /* HolidayProvider.swift in Sources */,
-				B5BAD5AB4EBA9AA74E4C76EC /* HolidayProviderRegistry.swift in Sources */,
-				F904B74A80A2EF7FDD8E4D04 /* HolidayResolver.swift in Sources */,
-				5E1FDA634568373EBF7269D2 /* HongKongProvider.swift in Sources */,
-				8E7B595906341133F8B05B42 /* MainlandCNProvider.swift in Sources */,
-				300F931BE559006183084BBA /* LunarDateDescriptor.swift in Sources */,
-				865BE78C336518CF960A3C44 /* LunarService.swift in Sources */,
-				417823686B708B40C93451A0 /* TraditionalFestivalResolver.swift in Sources */,
-				6D8AE3E342CF2E706ADEA1AB /* ClockRenderService.swift in Sources */,
-				B35AFB98549D611F0D0DC507 /* MenuBarViewModel.swift in Sources */,
-				26F6A7B8167D19ED27FA172E /* HolidayCacheStore.swift in Sources */,
-				73F987925B0ECE7E86D55DFA /* HolidayFeedClient.swift in Sources */,
-				307309FDBBCAAAABED433DE7 /* HolidayFeedManifest.swift in Sources */,
-				5B5AF945A772D07BB351E524 /* MenuBarPreferences.swift in Sources */,
-				CECEA7D69EF47C0EA2DF67AF /* RegionSettingsViewModel.swift in Sources */,
-				E80DBC59826660E206179F30 /* SettingsStore.swift in Sources */,
-				36C04ECDFFEFEC16C90E5E1F /* CalendarGridView.swift in Sources */,
-				5AAC60B1B9C4527A2B581548 /* CalendarPopoverView.swift in Sources */,
-				0EB4AF515DE559EF9A476F97 /* CalendarPopoverViewModel.swift in Sources */,
-				5A40D6F6C115D0FB3174DA67 /* MonthHeaderView.swift in Sources */,
-				540A904C983FFCABCE0E0EB7 /* RootPopoverView.swift in Sources */,
-				D447B645F6C5A87029EBED55 /* GeneralSettingsView.swift in Sources */,
-				8EAD063D374C200F85995E11 /* MenuBarSettingsView.swift in Sources */,
-				2EDFAF65F0899B60AEC8700C /* RegionSettingsView.swift in Sources */,
-				0ACE3DF0292EABE4C9AA1FFB /* SettingsRootView.swift in Sources */,
+				97983586171255816ADB7FB8 /* CalendarDayFactoryTests.swift in Sources */,
+				B8A3AC8C49F54BA1F398F6B6 /* MonthCalendarServiceTests.swift in Sources */,
+				C255C422799A12416EF460EB /* CalendarProTests.swift in Sources */,
+				D33E3829283255A54142607C /* HolidayFeedClientTests.swift in Sources */,
+				DC3B579A1ED224DACD8539C8 /* EventServiceTests.swift in Sources */,
+				6AA28841051BEC7F0C1DCBB5 /* HolidayProviderRegistryTests.swift in Sources */,
+				58EBDA1A4781BC92D2169377 /* MainlandCNProviderTests.swift in Sources */,
+				C1E22E5F1DC15F120CCAF75C /* LunarServiceTests.swift in Sources */,
+				BB1D40DA7374AC9A4A36204D /* ClockRenderServiceTests.swift in Sources */,
+				67C856072FC19B799CCBD12E /* MenuBarViewModelTests.swift in Sources */,
+				C90CE4538EDCE4A7CA291315 /* CalendarPopoverViewModelTests.swift in Sources */,
+				0FF15F18A687AA851E6399AA /* MenuBarPreferencesTests.swift in Sources */,
+				9F0567A39CC414CE9BFD5254 /* RegionSettingsViewModelTests.swift in Sources */,
+				FC8B0804C1F417D475AEBB9E /* SettingsStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FCA2E7F3F8182E9BCC0DDBAF /* Sources */ = {
+		9D49A833C581AD8B5F57A68D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2A5952E6960F6C53289268EA /* CalendarPopoverUITests.swift in Sources */,
+				A626D38A77D252F1C11E1376 /* AppDelegate.swift in Sources */,
+				362A0191C7108F2BA42B75D6 /* PopoverController.swift in Sources */,
+				0021DBBD9C6B26326AD29A05 /* StatusBarController.swift in Sources */,
+				0F84B84515A7FC51C1C3CB97 /* CalendarProApp.swift in Sources */,
+				AE69E9C9D94BEB48A4627676 /* CalendarDay.swift in Sources */,
+				67DA5B52CB7ACB4EC4E70404 /* CalendarDayFactory.swift in Sources */,
+				02400DBB56311E5F6937927E /* MonthCalendarService.swift in Sources */,
+				FDB5B37B6657EC991723DF0D /* EventService.swift in Sources */,
+				BF922AA70527C000FABBB841 /* HolidayOccurrence.swift in Sources */,
+				734215067A9A23151058B683 /* HolidayProvider.swift in Sources */,
+				4C411BAE7B207EA1DC32AAC9 /* HolidayProviderRegistry.swift in Sources */,
+				4EF29D04C3007F603D4EE0D2 /* HolidayResolver.swift in Sources */,
+				95163E8F3D1B5FB72291416C /* HongKongProvider.swift in Sources */,
+				822B24DA9CDEF18C5C573326 /* MainlandCNProvider.swift in Sources */,
+				52793FBD4C1B498CBB5B7CC3 /* LunarDateDescriptor.swift in Sources */,
+				FFB9C7449AED7EC5A874ADC8 /* LunarService.swift in Sources */,
+				E1526BC1A1F8F0AFD9391300 /* TraditionalFestivalResolver.swift in Sources */,
+				03BE3E1D037EC0BDC5A4C8AA /* ClockRenderService.swift in Sources */,
+				CDBC37576CF211241CC1EE06 /* MenuBarViewModel.swift in Sources */,
+				EF4D7A9B9A0070A391C99027 /* HolidayCacheStore.swift in Sources */,
+				C7B71A18E17B2272B206D108 /* HolidayFeedClient.swift in Sources */,
+				1B0D571B70E44C25565A13BF /* HolidayFeedManifest.swift in Sources */,
+				C924DACB87A215F997EC531A /* MenuBarPreferences.swift in Sources */,
+				AB727B76826DB1926BEB0A5C /* RegionSettingsViewModel.swift in Sources */,
+				9AB7FCC1562D7178914EE3CE /* SettingsStore.swift in Sources */,
+				198B83C12AE2D425E6952826 /* CalendarGridView.swift in Sources */,
+				70BE9BCE9CA21555DA134EF6 /* CalendarPopoverView.swift in Sources */,
+				E3664D1A854CB6E247E06B08 /* CalendarPopoverViewModel.swift in Sources */,
+				AE769D09BC9A57401E751C71 /* EventCardView.swift in Sources */,
+				F70B2896612EEE0F475D6D57 /* EventListView.swift in Sources */,
+				7B03C3E303C17D4644231370 /* MonthHeaderView.swift in Sources */,
+				0B66F65A26D7822F2124CD61 /* RootPopoverView.swift in Sources */,
+				24E7DF9286A79963FD3B89BF /* GeneralSettingsView.swift in Sources */,
+				3D82C93B3B022AE799A5DFCD /* MenuBarSettingsView.swift in Sources */,
+				47CDED6E1C964F60039EA9A3 /* RegionSettingsView.swift in Sources */,
+				1B35B0A37BB2CE50E0551966 /* SettingsRootView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		BEAF5D02C94B48F0930A2092 /* PBXTargetDependency */ = {
+		16EC27BFFB4589DE3F10FCE8 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = CalendarPro;
-			target = E12AEEEB69417160AA0A00E4 /* CalendarPro */;
-			targetProxy = 307F077416BBE8B8905491D7 /* PBXContainerItemProxy */;
+			target = 1C647EDF012CFAD51A4FE57E /* CalendarPro */;
+			targetProxy = 9657EB7B788BB976360679A1 /* PBXContainerItemProxy */;
 		};
-		F0767B3F2F6944B59CFA7DEA /* PBXTargetDependency */ = {
+		BEAF3F09D472413210652C10 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = CalendarPro;
-			target = E12AEEEB69417160AA0A00E4 /* CalendarPro */;
-			targetProxy = 6582EAEA8BDB1D23A12BA86E /* PBXContainerItemProxy */;
+			target = 1C647EDF012CFAD51A4FE57E /* CalendarPro */;
+			targetProxy = 48E69AFEF59E74A78D2120F2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		3F2412850F9F1525C39F23DA /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGN_STYLE = Automatic;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks @loader_path/../../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarProUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 6.0;
-				TEST_TARGET_NAME = CalendarPro;
-			};
-			name = Debug;
-		};
-		5538E7D62704B2C10D749EE7 /* Release */ = {
+		210784A77456DEC60119083C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -739,7 +759,26 @@
 			};
 			name = Release;
 		};
-		5DBAB61193699B4FE1DB34C4 /* Debug */ = {
+		4335685BB627D4C597DA63E5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks @loader_path/../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarProTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CalendarPro.app/Contents/MacOS/CalendarPro";
+			};
+			name = Release;
+		};
+		69E2FAC5E74D40B56B3ED0C1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -800,7 +839,25 @@
 			};
 			name = Debug;
 		};
-		69CE9E6C2EB3D6F200C3F6D0 /* Debug */ = {
+		7BA2FA3510F192B4E23B45B1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks @loader_path/../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarProUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = CalendarPro;
+			};
+			name = Release;
+		};
+		A667292869F1175702B2F360 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -824,63 +881,7 @@
 			};
 			name = Debug;
 		};
-		95660B2AEBA92AB017FDCA90 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGN_STYLE = Automatic;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks @loader_path/../../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarProTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CalendarPro.app/Contents/MacOS/CalendarPro";
-			};
-			name = Debug;
-		};
-		A5DA9EB68E54AC0CEE486FC4 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGN_STYLE = Automatic;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks @loader_path/../../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarProTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CalendarPro.app/Contents/MacOS/CalendarPro";
-			};
-			name = Release;
-		};
-		C60C3378076BBC93B94A6D2E /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGN_STYLE = Automatic;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks @loader_path/../../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarProUITests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 6.0;
-				TEST_TARGET_NAME = CalendarPro;
-			};
-			name = Release;
-		};
-		E2321AD17DB04903F0F90FD8 /* Release */ = {
+		BB863ABEF635F136D87B4D4B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -934,46 +935,83 @@
 			};
 			name = Release;
 		};
+		D2E01F535CC8493D6D2559DE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks @loader_path/../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarProUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_TARGET_NAME = CalendarPro;
+			};
+			name = Debug;
+		};
+		EE6A8C874EE856679E22002C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks @loader_path/../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarProTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CalendarPro.app/Contents/MacOS/CalendarPro";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		56734DA58848BF08E1008B8D /* Build configuration list for PBXProject "CalendarPro" */ = {
+		5F9859755D14C9BE66963167 /* Build configuration list for PBXNativeTarget "CalendarProUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5DBAB61193699B4FE1DB34C4 /* Debug */,
-				E2321AD17DB04903F0F90FD8 /* Release */,
+				7BA2FA3510F192B4E23B45B1 /* Release */,
+				D2E01F535CC8493D6D2559DE /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8C15F32BE76E049C8C1CC788 /* Build configuration list for PBXNativeTarget "CalendarPro" */ = {
+		64EAF924951EAC97CE6E740F /* Build configuration list for PBXNativeTarget "CalendarPro" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5538E7D62704B2C10D749EE7 /* Release */,
-				69CE9E6C2EB3D6F200C3F6D0 /* Debug */,
+				210784A77456DEC60119083C /* Release */,
+				A667292869F1175702B2F360 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8CFAD99D0B0BD5D545F66817 /* Build configuration list for PBXNativeTarget "CalendarProUITests" */ = {
+		701A9E7172F65EC2282CE1F1 /* Build configuration list for PBXNativeTarget "CalendarProTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C60C3378076BBC93B94A6D2E /* Release */,
-				3F2412850F9F1525C39F23DA /* Debug */,
+				4335685BB627D4C597DA63E5 /* Release */,
+				EE6A8C874EE856679E22002C /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		BD9977887B875C7D86389568 /* Build configuration list for PBXNativeTarget "CalendarProTests" */ = {
+		7F26B35E3197307ED990BC5F /* Build configuration list for PBXProject "CalendarPro" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A5DA9EB68E54AC0CEE486FC4 /* Release */,
-				95660B2AEBA92AB017FDCA90 /* Debug */,
+				69E2FAC5E74D40B56B3ED0C1 /* Debug */,
+				BB863ABEF635F136D87B4D4B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 0B4A75CEC6379D1ED3385C52 /* Project object */;
+	rootObject = D7ABF9C3A778C7DF297396E2 /* Project object */;
 }
