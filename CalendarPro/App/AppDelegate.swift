@@ -25,16 +25,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func presentUITestWindow() {
-        let hostingController = NSHostingController(rootView: RootPopoverView(settingsStore: settingsStore))
+        let hostingController = NSHostingController(
+            rootView: RootPopoverView(
+                settingsStore: settingsStore,
+                onOpenSettings: { NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil) },
+                onQuit: { NSApp.terminate(nil) }
+            )
+        )
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 340, height: 320),
+            contentRect: NSRect(x: 0, y: 0, width: 340, height: 400),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
         )
         window.contentViewController = hostingController
         window.title = "Calendar Pro"
-        window.setContentSize(NSSize(width: 340, height: 320))
+        window.setContentSize(NSSize(width: 340, height: 400))
         window.center()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)

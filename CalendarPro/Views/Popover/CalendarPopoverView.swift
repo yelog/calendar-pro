@@ -7,9 +7,11 @@ struct CalendarPopoverView: View {
     let regionSummary: String
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
+    let onOpenSettings: () -> Void
+    let onQuit: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             MonthHeaderView(
                 displayedMonth: displayedMonth,
                 onPreviousMonth: onPreviousMonth,
@@ -24,9 +26,32 @@ struct CalendarPopoverView: View {
             Text(regionSummary)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+            Divider()
+                .padding(.horizontal, -16)
+
+            HStack {
+                Button(action: onOpenSettings) {
+                    Label("设置", systemImage: "gearshape")
+                        .font(.system(size: 12))
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut(",", modifiers: .command)
+
+                Spacer()
+
+                Button(action: onQuit) {
+                    Label("退出", systemImage: "power")
+                        .font(.system(size: 12))
+                }
+                .buttonStyle(.plain)
+            }
+            .foregroundStyle(.secondary)
+            .padding(.bottom, 4)
         }
-        .padding(16)
-        .frame(width: 340, height: 320, alignment: .topLeading)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .frame(width: 340, height: 400)
         .background(
             LinearGradient(
                 colors: [

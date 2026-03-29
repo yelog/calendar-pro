@@ -5,8 +5,8 @@ struct CalendarGridView: View {
     let monthDays: [CalendarDay]
 
     var body: some View {
-        VStack(spacing: 8) {
-            LazyVGrid(columns: gridColumns, spacing: 8) {
+        VStack(spacing: 6) {
+            LazyVGrid(columns: gridColumns, spacing: 6) {
                 ForEach(weekdaySymbols, id: \.self) { symbol in
                     Text(symbol)
                         .font(.caption.weight(.medium))
@@ -15,7 +15,7 @@ struct CalendarGridView: View {
                 }
             }
 
-            LazyVGrid(columns: gridColumns, spacing: 8) {
+            LazyVGrid(columns: gridColumns, spacing: 6) {
                 ForEach(monthDays) { day in
                     CalendarDayCellView(day: day)
                 }
@@ -24,7 +24,7 @@ struct CalendarGridView: View {
     }
 
     private var gridColumns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 8), count: 7)
+        Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
     }
 }
 
