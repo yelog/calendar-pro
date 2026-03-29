@@ -17,10 +17,16 @@ final class EventService: ObservableObject {
     func requestAccess() async -> Bool {
         do {
             let granted = try await eventStore.requestFullAccessToEvents()
-            checkAuthorizationStatus()
+            // 直接使用返回的授权结果更新状态
+            isAuthorized = granted
+            authorizationStatus = granted ? .fullAccess : .denied
+            if granted {
+                fetchCalendars()
+            }
             return granted
         } catch {
-            checkAuthorizationStatus()
+            isAuthorized = false
+            authorizationStatus = .denied
             return false
         }
     }

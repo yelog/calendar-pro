@@ -22,7 +22,6 @@ struct EventsSettingsView: View {
                         Button("请求权限") {
                             Task {
                                 await eventService.requestAccess()
-                                eventService.fetchCalendars()
                             }
                         }
                         .buttonStyle(.borderedProminent)
