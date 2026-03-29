@@ -3,6 +3,7 @@ import SwiftUI
 struct CalendarGridView: View {
     let weekdaySymbols: [String]
     let monthDays: [CalendarDay]
+    let onSelectDate: (Date) -> Void
 
     var body: some View {
         VStack(spacing: 6) {
@@ -18,6 +19,9 @@ struct CalendarGridView: View {
             LazyVGrid(columns: gridColumns, spacing: 6) {
                 ForEach(monthDays) { day in
                     CalendarDayCellView(day: day)
+                        .onTapGesture {
+                            onSelectDate(day.date)
+                        }
                 }
             }
         }
@@ -78,13 +82,16 @@ private struct CalendarDayCellView: View {
         .padding(.horizontal, 4)
         .background(cellBackground)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(dayIdentifier)
     }
 
     private var cellBackground: some View {
         Group {
-            if day.isToday {
+            if day.isSelected {
+                Color.accentColor.opacity(0.3)
+            } else if day.isToday {
                 Color.accentColor.opacity(0.15)
             } else if let badge = day.badges.first {
                 switch badge.kind {

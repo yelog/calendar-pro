@@ -21,6 +21,7 @@ struct CalendarDay: Equatable, Identifiable {
     let date: Date
     let isInDisplayedMonth: Bool
     let isToday: Bool
+    let isSelected: Bool
     let solarText: String
     let lunarText: String?
     let badges: [DayBadge]
