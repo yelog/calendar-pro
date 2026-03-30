@@ -34,7 +34,8 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
 
         let availableHeight: CGFloat
         if let anchorFrame = anchorWindow?.frame {
-            availableHeight = anchorFrame.maxY - visibleFrame.minY
+            let anchorContentTop = anchorFrame.maxY - EventDetailWindowLayout.popoverArrowHeight
+            availableHeight = anchorContentTop - visibleFrame.minY
         } else {
             availableHeight = visibleFrame.height
         }

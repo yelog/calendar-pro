@@ -1,6 +1,9 @@
 import CoreGraphics
 
 enum EventDetailWindowLayout {
+    /// Height of the NSPopover arrow pointing to the menu bar.
+    static let popoverArrowHeight: CGFloat = 13
+
     static func defaultFrame(
         panelSize: CGSize,
         anchorFrame: CGRect,
@@ -23,7 +26,9 @@ enum EventDetailWindowLayout {
             preferredOriginX = visibleFrame.maxX - size.width
         }
 
-        let preferredOriginY = anchorFrame.maxY - size.height
+        // Align top with anchor window content top (excluding popover arrow)
+        let anchorContentTop = anchorFrame.maxY - popoverArrowHeight
+        let preferredOriginY = anchorContentTop - size.height
 
         return CGRect(
             x: clamp(preferredOriginX, min: visibleFrame.minX, max: visibleFrame.maxX - size.width),

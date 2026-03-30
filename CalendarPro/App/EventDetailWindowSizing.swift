@@ -6,11 +6,9 @@ enum EventDetailWindowSizing {
     static let idealHeight: CGFloat = 360
 
     static func panelSize(for fittingSize: CGSize, availableHeight: CGFloat) -> CGSize {
-        let preferredHeight = max(fittingSize.height, idealHeight)
-
         return CGSize(
             width: width,
-            height: min(max(preferredHeight, minHeight), availableHeight)
+            height: max(availableHeight, minHeight)
         )
     }
 }
