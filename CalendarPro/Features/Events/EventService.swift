@@ -160,10 +160,24 @@ final class EventService: ObservableObject {
             items.append(contentsOf: reminders.map { .reminder($0) })
         }
         
+        let cal = Calendar.current
         return items.sorted { item1, item2 in
-            let date1 = item1.startDate ?? Date.distantFuture
-            let date2 = item2.startDate ?? Date.distantFuture
-            return date1 < date2
+            // All-day items come first
+            if item1.isAllDay != item2.isAllDay {
+                return item1.isAllDay
+            }
+
+            guard let date1 = item1.startDate, let date2 = item2.startDate else {
+                return item1.startDate != nil
+            }
+
+            // Compare by time-of-day so overdue reminders sort alongside
+            // today's items with the same displayed time.
+            let c1 = cal.dateComponents([.hour, .minute], from: date1)
+            let c2 = cal.dateComponents([.hour, .minute], from: date2)
+            let t1 = (c1.hour ?? 0) * 60 + (c1.minute ?? 0)
+            let t2 = (c2.hour ?? 0) * 60 + (c2.minute ?? 0)
+            return t1 < t2
         }
     }
     
