@@ -19,13 +19,15 @@
 		17FA617EB83768577ECC9D79 /* CalendarGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE863B6AFB1BF6FA6239A10 /* CalendarGridView.swift */; };
 		1C7B90F2FBF2D1F3EC46D8A0 /* TraditionalFestivalResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5885DFD84EAF97F48017902E /* TraditionalFestivalResolver.swift */; };
 		1CE30128DC2A2FFB1E4062CA /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5834B955610DF881234C2D8F /* StatusBarController.swift */; };
+		1EED0E7D4CFD4D679F9F12B1 /* CalendarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D79A7A4A2E1462F8A56A0BC /* CalendarItem.swift */; };
 		2684ED13836AD895F630C7F4 /* CalendarDayFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3633B3E59666020EB7608F0C /* CalendarDayFactory.swift */; };
-		2E56D54A40FD00E05CFAAC85 /* EventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7853E8A03036A29FB6CBC0E0 /* EventService.swift */; };
-		3178CDBE2354EFC58B8510FB /* CalendarProApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3124BEE61A7EAB3E1E726999 /* CalendarProApp.swift */; };
+2E56D54A40FD00E05CFAAC85 /* EventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7853E8A03036A29FB6CBC0E0 /* EventService.swift */; };
+	3178CDBE2354EFC58B8510FB /* CalendarProApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3124BEE61A7EAB3E1E726999 /* CalendarProApp.swift */; };
 		3CD4499E6A500FF69F079C39 /* HolidayFeedClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0565CB4CF6AEEF5D9B4C525 /* HolidayFeedClientTests.swift */; };
 		3DD0469B75F29DC8D4FEC4DA /* MonthCalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFA8DE60CB25ACA20EDEF6C /* MonthCalendarService.swift */; };
 		41C9698B2FF2D375F2CF6C1C /* HolidayResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4814752A0C07CAD369A85517 /* HolidayResolver.swift */; };
 		476F32F80B96313348B04B69 /* HolidayCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADE55468EB9F90D57D30358F /* HolidayCacheStore.swift */; };
+		4D79A7A4A2E1462F8A56A0BC /* CalendarItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarItem.swift; sourceTree = "<group>"; };
 		4A866B2D26FF770050F30904 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2802BCC94A06789044638AE8 /* SettingsRootView.swift */; };
 		4C5F36AFB99D9451EA8BA4DC /* RegionSettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E274C66D2C18F5837C059696 /* RegionSettingsViewModelTests.swift */; };
 		4E2406C5A3BE4A98AE1AE5C9 /* hong-kong-2026.json in Resources */ = {isa = PBXBuildFile; fileRef = F3A2DE7DA960FB9C21DF2767 /* hong-kong-2026.json */; };
@@ -117,8 +119,8 @@
 		707BF6385892AA5AEB027DB9 /* EventsSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventsSettingsView.swift; sourceTree = "<group>"; };
 		739190BFD6C6574F148A00A9 /* MenuBarViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarViewModel.swift; sourceTree = "<group>"; };
 		77BC344180345DDA23FB2EF9 /* CalendarPopoverView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverView.swift; sourceTree = "<group>"; };
-		7853E8A03036A29FB6CBC0E0 /* EventService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventService.swift; sourceTree = "<group>"; };
-		81C4389E0467ED7E602475A0 /* HolidayProviderRegistryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayProviderRegistryTests.swift; sourceTree = "<group>"; };
+7853E8A03036A29FB6CBC0E0 /* EventService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventService.swift; sourceTree = "<group>"; };
+	81C4389E0467ED7E602475A0 /* HolidayProviderRegistryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayProviderRegistryTests.swift; sourceTree = "<group>"; };
 		8EB417FB9A2E9F64C67DB529 /* LunarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LunarService.swift; sourceTree = "<group>"; };
 		8FFA8DE60CB25ACA20EDEF6C /* MonthCalendarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MonthCalendarService.swift; sourceTree = "<group>"; };
 		9DD9A18E4C04187A7B191BCF /* CalendarPopoverViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverViewModel.swift; sourceTree = "<group>"; };
@@ -142,6 +144,7 @@
 		F4EEEE5C271FD7E4520F2991 /* MenuBarPreferencesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarPreferencesTests.swift; sourceTree = "<group>"; };
 		F6C6256DA2D3AA820B7E5899 /* EventCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventCardView.swift; sourceTree = "<group>"; };
 		FA58DA2A104ABCE461730E76 /* LunarServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LunarServiceTests.swift; sourceTree = "<group>"; };
+		ENTITLEMENTS001FILE1234AB /* CalendarPro.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CalendarPro.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -208,6 +211,7 @@
 			children = (
 				6F7DCC6823B8959E7AF643CB /* App */,
 				3124BEE61A7EAB3E1E726999 /* CalendarProApp.swift */,
+				ENTITLEMENTS001FILE1234AB /* CalendarPro.entitlements */,
 				9C369D197908E4139E4FAAA4 /* Features */,
 				D72A3AA0729FB239F977834C /* Infrastructure */,
 				52A30AC74B2DB8E0F246FC7A /* Resources */,
@@ -275,10 +279,11 @@
 			path = Data;
 			sourceTree = "<group>";
 		};
-		456043530E48539E98349061 /* Events */ = {
+456043530E48539E98349061 /* Events */ = {
 			isa = PBXGroup;
 			children = (
 				7853E8A03036A29FB6CBC0E0 /* EventService.swift */,
+				4D79A7A4A2E1462F8A56A0BC /* CalendarItem.swift */,
 			);
 			name = Events;
 			path = Events;
@@ -680,6 +685,7 @@
 				C6126D4DFB7DD1BCEB777B75 /* CalendarDay.swift in Sources */,
 				2684ED13836AD895F630C7F4 /* CalendarDayFactory.swift in Sources */,
 				3DD0469B75F29DC8D4FEC4DA /* MonthCalendarService.swift in Sources */,
+				1EED0E7D4CFD4D679F9F12B1 /* CalendarItem.swift in Sources */,
 				2E56D54A40FD00E05CFAAC85 /* EventService.swift in Sources */,
 				753F5A77997776FC664C4735 /* HolidayOccurrence.swift in Sources */,
 				5E50D8E6325395CE0612D131 /* HolidayProvider.swift in Sources */,
@@ -879,6 +885,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = CalendarPro/CalendarPro.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -887,6 +894,8 @@
 				INFOPLIST_KEY_LSUIElement = NO;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "用于显示您的日历日程详情";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "用于显示您的日历日程";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "用于显示您的提醒事项详情";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "用于显示您的提醒事项";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarPro;
@@ -940,6 +949,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = CalendarPro/CalendarPro.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -948,6 +958,8 @@
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "用于显示您的日历日程详情";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "用于显示您的日历日程";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "用于显示您的提醒事项详情";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "用于显示您的提醒事项";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarPro;
