@@ -3,24 +3,52 @@ import Combine
 
 @MainActor
 final class StatusBarController {
-    private let statusItem: NSStatusItem
-    private let popoverController: PopoverController
+    private var statusItems: [NSStatusItem] = []
+    private var popoverController: PopoverController
     private let menuBarViewModel: MenuBarViewModel
+    private let settingsStore: SettingsStore
 
     private var cancellables = Set<AnyCancellable>()
 
     init(settingsStore: SettingsStore) {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        self.settingsStore = settingsStore
         popoverController = PopoverController(settingsStore: settingsStore)
         menuBarViewModel = MenuBarViewModel(settingsStore: settingsStore)
 
-        configureStatusButton()
+        configureStatusItems()
         bindViewModel()
         menuBarViewModel.start()
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(screenParametersDidChange),
+            name: NSApplication.didChangeScreenParametersNotification,
+            object: nil
+        )
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func screenParametersDidChange() {
+        configureStatusItems()
     }
 
-    private func configureStatusButton() {
-        guard let button = statusItem.button else { return }
+    private func configureStatusItems() {
+        statusItems.forEach { NSStatusBar.system.removeStatusItem($0) }
+        statusItems.removeAll()
+        
+        let screens = NSScreen.screens
+        for screen in screens {
+            let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+            configureStatusButton(statusItem.button)
+            statusItems.append(statusItem)
+        }
+    }
+    
+    private func configureStatusButton(_ button: NSStatusBarButton?) {
+        guard let button else { return }
         button.target = self
         button.action = #selector(togglePopover(_:))
         button.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
@@ -31,14 +59,14 @@ final class StatusBarController {
         menuBarViewModel.$displayText
             .receive(on: RunLoop.main)
             .sink { [weak self] text in
-                self?.statusItem.button?.title = text
+                self?.statusItems.forEach { $0.button?.title = text }
             }
             .store(in: &cancellables)
     }
 
     @objc
     private func togglePopover(_ sender: AnyObject?) {
-        guard let button = statusItem.button else { return }
+        guard let button = sender as? NSStatusBarButton else { return }
         popoverController.toggle(relativeTo: button)
     }
 }
