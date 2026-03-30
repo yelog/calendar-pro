@@ -28,7 +28,9 @@ final class ClockRenderServiceTests: XCTestCase {
             enabledHolidayIDs: [],
             weekStart: .monday,
             showEvents: true,
-            enabledCalendarIDs: []
+            enabledCalendarIDs: [],
+            showReminders: true,
+            enabledReminderCalendarIDs: []
         )
 
         let text = renderer.render(
