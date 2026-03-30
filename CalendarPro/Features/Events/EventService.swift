@@ -99,14 +99,15 @@ final class EventService: ObservableObject {
         
         let predicate = eventStore.predicateForReminders(in: calendarsToFetch)
 
-        return await withCheckedContinuation { continuation in
+        let reminders = await withCheckedContinuation { continuation in
             eventStore.fetchReminders(matching: predicate) { reminders in
-                let filtered = reminders?.filter { reminder in
-                    guard let dueDate = reminder.dueDateComponents?.date else { return false }
-                    return dueDate >= startOfDay && dueDate < endOfDay
-                } ?? []
-                continuation.resume(returning: filtered)
+                continuation.resume(returning: reminders ?? [])
             }
+        }
+
+        return reminders.filter { reminder in
+            guard let dueDate = reminder.dueDateComponents?.date else { return false }
+            return dueDate >= startOfDay && dueDate < endOfDay
         }
     }
     
