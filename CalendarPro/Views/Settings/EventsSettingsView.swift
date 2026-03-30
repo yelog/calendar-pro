@@ -12,9 +12,13 @@ struct EventsSettingsView: View {
     
     private var calendarGroups: [CalendarGroup] {
         let calendars = eventService.calendars
-        let sources = Dictionary(grouping: calendars, by: { $0.source })
-        return sources.map { CalendarGroup(source: $0.key, calendars: $0.value) }
-            .sorted { ($0.source?.title ?? "") < ($1.source?.title ?? "") }
+        let grouped = Dictionary(grouping: calendars, by: { $0.source })
+        let groups = grouped.map { CalendarGroup(source: $0.key, calendars: $0.value) }
+        return groups.sorted { lhs, rhs in
+            let lhsTitle = lhs.source?.title ?? ""
+            let rhsTitle = rhs.source?.title ?? ""
+            return lhsTitle < rhsTitle
+        }
     }
     
     var body: some View {
