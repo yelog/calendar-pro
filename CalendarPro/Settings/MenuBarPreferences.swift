@@ -40,6 +40,8 @@ struct MenuBarPreferences: Codable, Equatable {
     var weekStart: WeekStart
     var showEvents: Bool
     var enabledCalendarIDs: [String]
+    var showReminders: Bool
+    var enabledReminderCalendarIDs: [String]
 
     var requiresSecondRefresh: Bool {
         tokens.contains { $0.token == .time && $0.isEnabled && $0.showsSeconds }
@@ -59,7 +61,9 @@ struct MenuBarPreferences: Codable, Equatable {
         enabledHolidayIDs: [],
         weekStart: .monday,
         showEvents: true,
-        enabledCalendarIDs: []
+        enabledCalendarIDs: [],
+        showReminders: true,
+        enabledReminderCalendarIDs: []
     )
 
     static let previewShort = MenuBarPreferences(
@@ -74,6 +78,8 @@ struct MenuBarPreferences: Codable, Equatable {
         enabledHolidayIDs: [],
         weekStart: .monday,
         showEvents: true,
-        enabledCalendarIDs: []
+        enabledCalendarIDs: [],
+        showReminders: true,
+        enabledReminderCalendarIDs: []
     )
 }
