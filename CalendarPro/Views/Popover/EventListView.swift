@@ -2,7 +2,7 @@ import SwiftUI
 import EventKit
 
 struct EventListView: View {
-    let events: [EKEvent]
+    let items: [CalendarItem]
     let isLoading: Bool
     
     var body: some View {
@@ -14,7 +14,7 @@ struct EventListView: View {
                 Spacer()
             }
             .frame(height: 60)
-        } else if events.isEmpty {
+        } else if items.isEmpty {
             Text("当天无日程")
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
@@ -22,8 +22,8 @@ struct EventListView: View {
                 .padding(.vertical, 12)
         } else {
             VStack(spacing: 6) {
-                ForEach(events, id: \.eventIdentifier) { event in
-                    EventCardView(event: event)
+                ForEach(items) { item in
+                    EventCardView(item: item)
                 }
             }
         }
