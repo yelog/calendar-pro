@@ -46,7 +46,9 @@ struct CalendarPopoverView: View {
                 .padding(.horizontal, -16)
             
             HStack {
-                SettingsLink {
+                Button {
+                    NSApp.sendAction(#selector(AppDelegate.openSettings), to: nil, from: nil)
+                } label: {
                     Label("设置", systemImage: "gearshape")
                         .font(.system(size: 12))
                 }

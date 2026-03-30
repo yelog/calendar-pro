@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusBarController: StatusBarController?
     private var uiTestWindow: NSWindow?
+    private var settingsWindow: NSWindow?
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(isUITestPopoverMode ? .regular : .accessory)
@@ -18,6 +19,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             statusBarController = StatusBarController(settingsStore: settingsStore)
         }
+    }
+    
+    @objc func openSettings() {
+        if let window = settingsWindow {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+        
+        let hostingController = NSHostingController(
+            rootView: SettingsRootView(store: settingsStore)
+        )
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 380),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        window.contentViewController = hostingController
+        window.title = "设置"
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        settingsWindow = window
     }
 
     private var isUITestPopoverMode: Bool {
