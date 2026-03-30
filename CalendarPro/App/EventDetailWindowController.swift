@@ -22,17 +22,27 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
                 self?.close()
             }
         )
-        if #available(macOS 13.0, *) {
-            hostingController.sizingOptions = .preferredContentSize
-        }
 
         panel.contentViewController = hostingController
         hostingController.view.layoutSubtreeIfNeeded()
 
         let fittingSize = hostingController.view.fittingSize
-        let panelSize = EventDetailWindowSizing.panelSize(for: fittingSize)
-        panel.setContentSize(panelSize)
-        panel.setFrame(frame(for: panelSize, anchoredTo: anchorWindow), display: false)
+        let visibleFrame = anchorWindow?.screen?.visibleFrame
+            ?? NSScreen.main?.visibleFrame
+            ?? NSScreen.screens.first?.visibleFrame
+            ?? CGRect(x: 100, y: 100, width: 1200, height: 800)
+
+        let availableHeight: CGFloat
+        if let anchorFrame = anchorWindow?.frame {
+            availableHeight = anchorFrame.maxY - visibleFrame.minY
+        } else {
+            availableHeight = visibleFrame.height
+        }
+
+        let panelSize = EventDetailWindowSizing.panelSize(for: fittingSize, availableHeight: availableHeight)
+        let panelFrame = frame(for: panelSize, anchoredTo: anchorWindow)
+        panel.setContentSize(panelFrame.size)
+        panel.setFrame(panelFrame, display: false)
         panel.orderFrontRegardless()
     }
 
