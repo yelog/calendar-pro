@@ -42,6 +42,16 @@ enum CalendarItem: Identifiable {
         }
     }
     
+    var isReminder: Bool {
+        if case .reminder = self { return true }
+        return false
+    }
+    
+    var ekReminder: EKReminder? {
+        if case .reminder(let reminder) = self { return reminder }
+        return nil
+    }
+    
     var color: NSColor {
         switch self {
         case .event(let event):

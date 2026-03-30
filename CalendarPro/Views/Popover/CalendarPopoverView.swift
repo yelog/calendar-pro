@@ -14,6 +14,7 @@ struct CalendarPopoverView: View {
     let onNextMonth: () -> Void
     let onSelectDate: (Date) -> Void
     let onSelectEvent: (EKEvent) -> Void
+    let onToggleReminder: (EKReminder) -> Void
     let onResetToToday: () -> Void
     let onQuit: () -> Void
     
@@ -102,7 +103,8 @@ struct CalendarPopoverView: View {
                     isLoading: isLoadingEvents,
                     selectedDate: date,
                     selectedEventIdentifier: selectedEventIdentifier,
-                    onSelectEvent: onSelectEvent
+                    onSelectEvent: onSelectEvent,
+                    onToggleReminder: onToggleReminder
                 )
                 .frame(maxHeight: 200)
             }

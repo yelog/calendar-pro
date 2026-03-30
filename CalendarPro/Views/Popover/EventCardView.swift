@@ -20,11 +20,13 @@ struct EventCardView: View {
     let item: CalendarItem
     let isSelected: Bool
     let showsDisclosure: Bool
+    var onToggleReminder: ((EKReminder) -> Void)?
 
-    init(item: CalendarItem, isSelected: Bool = false, showsDisclosure: Bool = true) {
+    init(item: CalendarItem, isSelected: Bool = false, showsDisclosure: Bool = true, onToggleReminder: ((EKReminder) -> Void)? = nil) {
         self.item = item
         self.isSelected = isSelected
         self.showsDisclosure = showsDisclosure
+        self.onToggleReminder = onToggleReminder
     }
 
     init(event: EKEvent, isSelected: Bool) {
@@ -33,10 +35,15 @@ struct EventCardView: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            Circle()
-                .fill(Color(nsColor: item.color))
-                .frame(width: 6, height: 6)
-                .padding(.top, 4)
+            if item.isReminder {
+                reminderCheckbox
+                    .padding(.top, 2)
+            } else {
+                Circle()
+                    .fill(Color(nsColor: item.color))
+                    .frame(width: 6, height: 6)
+                    .padding(.top, 4)
+            }
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(timeRangeText)
@@ -110,5 +117,18 @@ struct EventCardView: View {
             return Color.accentColor.opacity(0.35)
         }
         return Color.primary.opacity(0.05)
+    }
+
+    private var reminderCheckbox: some View {
+        Button {
+            if let reminder = item.ekReminder {
+                onToggleReminder?(reminder)
+            }
+        } label: {
+            Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                .font(.system(size: 14))
+                .foregroundStyle(item.isCompleted ? Color(nsColor: item.color) : .secondary)
+        }
+        .buttonStyle(.plain)
     }
 }

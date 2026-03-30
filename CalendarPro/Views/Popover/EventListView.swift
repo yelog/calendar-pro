@@ -7,6 +7,7 @@ struct EventListView: View {
     let selectedDate: Date?
     let selectedEventIdentifier: String?
     let onSelectEvent: (EKEvent) -> Void
+    let onToggleReminder: (EKReminder) -> Void
 
     var body: some View {
         if isLoading {
@@ -106,7 +107,8 @@ struct EventListView: View {
             EventCardView(
                 item: item,
                 isSelected: false,
-                showsDisclosure: false
+                showsDisclosure: false,
+                onToggleReminder: onToggleReminder
             )
         }
     }
@@ -148,9 +150,22 @@ struct EventListView: View {
 
     private func compactItemRow(item: CalendarItem, isSelected: Bool, showsDisclosure: Bool) -> some View {
         HStack(spacing: 6) {
-            Circle()
-                .fill(Color(nsColor: item.color))
-                .frame(width: 6, height: 6)
+            if item.isReminder {
+                Button {
+                    if let reminder = item.ekReminder {
+                        onToggleReminder(reminder)
+                    }
+                } label: {
+                    Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 12))
+                        .foregroundStyle(item.isCompleted ? Color(nsColor: item.color) : .secondary)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Circle()
+                    .fill(Color(nsColor: item.color))
+                    .frame(width: 6, height: 6)
+            }
 
             Text(item.title)
                 .font(.system(size: 13, weight: .regular))

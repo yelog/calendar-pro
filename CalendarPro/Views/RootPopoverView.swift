@@ -35,6 +35,9 @@ struct RootPopoverView: View {
             onSelectEvent: { event in
                 handleEventSelection(event)
             },
+            onToggleReminder: { reminder in
+                handleToggleReminder(reminder)
+            },
             onResetToToday: {
                 dismissEventDetail()
                 viewModel.resetToToday()
@@ -159,6 +162,15 @@ struct RootPopoverView: View {
             }
         } else {
             onDismissEventDetailWindow()
+        }
+    }
+
+    private func handleToggleReminder(_ reminder: EKReminder) {
+        do {
+            try eventService.toggleReminderCompletion(reminder)
+            refreshEventsForCurrentSelection()
+        } catch {
+            print("Failed to toggle reminder completion: \(error)")
         }
     }
 

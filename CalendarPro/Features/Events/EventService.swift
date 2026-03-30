@@ -185,6 +185,11 @@ final class EventService: ObservableObject {
         return calendars.first { $0.calendarIdentifier == identifier }
     }
     
+    func toggleReminderCompletion(_ reminder: EKReminder) throws {
+        reminder.isCompleted = !reminder.isCompleted
+        try eventStore.save(reminder, commit: true)
+    }
+    
     func reminderCalendar(withIdentifier identifier: String) -> EKCalendar? {
         return reminderCalendars.first { $0.calendarIdentifier == identifier }
     }
