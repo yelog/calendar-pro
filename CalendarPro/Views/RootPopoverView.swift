@@ -44,6 +44,14 @@ struct RootPopoverView: View {
                 loadEvents(for: today)
             }
         }
+        .onChange(of: eventService.isAuthorized) { _, isAuthorized in
+            if isAuthorized && settingsStore.menuBarPreferences.showEvents {
+                eventService.fetchCalendars()
+                let today = Date()
+                viewModel.selectDate(today)
+                loadEvents(for: today)
+            }
+        }
         .onChange(of: viewModel.selectedDate) { _, newDate in
             if let date = newDate {
                 loadEvents(for: date)

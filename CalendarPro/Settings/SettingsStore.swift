@@ -3,11 +3,7 @@ import Foundation
 
 @MainActor
 final class SettingsStore: ObservableObject {
-    @Published var menuBarPreferences: MenuBarPreferences {
-        didSet {
-            persistMenuBarPreferences()
-        }
-    }
+    @Published var menuBarPreferences: MenuBarPreferences
     @Published private(set) var holidayDataRevision: Int = 0
 
     private let userDefaults: UserDefaults
@@ -30,17 +26,23 @@ final class SettingsStore: ObservableObject {
 
     func setTokenEnabled(_ isEnabled: Bool, for token: DisplayTokenKind) {
         guard let index = menuBarPreferences.tokens.firstIndex(where: { $0.token == token }) else { return }
+        objectWillChange.send()
         menuBarPreferences.tokens[index].isEnabled = isEnabled
+        persistMenuBarPreferences()
     }
 
     func setTokenStyle(_ style: DisplayTokenStyle, for token: DisplayTokenKind) {
         guard let index = menuBarPreferences.tokens.firstIndex(where: { $0.token == token }) else { return }
+        objectWillChange.send()
         menuBarPreferences.tokens[index].style = style
+        persistMenuBarPreferences()
     }
 
     func setTimeShowsSeconds(_ showsSeconds: Bool) {
         guard let index = menuBarPreferences.tokens.firstIndex(where: { $0.token == .time }) else { return }
+        objectWillChange.send()
         menuBarPreferences.tokens[index].showsSeconds = showsSeconds
+        persistMenuBarPreferences()
     }
 
     func moveToken(_ token: DisplayTokenKind, by delta: Int) {
@@ -58,11 +60,15 @@ final class SettingsStore: ObservableObject {
             reordered[index].order = index
         }
 
+        objectWillChange.send()
         menuBarPreferences.tokens = reordered
+        persistMenuBarPreferences()
     }
 
     func setSeparator(_ separator: String) {
+        objectWillChange.send()
         menuBarPreferences.separator = separator
+        persistMenuBarPreferences()
     }
 
     func setRegionEnabled(_ isEnabled: Bool, regionID: String) {
@@ -76,7 +82,9 @@ final class SettingsStore: ObservableObject {
             activeRegions.removeAll { $0 == regionID }
         }
 
+        objectWillChange.send()
         menuBarPreferences.activeRegionIDs = activeRegions
+        persistMenuBarPreferences()
     }
 
     func setHolidaySetEnabled(_ isEnabled: Bool, holidaySetID: String, allKnownSetIDs: [String]) {
@@ -92,11 +100,13 @@ final class SettingsStore: ObservableObject {
             enabledSetIDs.remove(holidaySetID)
         }
 
+        objectWillChange.send()
         if enabledSetIDs.count == allKnownSetIDs.count {
             menuBarPreferences.enabledHolidayIDs = []
         } else {
             menuBarPreferences.enabledHolidayIDs = allKnownSetIDs.filter { enabledSetIDs.contains($0) }
         }
+        persistMenuBarPreferences()
     }
 
     func noteHolidayDataUpdated() {
@@ -104,7 +114,9 @@ final class SettingsStore: ObservableObject {
     }
 
     func setShowEvents(_ show: Bool) {
+        objectWillChange.send()
         menuBarPreferences.showEvents = show
+        persistMenuBarPreferences()
     }
 
     func setCalendarEnabled(_ enabled: Bool, calendarID: String) {
@@ -116,7 +128,9 @@ final class SettingsStore: ObservableObject {
         } else {
             ids.removeAll { $0 == calendarID }
         }
+        objectWillChange.send()
         menuBarPreferences.enabledCalendarIDs = ids
+        persistMenuBarPreferences()
     }
 
     private func persistMenuBarPreferences() {
