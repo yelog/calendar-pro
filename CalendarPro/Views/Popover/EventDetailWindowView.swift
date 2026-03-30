@@ -278,6 +278,11 @@ private struct AttributedTextView: NSViewRepresentable {
         textView.backgroundColor = .clear
         textView.textContainer?.lineFragmentPadding = 0
         textView.textContainerInset = .zero
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
+        textView.textContainer?.widthTracksTextView = true
+        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textView.setContentHuggingPriority(.defaultHigh, for: .vertical)
         return textView
     }
 
@@ -300,6 +305,20 @@ private struct AttributedTextView: NSViewRepresentable {
         }
 
         textView.textStorage?.setAttributedString(attributedString)
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSTextView, context: Context) -> CGSize? {
+        let width = proposal.width ?? nsView.bounds.width
+        guard width > 0 else { return nil }
+
+        nsView.textContainer?.containerSize = CGSize(width: width, height: .greatestFiniteMagnitude)
+        nsView.layoutManager?.ensureLayout(for: nsView.textContainer!)
+
+        guard let usedRect = nsView.layoutManager?.usedRect(for: nsView.textContainer!) else {
+            return nil
+        }
+
+        return CGSize(width: width, height: ceil(usedRect.height))
     }
 }
 
