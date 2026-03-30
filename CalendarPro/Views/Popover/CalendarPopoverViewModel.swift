@@ -24,6 +24,16 @@ final class CalendarPopoverViewModel: ObservableObject {
         selectedEventIdentifier = identifier
     }
 
+    func toggleEventSelection(identifier: String) -> Bool {
+        if selectedEventIdentifier == identifier {
+            selectedEventIdentifier = nil
+            return false
+        }
+
+        selectedEventIdentifier = identifier
+        return true
+    }
+
     func clearSelectedEvent() {
         selectedEventIdentifier = nil
     }

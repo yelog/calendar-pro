@@ -1,4 +1,5 @@
 import AppKit
+import EventKit
 import SwiftUI
 
 @MainActor
@@ -96,17 +97,20 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private let settingsStore: SettingsStore
     private let eventService: EventService
     private let interactionMonitor: PopoverInteractionMonitoring
+    private let eventDetailPresenter: EventDetailWindowPresenting
 
     init(
         settingsStore: SettingsStore,
         eventService: EventService,
         popover: PopoverPresenting = NSPopover(),
-        interactionMonitor: PopoverInteractionMonitoring = PopoverInteractionMonitor()
+        interactionMonitor: PopoverInteractionMonitoring = PopoverInteractionMonitor(),
+        eventDetailPresenter: EventDetailWindowPresenting = EventDetailWindowController()
     ) {
         self.popover = popover
         self.settingsStore = settingsStore
         self.eventService = eventService
         self.interactionMonitor = interactionMonitor
+        self.eventDetailPresenter = eventDetailPresenter
         super.init()
 
         popover.behavior = .transient
@@ -133,13 +137,19 @@ final class PopoverController: NSObject, NSPopoverDelegate {
             rootView: RootPopoverView(
                 settingsStore: settingsStore,
                 eventService: eventService,
+                onPresentEventDetailWindow: { [weak self] event, onClose in
+                    self?.showEventDetailWindow(for: event, onClose: onClose)
+                },
+                onDismissEventDetailWindow: { [weak self] in
+                    self?.closeEventDetailWindow()
+                },
                 onQuit: { [weak self] in
                     self?.quitApp()
                 }
             )
         )
         if #available(macOS 13.0, *) {
-            hostingController.sizingOptions = [.preferredContentSize]
+            hostingController.sizingOptions = .preferredContentSize
         }
         popover.contentViewController = hostingController
         popover.contentSize = hostingController.view.fittingSize
@@ -159,10 +169,24 @@ final class PopoverController: NSObject, NSPopoverDelegate {
 
     func popoverDidClose(_ notification: Notification) {
         interactionMonitor.stop()
+        closeEventDetailWindow()
+    }
+
+    func showEventDetailWindow(for event: EKEvent, onClose: @escaping () -> Void) {
+        eventDetailPresenter.show(
+            event: event,
+            anchoredTo: popover.contentViewController?.view.window,
+            onClose: onClose
+        )
+    }
+
+    func closeEventDetailWindow() {
+        eventDetailPresenter.close()
     }
 
     private func quitApp() {
         closePopover()
+        closeEventDetailWindow()
         NSApp.terminate(nil)
     }
 }

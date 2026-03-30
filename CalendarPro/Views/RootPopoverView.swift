@@ -5,6 +5,8 @@ struct RootPopoverView: View {
     @ObservedObject var settingsStore: SettingsStore
     @ObservedObject var eventService: EventService
     @StateObject private var viewModel = CalendarPopoverViewModel()
+    let onPresentEventDetailWindow: (EKEvent, @escaping () -> Void) -> Void
+    let onDismissEventDetailWindow: () -> Void
     let onQuit: () -> Void
     
     @State private var itemsForSelectedDate: [CalendarItem] = []
@@ -18,7 +20,7 @@ struct RootPopoverView: View {
             showEvents: settingsStore.menuBarPreferences.showEvents && eventService.isAuthorized,
             selectedDate: viewModel.selectedDate,
             items: itemsForSelectedDate,
-            selectedEvent: selectedEvent,
+            selectedEventIdentifier: viewModel.selectedEventIdentifier,
             isLoadingEvents: isLoadingEvents,
             onPreviousMonth: {
                 viewModel.showPreviousMonth(using: displayCalendar)
@@ -27,20 +29,14 @@ struct RootPopoverView: View {
                 viewModel.showNextMonth(using: displayCalendar)
             },
             onSelectDate: { date in
+                dismissEventDetail()
                 viewModel.selectDate(date)
             },
             onSelectEvent: { event in
-                let identifier = event.selectionIdentifier
-                if viewModel.selectedEventIdentifier == identifier {
-                    viewModel.clearSelectedEvent()
-                } else {
-                    viewModel.selectEvent(identifier: identifier)
-                }
-            },
-            onDismissEventDetail: {
-                viewModel.clearSelectedEvent()
+                handleEventSelection(event)
             },
             onResetToToday: {
+                dismissEventDetail()
                 viewModel.resetToToday()
                 let today = Date()
                 viewModel.selectDate(today)
@@ -91,6 +87,11 @@ struct RootPopoverView: View {
             return
         }
 
+        eventService.fetchCalendars()
+        if eventService.remindersAuthorized {
+            eventService.fetchReminderCalendars()
+        }
+
         isLoadingEvents = true
         let requestedDate = date
         Task {
@@ -132,6 +133,7 @@ struct RootPopoverView: View {
         itemsForSelectedDate = []
         isLoadingEvents = false
         viewModel.clearSelectedEvent()
+        onDismissEventDetailWindow()
     }
 
     private func syncSelectedEvent(with items: [CalendarItem]) {
@@ -144,8 +146,25 @@ struct RootPopoverView: View {
         }
         guard found else {
             viewModel.clearSelectedEvent()
+            onDismissEventDetailWindow()
             return
         }
+    }
+
+    private func handleEventSelection(_ event: EKEvent) {
+        let shouldPresent = viewModel.toggleEventSelection(identifier: event.selectionIdentifier)
+        if shouldPresent {
+            onPresentEventDetailWindow(event) {
+                viewModel.clearSelectedEvent()
+            }
+        } else {
+            onDismissEventDetailWindow()
+        }
+    }
+
+    private func dismissEventDetail() {
+        viewModel.clearSelectedEvent()
+        onDismissEventDetailWindow()
     }
     
     private var displayCalendar: Calendar {
@@ -165,17 +184,5 @@ struct RootPopoverView: View {
             preferences: settingsStore.menuBarPreferences,
             selectedDate: viewModel.selectedDate
         )) ?? monthService.makeMonthGrid(for: viewModel.displayedMonth)
-    }
-
-    private var selectedEvent: EKEvent? {
-        guard let selectedIdentifier = viewModel.selectedEventIdentifier else {
-            return nil
-        }
-        for item in itemsForSelectedDate {
-            if case .event(let event) = item, event.selectionIdentifier == selectedIdentifier {
-                return event
-            }
-        }
-        return nil
     }
 }

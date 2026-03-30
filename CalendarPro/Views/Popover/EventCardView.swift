@@ -19,10 +19,12 @@ extension EKEvent {
 struct EventCardView: View {
     let item: CalendarItem
     let isSelected: Bool
+    let showsDisclosure: Bool
 
-    init(item: CalendarItem, isSelected: Bool = false) {
+    init(item: CalendarItem, isSelected: Bool = false, showsDisclosure: Bool = true) {
         self.item = item
         self.isSelected = isSelected
+        self.showsDisclosure = showsDisclosure
     }
 
     init(event: EKEvent, isSelected: Bool) {
@@ -57,10 +59,12 @@ struct EventCardView: View {
             
             Spacer()
 
-            Image(systemName: "chevron.left")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(isSelected ? Color.accentColor : Color(nsColor: .tertiaryLabelColor))
-                .padding(.top, 2)
+            if showsDisclosure {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(isSelected ? Color.accentColor : Color(nsColor: .tertiaryLabelColor))
+                    .padding(.top, 2)
+            }
         }
         .padding(10)
         .background(backgroundColor)
@@ -69,6 +73,7 @@ struct EventCardView: View {
                 .strokeBorder(borderColor, lineWidth: 1)
         }
         .clipShape(RoundedRectangle(cornerRadius: 10))
+        .contentShape(RoundedRectangle(cornerRadius: 10))
     }
     
     private var timeRangeText: String {

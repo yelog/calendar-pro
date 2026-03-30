@@ -73,6 +73,25 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedEventIdentifier, "event-1")
     }
 
+    func testToggleEventSelectionSelectsIdentifier() {
+        let viewModel = CalendarPopoverViewModel()
+
+        let shouldPresent = viewModel.toggleEventSelection(identifier: "event-1")
+
+        XCTAssertTrue(shouldPresent)
+        XCTAssertEqual(viewModel.selectedEventIdentifier, "event-1")
+    }
+
+    func testToggleEventSelectionClearsIdentifierWhenTappingSameEvent() {
+        let viewModel = CalendarPopoverViewModel()
+        _ = viewModel.toggleEventSelection(identifier: "event-1")
+
+        let shouldPresent = viewModel.toggleEventSelection(identifier: "event-1")
+
+        XCTAssertFalse(shouldPresent)
+        XCTAssertNil(viewModel.selectedEventIdentifier)
+    }
+
     func testClearSelectedEvent() {
         let viewModel = CalendarPopoverViewModel()
 

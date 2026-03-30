@@ -1,4 +1,5 @@
 import AppKit
+import EventKit
 import XCTest
 @testable import CalendarPro
 
@@ -19,13 +20,38 @@ final class CalendarProTests: XCTestCase {
 
 @MainActor
 final class PopoverControllerTests: XCTestCase {
+    func testShowEventDetailWindowDelegatesToPresenter() {
+        let presenter = FakeEventDetailWindowPresenter()
+        let controller = makeController(
+            name: #function,
+            popover: FakePopover(),
+            interactionMonitor: FakePopoverInteractionMonitor(),
+            eventDetailPresenter: presenter
+        )
+        let event = makeEvent()
+        var didInvokeClose = false
+
+        controller.showEventDetailWindow(for: event) {
+            didInvokeClose = true
+        }
+
+        XCTAssertEqual(presenter.showCallCount, 1)
+        XCTAssertTrue(presenter.lastEvent === event)
+        XCTAssertNil(presenter.lastAnchorWindow)
+
+        presenter.lastOnClose?()
+        XCTAssertTrue(didInvokeClose)
+    }
+
     func testToggleShowsPopoverAndStartsInteractionMonitor() {
         let popover = FakePopover()
         let interactionMonitor = FakePopoverInteractionMonitor()
+        let eventDetailPresenter = FakeEventDetailWindowPresenter()
         let controller = makeController(
             name: #function,
             popover: popover,
-            interactionMonitor: interactionMonitor
+            interactionMonitor: interactionMonitor,
+            eventDetailPresenter: eventDetailPresenter
         )
 
         controller.toggle(relativeTo: NSButton())
@@ -39,10 +65,12 @@ final class PopoverControllerTests: XCTestCase {
     func testInteractionMonitorClosesShownPopover() {
         let popover = FakePopover()
         let interactionMonitor = FakePopoverInteractionMonitor()
+        let eventDetailPresenter = FakeEventDetailWindowPresenter()
         let controller = makeController(
             name: #function,
             popover: popover,
-            interactionMonitor: interactionMonitor
+            interactionMonitor: interactionMonitor,
+            eventDetailPresenter: eventDetailPresenter
         )
 
         controller.toggle(relativeTo: NSButton())
@@ -53,10 +81,42 @@ final class PopoverControllerTests: XCTestCase {
         XCTAssertNil(interactionMonitor.handler)
     }
 
+    func testCloseEventDetailWindowIsSafeWhenNothingIsShown() {
+        let presenter = FakeEventDetailWindowPresenter()
+        let controller = makeController(
+            name: #function,
+            popover: FakePopover(),
+            interactionMonitor: FakePopoverInteractionMonitor(),
+            eventDetailPresenter: presenter
+        )
+
+        controller.closeEventDetailWindow()
+
+        XCTAssertEqual(presenter.closeCallCount, 1)
+    }
+
+    func testClosingPopoverAlsoClosesEventDetailWindow() {
+        let popover = FakePopover()
+        let interactionMonitor = FakePopoverInteractionMonitor()
+        let presenter = FakeEventDetailWindowPresenter()
+        let controller = makeController(
+            name: #function,
+            popover: popover,
+            interactionMonitor: interactionMonitor,
+            eventDetailPresenter: presenter
+        )
+
+        controller.toggle(relativeTo: NSButton())
+        interactionMonitor.triggerInteraction()
+
+        XCTAssertEqual(presenter.closeCallCount, 1)
+    }
+
     private func makeController(
         name: String,
         popover: PopoverPresenting,
-        interactionMonitor: PopoverInteractionMonitoring
+        interactionMonitor: PopoverInteractionMonitoring,
+        eventDetailPresenter: EventDetailWindowPresenting = FakeEventDetailWindowPresenter()
     ) -> PopoverController {
         let userDefaults = UserDefaults(suiteName: name)!
         userDefaults.removePersistentDomain(forName: name)
@@ -66,8 +126,17 @@ final class PopoverControllerTests: XCTestCase {
             settingsStore: settingsStore,
             eventService: EventService(),
             popover: popover,
-            interactionMonitor: interactionMonitor
+            interactionMonitor: interactionMonitor,
+            eventDetailPresenter: eventDetailPresenter
         )
+    }
+
+    private func makeEvent() -> EKEvent {
+        let event = EKEvent(eventStore: EKEventStore())
+        event.title = "评审会议"
+        event.startDate = Date(timeIntervalSince1970: 1_711_676_800)
+        event.endDate = Date(timeIntervalSince1970: 1_711_680_400)
+        return event
     }
 }
 
@@ -188,5 +257,25 @@ private final class FakeEventMonitorInstaller: EventMonitorInstalling {
 
     func fireGlobalMouseDown() {
         handler?()
+    }
+}
+
+@MainActor
+private final class FakeEventDetailWindowPresenter: EventDetailWindowPresenting {
+    private(set) var closeCallCount = 0
+    private(set) var showCallCount = 0
+    private(set) var lastEvent: EKEvent?
+    private(set) var lastAnchorWindow: NSWindow?
+    private(set) var lastOnClose: (() -> Void)?
+
+    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onClose: @escaping () -> Void) {
+        showCallCount += 1
+        lastEvent = event
+        lastAnchorWindow = anchorWindow
+        lastOnClose = onClose
+    }
+
+    func close() {
+        closeCallCount += 1
     }
 }

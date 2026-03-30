@@ -32,7 +32,10 @@ end
 
 app_target.build_configurations.each do |config|
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.yelog.CalendarPro'
+  config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'CalendarPro/CalendarPro.entitlements'
   config.build_settings['INFOPLIST_KEY_LSUIElement'] = config.name == 'Release' ? 'YES' : 'NO'
+  config.build_settings['INFOPLIST_KEY_NSCalendarsUsageDescription'] = '用于显示您的日历日程'
+  config.build_settings['INFOPLIST_KEY_NSRemindersUsageDescription'] = '用于显示您的提醒事项'
   config.build_settings['DEFINES_MODULE'] = 'YES'
   config.build_settings['SWIFT_EMIT_LOC_STRINGS'] = 'YES'
   config.build_settings['LD_RUNPATH_SEARCH_PATHS'] = '$(inherited) @executable_path/../Frameworks'
@@ -97,6 +100,8 @@ def add_project_files(group, app_target, test_target, ui_test_target, path, role
                  ui_test_target
                end
       target.source_build_phase.add_file_reference(file_ref)
+    elsif role == :app && File.extname(entry) == '.entitlements'
+      group.new_file(entry)
     elsif role == :app && File.extname(entry) == '.json'
       file_ref = group.new_file(entry)
       app_target.resources_build_phase.add_file_reference(file_ref)

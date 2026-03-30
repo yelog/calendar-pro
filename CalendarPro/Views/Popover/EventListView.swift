@@ -4,6 +4,8 @@ import EventKit
 struct EventListView: View {
     let items: [CalendarItem]
     let isLoading: Bool
+    let selectedEventIdentifier: String?
+    let onSelectEvent: (EKEvent) -> Void
     
     var body: some View {
         if isLoading {
@@ -23,7 +25,25 @@ struct EventListView: View {
         } else {
             VStack(spacing: 6) {
                 ForEach(items) { item in
-                    EventCardView(item: item)
+                    switch item {
+                    case .event(let event):
+                        Button {
+                            onSelectEvent(event)
+                        } label: {
+                            EventCardView(
+                                item: item,
+                                isSelected: selectedEventIdentifier == event.selectionIdentifier,
+                                showsDisclosure: true
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    case .reminder:
+                        EventCardView(
+                            item: item,
+                            isSelected: false,
+                            showsDisclosure: false
+                        )
+                    }
                 }
             }
         }

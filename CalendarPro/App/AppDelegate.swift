@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarController: StatusBarController?
     private var uiTestWindow: NSWindow?
     private var settingsWindow: NSWindow?
+    private let uiTestEventDetailWindowController = EventDetailWindowController()
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(isUITestPopoverMode ? .regular : .accessory)
@@ -55,11 +56,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             rootView: RootPopoverView(
                 settingsStore: settingsStore,
                 eventService: eventService,
+                onPresentEventDetailWindow: { [weak self] event, onClose in
+                    self?.uiTestEventDetailWindowController.show(
+                        event: event,
+                        anchoredTo: self?.uiTestWindow,
+                        onClose: onClose
+                    )
+                },
+                onDismissEventDetailWindow: { [weak self] in
+                    self?.uiTestEventDetailWindowController.close()
+                },
                 onQuit: { NSApp.terminate(nil) }
             )
         )
         if #available(macOS 13.0, *) {
-            hostingController.sizingOptions = [.preferredContentSize]
+            hostingController.sizingOptions = .preferredContentSize
         }
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 340, height: 400),
