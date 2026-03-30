@@ -100,6 +100,7 @@ struct CalendarPopoverView: View {
                 EventListView(
                     items: items,
                     isLoading: isLoadingEvents,
+                    selectedDate: date,
                     selectedEventIdentifier: selectedEventIdentifier,
                     onSelectEvent: onSelectEvent
                 )

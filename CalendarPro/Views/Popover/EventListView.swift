@@ -4,6 +4,7 @@ import EventKit
 struct EventListView: View {
     let items: [CalendarItem]
     let isLoading: Bool
+    let selectedDate: Date?
     let selectedEventIdentifier: String?
     let onSelectEvent: (EKEvent) -> Void
 
@@ -23,18 +24,66 @@ struct EventListView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
         } else {
-            ScrollView {
-                VStack(spacing: 6) {
-                    ForEach(groupedByTime) { group in
-                        if group.items.count == 1 {
-                            singleItemView(group.items[0])
-                        } else {
-                            groupedCardView(group)
+            let groups = groupedByTime
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 6) {
+                        ForEach(groups) { group in
+                            if group.items.count == 1 {
+                                singleItemView(group.items[0])
+                                    .id(group.id)
+                            } else {
+                                groupedCardView(group)
+                                    .id(group.id)
+                            }
                         }
+                    }
+                }
+                .onAppear {
+                    if let targetID = activeGroupID(in: groups) {
+                        proxy.scrollTo(targetID, anchor: .top)
                     }
                 }
             }
         }
+    }
+
+    // MARK: - Auto-scroll target
+
+    /// Returns the group ID to scroll to: the ongoing event group, or the next upcoming group.
+    /// Only applies when viewing today's events.
+    private func activeGroupID(in groups: [TimeGroup]) -> String? {
+        guard let selectedDate, Calendar.current.isDateInToday(selectedDate) else {
+            return nil
+        }
+
+        let now = Date()
+        let cal = Calendar.current
+        let nowMinutes = cal.component(.hour, from: now) * 60 + cal.component(.minute, from: now)
+
+        // 1. Look for a group with an ongoing event (start <= now <= end)
+        for group in groups {
+            for item in group.items {
+                if let start = item.startDate, let end = item.endDate,
+                   start <= now, now <= end {
+                    return group.id
+                }
+            }
+        }
+
+        // 2. Find the first group whose time-of-day >= now
+        for group in groups {
+            guard group.key != "allDay", group.key != "noTime" else { continue }
+            let parts = group.key.split(separator: ":")
+            guard parts.count == 2,
+                  let hour = Int(parts[0]),
+                  let minute = Int(parts[1]) else { continue }
+            if hour * 60 + minute >= nowMinutes {
+                return group.id
+            }
+        }
+
+        return nil
     }
 
     // MARK: - Single item (existing card style)
