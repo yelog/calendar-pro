@@ -49,11 +49,37 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedDate, date)
     }
 
+    func testSelectDateClearsSelectedEvent() {
+        let viewModel = CalendarPopoverViewModel()
+
+        viewModel.selectEvent(identifier: "event-1")
+        viewModel.selectDate(makeDate(year: 2026, month: 3, day: 29))
+
+        XCTAssertNil(viewModel.selectedEventIdentifier)
+    }
+
     func testClearSelectedDate() {
         let viewModel = CalendarPopoverViewModel()
         viewModel.selectDate(makeDate(year: 2026, month: 3, day: 29))
         viewModel.clearSelectedDate()
         XCTAssertNil(viewModel.selectedDate)
+    }
+
+    func testSelectEventStoresIdentifier() {
+        let viewModel = CalendarPopoverViewModel()
+
+        viewModel.selectEvent(identifier: "event-1")
+
+        XCTAssertEqual(viewModel.selectedEventIdentifier, "event-1")
+    }
+
+    func testClearSelectedEvent() {
+        let viewModel = CalendarPopoverViewModel()
+
+        viewModel.selectEvent(identifier: "event-1")
+        viewModel.clearSelectedEvent()
+
+        XCTAssertNil(viewModel.selectedEventIdentifier)
     }
 
     private func makeDate(year: Int, month: Int, day: Int) -> Date {

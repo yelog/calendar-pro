@@ -4,6 +4,7 @@ import Foundation
 final class CalendarPopoverViewModel: ObservableObject {
     @Published private(set) var displayedMonth: Date
     @Published private(set) var selectedDate: Date?
+    @Published private(set) var selectedEventIdentifier: String?
 
     init(displayedMonth: Date = .now) {
         self.displayedMonth = displayedMonth
@@ -11,10 +12,20 @@ final class CalendarPopoverViewModel: ObservableObject {
 
     func selectDate(_ date: Date) {
         selectedDate = date
+        selectedEventIdentifier = nil
     }
 
     func clearSelectedDate() {
         selectedDate = nil
+        selectedEventIdentifier = nil
+    }
+
+    func selectEvent(identifier: String) {
+        selectedEventIdentifier = identifier
+    }
+
+    func clearSelectedEvent() {
+        selectedEventIdentifier = nil
     }
 
     func showPreviousMonth(using calendar: Calendar) {

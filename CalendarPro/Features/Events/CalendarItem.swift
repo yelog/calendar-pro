@@ -8,7 +8,7 @@ enum CalendarItem: Identifiable {
     var id: String {
         switch self {
         case .event(let event):
-            return "event-\(event.eventIdentifier)"
+            return "event-\(event.eventIdentifier ?? "unknown")"
         case .reminder(let reminder):
             return "reminder-\(reminder.calendarItemIdentifier)"
         }

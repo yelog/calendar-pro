@@ -58,6 +58,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 onQuit: { NSApp.terminate(nil) }
             )
         )
+        if #available(macOS 13.0, *) {
+            hostingController.sizingOptions = [.preferredContentSize]
+        }
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 340, height: 400),
             styleMask: [.titled, .closable, .miniaturizable],
@@ -66,7 +69,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         window.contentViewController = hostingController
         window.title = "Calendar Pro"
-        window.setContentSize(NSSize(width: 340, height: 400))
+        window.setContentSize(hostingController.view.fittingSize)
         window.center()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
