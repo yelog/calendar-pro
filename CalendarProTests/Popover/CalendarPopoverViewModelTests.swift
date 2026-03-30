@@ -101,6 +101,82 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.selectedEventIdentifier)
     }
 
+    func testInitialSelectionModeIsCalendar() {
+        let viewModel = CalendarPopoverViewModel()
+        XCTAssertEqual(viewModel.selectionMode, .calendar)
+    }
+
+    func testEnterYearSelection() {
+        let viewModel = CalendarPopoverViewModel()
+
+        viewModel.enterYearSelection()
+
+        XCTAssertEqual(viewModel.selectionMode, .year)
+    }
+
+    func testEnterMonthSelection() {
+        let viewModel = CalendarPopoverViewModel()
+
+        viewModel.enterMonthSelection()
+
+        XCTAssertEqual(viewModel.selectionMode, .month)
+    }
+
+    func testDismissPickerReturnsToCalendarMode() {
+        let viewModel = CalendarPopoverViewModel()
+        viewModel.enterYearSelection()
+
+        viewModel.dismissPicker()
+
+        XCTAssertEqual(viewModel.selectionMode, .calendar)
+    }
+
+    func testSelectYearChangesDisplayedMonth() {
+        let viewModel = CalendarPopoverViewModel(displayedMonth: makeDate(year: 2025, month: 3, day: 15))
+
+        viewModel.selectYear(2030, calendar: .gregorianMondayFirst)
+
+        XCTAssertEqual(viewModel.displayedYear, 2030)
+        XCTAssertEqual(viewModel.displayedMonthNumber, 3)
+        XCTAssertEqual(viewModel.selectionMode, .month)
+    }
+
+    func testSelectMonthChangesDisplayedMonth() {
+        let viewModel = CalendarPopoverViewModel(displayedMonth: makeDate(year: 2026, month: 3, day: 1))
+
+        viewModel.selectMonth(12, calendar: .gregorianMondayFirst)
+
+        XCTAssertEqual(viewModel.displayedYear, 2026)
+        XCTAssertEqual(viewModel.displayedMonthNumber, 12)
+        XCTAssertEqual(viewModel.selectionMode, .calendar)
+    }
+
+    func testDisplayedYearReturnsCurrentYear() {
+        let viewModel = CalendarPopoverViewModel(displayedMonth: makeDate(year: 2026, month: 5, day: 10))
+
+        XCTAssertEqual(viewModel.displayedYear, 2026)
+    }
+
+    func testDisplayedMonthNumberReturnsCurrentMonth() {
+        let viewModel = CalendarPopoverViewModel(displayedMonth: makeDate(year: 2026, month: 5, day: 10))
+
+        XCTAssertEqual(viewModel.displayedMonthNumber, 5)
+    }
+
+    func testCurrentYearReturnsTodaysYear() {
+        let viewModel = CalendarPopoverViewModel()
+        let expectedYear = Calendar.current.component(.year, from: Date())
+
+        XCTAssertEqual(viewModel.currentYear, expectedYear)
+    }
+
+    func testCurrentMonthNumberReturnsTodaysMonth() {
+        let viewModel = CalendarPopoverViewModel()
+        let expectedMonth = Calendar.current.component(.month, from: Date())
+
+        XCTAssertEqual(viewModel.currentMonthNumber, expectedMonth)
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         DateComponents(
             calendar: Calendar.gregorianMondayFirst,

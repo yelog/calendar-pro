@@ -3,6 +3,11 @@ import EventKit
 
 struct CalendarPopoverView: View {
     let displayedMonth: Date
+    let displayedYear: Int
+    let displayedMonthNumber: Int
+    let currentYear: Int
+    let currentMonthNumber: Int
+    let selectionMode: CalendarPopoverViewModel.SelectionMode
     let weekdaySymbols: [String]
     let monthDays: [CalendarDay]
     let showEvents: Bool
@@ -12,12 +17,17 @@ struct CalendarPopoverView: View {
     let isLoadingEvents: Bool
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
+    let onSelectYear: () -> Void
+    let onSelectMonth: () -> Void
+    let onSelectYearValue: (Int) -> Void
+    let onSelectMonthValue: (Int) -> Void
+    let onDismissPicker: () -> Void
     let onSelectDate: (Date) -> Void
     let onSelectEvent: (EKEvent) -> Void
     let onToggleReminder: (EKReminder) -> Void
     let onResetToToday: () -> Void
     let onQuit: () -> Void
-    
+
     var body: some View {
         mainPanel
             .frame(width: PopoverSurfaceMetrics.width)
@@ -27,55 +37,86 @@ struct CalendarPopoverView: View {
 
     private var mainPanel: some View {
         VStack(alignment: .leading, spacing: 8) {
+            switch selectionMode {
+            case .calendar:
+                calendarView
+            case .year:
+                YearPickerView(
+                    displayedYear: displayedYear,
+                    currentYear: currentYear,
+                    onSelectYear: onSelectYearValue,
+                    onDismiss: onDismissPicker
+                )
+            case .month:
+                MonthPickerView(
+                    displayedYear: displayedYear,
+                    displayedMonth: displayedMonthNumber,
+                    currentMonth: currentMonthNumber,
+                    onSelectMonth: onSelectMonthValue,
+                    onDismiss: onDismissPicker,
+                    onEnterYearSelection: onSelectYear
+                )
+            }
+        }
+        .padding(.horizontal, PopoverSurfaceMetrics.outerPadding)
+        .padding(.vertical, 12)
+    }
+
+    private var calendarView: some View {
+        VStack(alignment: .leading, spacing: 8) {
             MonthHeaderView(
                 displayedMonth: displayedMonth,
                 onPreviousMonth: onPreviousMonth,
-                onNextMonth: onNextMonth
+                onNextMonth: onNextMonth,
+                onSelectYear: onSelectYear,
+                onSelectMonth: onSelectMonth
             )
-            
+
             CalendarGridView(
                 weekdaySymbols: weekdaySymbols,
                 monthDays: monthDays,
                 onSelectDate: onSelectDate
             )
-            
+
             eventsSection
-            
+
             Divider()
                 .padding(.horizontal, -PopoverSurfaceMetrics.outerPadding)
-            
-            HStack {
-                Button {
-                    NSApp.sendAction(#selector(AppDelegate.openSettings), to: nil, from: nil)
-                } label: {
-                    Label("设置", systemImage: "gearshape")
-                        .font(.system(size: 12))
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut(",", modifiers: .command)
-                
-                Spacer()
-                
-                Button(action: onResetToToday) {
-                    Label("今日", systemImage: "calendar")
-                        .font(.system(size: 12))
-                }
-                .buttonStyle(.plain)
-                .keyboardShortcut("t", modifiers: .command)
-                
-                Spacer()
-                
-                Button(action: onQuit) {
-                    Label("退出", systemImage: "power")
-                        .font(.system(size: 12))
-                }
-                .buttonStyle(.plain)
-            }
-            .foregroundStyle(.secondary)
-            .padding(.bottom, 4)
+
+            footerButtons
         }
-        .padding(.horizontal, PopoverSurfaceMetrics.outerPadding)
-        .padding(.vertical, 12)
+    }
+
+    private var footerButtons: some View {
+        HStack {
+            Button {
+                NSApp.sendAction(#selector(AppDelegate.openSettings), to: nil, from: nil)
+            } label: {
+                Label("设置", systemImage: "gearshape")
+                    .font(.system(size: 12))
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut(",", modifiers: .command)
+
+            Spacer()
+
+            Button(action: onResetToToday) {
+                Label("今日", systemImage: "calendar")
+                    .font(.system(size: 12))
+            }
+            .buttonStyle(.plain)
+            .keyboardShortcut("t", modifiers: .command)
+
+            Spacer()
+
+            Button(action: onQuit) {
+                Label("退出", systemImage: "power")
+                    .font(.system(size: 12))
+            }
+            .buttonStyle(.plain)
+        }
+        .foregroundStyle(.secondary)
+        .padding(.bottom, 4)
     }
 
     @ViewBuilder

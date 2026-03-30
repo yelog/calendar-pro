@@ -4,6 +4,22 @@ struct MonthHeaderView: View {
     let displayedMonth: Date
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
+    let onSelectYear: () -> Void
+    let onSelectMonth: () -> Void
+
+    private var yearText: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_Hans")
+        formatter.dateFormat = "yyyy年"
+        return formatter.string(from: displayedMonth)
+    }
+
+    private var monthText: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_Hans")
+        formatter.dateFormat = "M月"
+        return formatter.string(from: displayedMonth)
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -16,8 +32,21 @@ struct MonthHeaderView: View {
 
             Spacer()
 
-            Text(displayedMonth, format: .dateTime.year().month(.wide))
-                .font(.system(.title3, design: .rounded).weight(.semibold))
+            HStack(spacing: 4) {
+                Button(action: onSelectYear) {
+                    Text(yearText)
+                        .font(.system(.title3, design: .rounded).weight(.semibold))
+                        .foregroundStyle(.primary)
+                }
+                .buttonStyle(.plain)
+
+                Button(action: onSelectMonth) {
+                    Text(monthText)
+                        .font(.system(.title3, design: .rounded).weight(.semibold))
+                        .foregroundStyle(.primary)
+                }
+                .buttonStyle(.plain)
+            }
 
             Spacer()
 

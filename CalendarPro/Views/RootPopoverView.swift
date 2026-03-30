@@ -8,13 +8,18 @@ struct RootPopoverView: View {
     let onPresentEventDetailWindow: (EKEvent, @escaping () -> Void) -> Void
     let onDismissEventDetailWindow: () -> Void
     let onQuit: () -> Void
-    
+
     @State private var itemsForSelectedDate: [CalendarItem] = []
     @State private var isLoadingEvents: Bool = false
-    
+
     var body: some View {
         CalendarPopoverView(
             displayedMonth: viewModel.displayedMonth,
+            displayedYear: viewModel.displayedYear,
+            displayedMonthNumber: viewModel.displayedMonthNumber,
+            currentYear: viewModel.currentYear,
+            currentMonthNumber: viewModel.currentMonthNumber,
+            selectionMode: viewModel.selectionMode,
             weekdaySymbols: viewModel.weekdaySymbols(using: displayCalendar),
             monthDays: monthDays,
             showEvents: settingsStore.menuBarPreferences.showEvents && eventService.isAuthorized,
@@ -27,6 +32,21 @@ struct RootPopoverView: View {
             },
             onNextMonth: {
                 viewModel.showNextMonth(using: displayCalendar)
+            },
+            onSelectYear: {
+                viewModel.enterYearSelection()
+            },
+            onSelectMonth: {
+                viewModel.enterMonthSelection()
+            },
+            onSelectYearValue: { year in
+                viewModel.selectYear(year, calendar: displayCalendar)
+            },
+            onSelectMonthValue: { month in
+                viewModel.selectMonth(month, calendar: displayCalendar)
+            },
+            onDismissPicker: {
+                viewModel.dismissPicker()
             },
             onSelectDate: { date in
                 dismissEventDetail()
@@ -83,7 +103,7 @@ struct RootPopoverView: View {
             }
         }
     }
-    
+
     private func loadEvents(for date: Date) {
         guard settingsStore.menuBarPreferences.showEvents, eventService.isAuthorized else {
             clearLoadedEvents()
@@ -178,17 +198,17 @@ struct RootPopoverView: View {
         viewModel.clearSelectedEvent()
         onDismissEventDetailWindow()
     }
-    
+
     private var displayCalendar: Calendar {
         var calendar = Calendar.autoupdatingCurrent
         calendar.firstWeekday = settingsStore.menuBarPreferences.weekStart == .monday ? 2 : 1
         return calendar
     }
-    
+
     private var monthService: MonthCalendarService {
         MonthCalendarService(calendar: displayCalendar)
     }
-    
+
     private var monthDays: [CalendarDay] {
         let factory = CalendarDayFactory(calendar: displayCalendar, registry: .live)
         return (try? factory.makeMonthGrid(
