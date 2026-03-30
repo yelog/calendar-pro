@@ -1,108 +1,385 @@
-# 日程详情侧边面板 Implementation Plan
+# 日程详情独立窗口 Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** 在日历 Popover 中点击某条日程时，于左侧展开详情面板并展示该日程的详细信息。
+**Goal:** 在菜单栏下拉中点击某条日历日程时，弹出一个独立的 macOS 详情窗口展示该日程内容，同时保持当前 Popover 布局不变。
 
-**Architecture:** 保持现有 `NSPopover` 容器不变，在 SwiftUI 视图层实现一个按选中状态切换的双栏布局；由 `CalendarPopoverViewModel` 增加日程选择状态，`RootPopoverView` 负责在日期切换和事件刷新时同步清理失效选择。
+**Architecture:** 保持 `NSPopover` 的单栏布局不变，把详情内容从 `CalendarPopoverView` 抽离成独立 SwiftUI 视图，并由 `PopoverController` 持有一个可复用的 `NSPanel` 协调器。`RootPopoverView` 继续管理日期和选中态，但只通过闭包向 AppKit 层发送“打开/关闭详情窗口”的意图；详情窗口关闭时再通过回调清理 SwiftUI 侧的选中状态，确保高亮和窗口生命周期一致。
 
-**Tech Stack:** SwiftUI, AppKit, EventKit, XCTest
+**Tech Stack:** SwiftUI, AppKit, EventKit, Combine, XCTest
 
 ---
 
-### Task 1: 扩展 Popover 状态模型
+### Task 1: 稳定日程选择状态和点击语义
 
 **Files:**
-
 - Modify: `CalendarPro/Views/Popover/CalendarPopoverViewModel.swift`
-- Test: `CalendarProTests/Popover/CalendarPopoverViewModelTests.swift`
+- Modify: `CalendarProTests/Popover/CalendarPopoverViewModelTests.swift`
+- Modify: `CalendarPro/Views/RootPopoverView.swift`
 
 **Step 1: 写失败测试**
 
-- 为 view model 增加日程选择和清空测试
-- 为切换日期时清理已选日程增加测试
+```swift
+func testToggleEventSelectionSelectsIdentifier() {
+    let viewModel = CalendarPopoverViewModel()
 
-**Step 2: 实现状态**
+    let shouldPresent = viewModel.toggleEventSelection(identifier: "event-1")
 
-- 新增 `selectedEventIdentifier`
-- 新增 `selectEvent(identifier:)`
-- 新增 `clearSelectedEvent()`
-- 在 `selectDate(_:)` 内清理当前日程选择
+    XCTAssertTrue(shouldPresent)
+    XCTAssertEqual(viewModel.selectedEventIdentifier, "event-1")
+}
 
-**Step 3: 运行测试**
+func testToggleEventSelectionClearsIdentifierWhenTappingSameEvent() {
+    let viewModel = CalendarPopoverViewModel()
+    _ = viewModel.toggleEventSelection(identifier: "event-1")
 
-- 运行 `CalendarPopoverViewModelTests`
+    let shouldPresent = viewModel.toggleEventSelection(identifier: "event-1")
 
-### Task 2: 让根视图协调详情开关
+    XCTAssertFalse(shouldPresent)
+    XCTAssertNil(viewModel.selectedEventIdentifier)
+}
+```
+
+**Step 2: 运行测试确认失败**
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/CalendarPopoverViewModelTests`
+
+Expected: FAIL，提示 `toggleEventSelection(identifier:)` 不存在。
+
+**Step 3: 写最小实现**
+
+```swift
+func toggleEventSelection(identifier: String) -> Bool {
+    if selectedEventIdentifier == identifier {
+        selectedEventIdentifier = nil
+        return false
+    }
+
+    selectedEventIdentifier = identifier
+    return true
+}
+```
+
+同时修改 `RootPopoverView`，把当前点击逻辑统一走 `toggleEventSelection(identifier:)`，为后续窗口展示返回一个明确的“打开 / 关闭”结果。
+
+**Step 4: 运行测试确认通过**
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/CalendarPopoverViewModelTests`
+
+Expected: PASS
+
+**Step 5: Commit**
+
+```bash
+git add CalendarPro/Views/Popover/CalendarPopoverViewModel.swift CalendarPro/Views/RootPopoverView.swift CalendarProTests/Popover/CalendarPopoverViewModelTests.swift
+git commit -m "refactor(popover): stabilize event selection state"
+```
+
+### Task 2: 让列表只对日历事件开放详情交互
 
 **Files:**
-
-- Modify: `CalendarPro/Views/RootPopoverView.swift`
-
-**Step 1: 统一事件加载入口**
-
-- 避免 `selectedDate` 改变时重复触发事件加载
-- 让日期切换和“今日”操作都通过同一条状态链路刷新
-
-**Step 2: 管理选中日程失效**
-
-- 基于 `selectedEventIdentifier` 找到当前选中日程
-- 当刷新后列表中不再包含该日程时，自动关闭详情面板
-- 在关闭日程展示或无权限时清空详情状态
-
-### Task 3: 实现左右双栏 UI
-
-**Files:**
-
 - Modify: `CalendarPro/Views/Popover/CalendarPopoverView.swift`
-
-**Step 1: 改造布局**
-
-- 用 `HStack` 承载左侧详情面板和右侧主内容
-- 在有选中日程时扩大视图宽度
-
-**Step 2: 实现详情面板**
-
-- 展示标题、时间、日历、地点、备注
-- 加入关闭按钮和空状态
-- 保持视觉上与主面板有明确分层
-
-**Step 3: 处理尺寸**
-
-- 给主面板和详情面板固定宽度
-- 让 HostingController 使用 SwiftUI 的首选内容尺寸
-
-### Task 4: 让列表支持点击与高亮
-
-**Files:**
-
 - Modify: `CalendarPro/Views/Popover/EventListView.swift`
 - Modify: `CalendarPro/Views/Popover/EventCardView.swift`
+- Modify: `CalendarPro/Views/RootPopoverView.swift`
 
-**Step 1: 增加点击能力**
+**Step 1: 写失败测试**
 
-- 给列表增加 `onSelectEvent`
-- 为每条日程生成稳定的选择 ID
+在 `CalendarProTests/Popover/CalendarPopoverViewModelTests.swift` 追加一个约束测试，确保切换日期时一定会清空当前选中事件，避免列表高亮和外部窗口脱节：
 
-**Step 2: 增加选中样式**
+```swift
+func testSelectDateClearsSelectedEventBeforeReload() {
+    let viewModel = CalendarPopoverViewModel()
+    _ = viewModel.toggleEventSelection(identifier: "event-1")
 
-- 当前选中卡片展示更强的背景和描边
-- 增加轻量的“查看详情”视觉提示
+    viewModel.selectDate(makeDate(year: 2026, month: 3, day: 30))
 
-### Task 5: 验证
+    XCTAssertNil(viewModel.selectedEventIdentifier)
+}
+```
+
+**Step 2: 运行测试确认失败**
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/CalendarPopoverViewModelTests`
+
+Expected: 若 Task 1 尚未让 `selectDate(_:)` 与新切换逻辑保持一致，这里会失败。
+
+**Step 3: 写最小实现**
+
+- 给 `EventListView` 增加：
+
+```swift
+let selectedEventIdentifier: String?
+let onSelectEvent: (EKEvent) -> Void
+```
+
+- 在 `ForEach(items)` 内只对 `.event(let event)` 包装点击行为：
+
+```swift
+switch item {
+case .event(let event):
+    Button {
+        onSelectEvent(event)
+    } label: {
+        EventCardView(
+            item: item,
+            isSelected: selectedEventIdentifier == event.selectionIdentifier,
+            showsDisclosure: true
+        )
+    }
+    .buttonStyle(.plain)
+case .reminder:
+    EventCardView(item: item, isSelected: false, showsDisclosure: false)
+}
+```
+
+- 修改 `CalendarPopoverView` 透传 `selectedEventIdentifier` 和 `onSelectEvent`
+- 删除 `CalendarPopoverView` 内与内嵌详情面板相关的宽度扩展和双栏布局，保持 Popover 单栏固定宽度
+
+**Step 4: 运行测试确认通过并完成编译检查**
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/CalendarPopoverViewModelTests`
+
+Expected: PASS
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/PopoverControllerTests`
+
+Expected: PASS，至少确认改动未破坏主壳编译。
+
+**Step 5: Commit**
+
+```bash
+git add CalendarPro/Views/Popover/CalendarPopoverView.swift CalendarPro/Views/Popover/EventListView.swift CalendarPro/Views/Popover/EventCardView.swift CalendarPro/Views/RootPopoverView.swift CalendarProTests/Popover/CalendarPopoverViewModelTests.swift
+git commit -m "feat(popover): wire event row selection for external detail window"
+```
+
+### Task 3: 实现独立窗口的定位算法
 
 **Files:**
+- Create: `CalendarPro/App/EventDetailWindowLayout.swift`
+- Create: `CalendarProTests/App/EventDetailWindowLayoutTests.swift`
+- Regenerate: `CalendarPro.xcodeproj/project.pbxproj` via `ruby tools/generate_xcodeproj.rb`
 
+**Step 1: 写失败测试**
+
+```swift
+func testPrefersLeftSideWhenThereIsEnoughRoom() {
+    let anchor = CGRect(x: 900, y: 500, width: 340, height: 400)
+    let visibleFrame = CGRect(x: 0, y: 0, width: 1440, height: 900)
+
+    let frame = EventDetailWindowLayout.defaultFrame(
+        panelSize: CGSize(width: 320, height: 360),
+        anchorFrame: anchor,
+        visibleFrame: visibleFrame
+    )
+
+    XCTAssertLessThan(frame.maxX, anchor.minX)
+}
+
+func testFallsBackToRightSideWhenLeftSideIsTooTight() {
+    let anchor = CGRect(x: 20, y: 500, width: 340, height: 400)
+    let visibleFrame = CGRect(x: 0, y: 0, width: 1440, height: 900)
+
+    let frame = EventDetailWindowLayout.defaultFrame(
+        panelSize: CGSize(width: 320, height: 360),
+        anchorFrame: anchor,
+        visibleFrame: visibleFrame
+    )
+
+    XCTAssertGreaterThanOrEqual(frame.minX, anchor.maxX)
+}
+```
+
+**Step 2: 运行测试确认失败**
+
+Run: `ruby tools/generate_xcodeproj.rb`
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/EventDetailWindowLayoutTests`
+
+Expected: FAIL，提示 `EventDetailWindowLayout` 类型不存在。
+
+**Step 3: 写最小实现**
+
+```swift
+enum EventDetailWindowLayout {
+    static func defaultFrame(
+        panelSize: CGSize,
+        anchorFrame: CGRect,
+        visibleFrame: CGRect,
+        spacing: CGFloat = 10
+    ) -> CGRect {
+        let leftOriginX = anchorFrame.minX - spacing - panelSize.width
+        let rightOriginX = anchorFrame.maxX + spacing
+        let originX = leftOriginX >= visibleFrame.minX ? leftOriginX : rightOriginX
+        let unclampedY = anchorFrame.maxY - panelSize.height
+        let originY = min(
+            max(unclampedY, visibleFrame.minY),
+            visibleFrame.maxY - panelSize.height
+        )
+
+        return CGRect(origin: CGPoint(x: originX, y: originY), size: panelSize)
+    }
+}
+```
+
+再补一个测试覆盖 Y 轴夹取，避免窗口跑出屏幕。
+
+**Step 4: 运行测试确认通过**
+
+Run: `ruby tools/generate_xcodeproj.rb`
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/EventDetailWindowLayoutTests`
+
+Expected: PASS
+
+**Step 5: Commit**
+
+```bash
+git add CalendarPro/App/EventDetailWindowLayout.swift CalendarProTests/App/EventDetailWindowLayoutTests.swift CalendarPro.xcodeproj/project.pbxproj
+git commit -m "feat(app): add event detail window layout calculator"
+```
+
+### Task 4: 提取可复用的详情内容视图并实现 `NSPanel`
+
+**Files:**
+- Create: `CalendarPro/Views/Popover/EventDetailWindowView.swift`
+- Create: `CalendarPro/App/EventDetailWindowController.swift`
+- Regenerate: `CalendarPro.xcodeproj/project.pbxproj` via `ruby tools/generate_xcodeproj.rb`
+
+**Step 1: 写失败测试**
+
+在 `CalendarProTests/CalendarProTests.swift` 增加 presenter 协议层测试，先约束控制器对“显示 / 关闭”的最小接口：
+
+```swift
+func testCloseEventDetailWindowIsSafeWhenNothingIsShown() {
+    let presenter = FakeEventDetailWindowPresenter()
+    let controller = makeController(
+        name: #function,
+        popover: FakePopover(),
+        interactionMonitor: FakePopoverInteractionMonitor(),
+        eventDetailPresenter: presenter
+    )
+
+    controller.closeEventDetailWindow()
+
+    XCTAssertEqual(presenter.closeCallCount, 1)
+}
+```
+
+**Step 2: 运行测试确认失败**
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/PopoverControllerTests`
+
+Expected: FAIL，提示 `eventDetailPresenter` 注入点或 `closeEventDetailWindow()` 不存在。
+
+**Step 3: 写最小实现**
+
+- 抽出当前详情面板内容到 `EventDetailWindowView`
+- 新增协议：
+
+```swift
+@MainActor
+protocol EventDetailWindowPresenting: AnyObject {
+    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onClose: @escaping @MainActor () -> Void)
+    func close()
+}
+```
+
+- 在 `EventDetailWindowController` 中：
+  - 复用一个 `NSPanel`
+  - 用 `NSHostingController(rootView: EventDetailWindowView(...))` 承载内容
+  - 通过 `EventDetailWindowLayout` 计算位置
+  - 在系统关闭和内容视图关闭按钮中统一执行 `onClose`
+
+**Step 4: 运行测试确认通过**
+
+Run: `ruby tools/generate_xcodeproj.rb`
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/PopoverControllerTests`
+
+Expected: PASS
+
+**Step 5: Commit**
+
+```bash
+git add CalendarPro/Views/Popover/EventDetailWindowView.swift CalendarPro/App/EventDetailWindowController.swift CalendarProTests/CalendarProTests.swift CalendarPro.xcodeproj/project.pbxproj
+git commit -m "feat(app): add reusable event detail panel window"
+```
+
+### Task 5: 把详情窗口接入 PopoverController 并做回归验证
+
+**Files:**
 - Modify: `CalendarPro/App/PopoverController.swift`
-- Modify: `CalendarPro/App/AppDelegate.swift`
+- Modify: `CalendarPro/Views/RootPopoverView.swift`
+- Modify: `CalendarProTests/CalendarProTests.swift`
 
-**Step 1: 接入自适应尺寸**
+**Step 1: 写失败测试**
 
-- 为 `NSHostingController` 开启 `preferredContentSize` 同步
-- 保证真实 Popover 至少能响应宽度变化
+```swift
+func testClosingPopoverAlsoClosesEventDetailWindow() {
+    let popover = FakePopover()
+    let interactionMonitor = FakePopoverInteractionMonitor()
+    let presenter = FakeEventDetailWindowPresenter()
+    let controller = makeController(
+        name: #function,
+        popover: popover,
+        interactionMonitor: interactionMonitor,
+        eventDetailPresenter: presenter
+    )
 
-**Step 2: 执行测试**
+    controller.toggle(relativeTo: NSButton())
+    controller.closeEventDetailWindow()
+    interactionMonitor.triggerInteraction()
 
-- 运行 `CalendarPopoverViewModelTests`
-- 运行 `CalendarProTests`
-- 如本地环境允许，再跑一次完整 macOS 测试目标
+    XCTAssertEqual(presenter.closeCallCount, 2)
+}
+```
+
+**Step 2: 运行测试确认失败**
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/PopoverControllerTests`
+
+Expected: FAIL，说明 Popover 收口时还没有联动详情窗口。
+
+**Step 3: 写最小实现**
+
+- 在 `PopoverController` 注入并持有 `EventDetailWindowPresenting`
+- 在构造 `RootPopoverView` 时传入：
+
+```swift
+onPresentEventDetailWindow: { [weak self] event, onClose in
+    self?.showEventDetailWindow(for: event, onClose: onClose)
+},
+onDismissEventDetailWindow: { [weak self] in
+    self?.closeEventDetailWindow()
+}
+```
+
+- 在 `closePopover()`、`popoverDidClose(_:)` 中同步调用 `closeEventDetailWindow()`
+- 在 `RootPopoverView` 中：
+  - 选中新事件时请求打开详情窗口
+  - 取消选中、切换日期、筛选失效、权限关闭时请求关闭详情窗口
+  - `onAppear` 时清空旧选中态，避免 Popover 再次打开后残留高亮
+
+**Step 4: 运行测试和手动验证**
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' -only-testing:CalendarProTests/PopoverControllerTests`
+
+Expected: PASS
+
+Run: `xcodebuild test -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS'`
+
+Expected: 单元测试通过；若 UI 测试环境可用则一并通过。
+
+手动验证：
+- 点击日历事件，详情窗口出现在 Popover 左侧
+- 点击另一条事件，窗口内容更新但 Popover 尺寸不变
+- 点击提醒事项，没有详情窗口
+- 切换日期或关闭 Popover，详情窗口收起
+
+**Step 5: Commit**
+
+```bash
+git add CalendarPro/App/PopoverController.swift CalendarPro/Views/RootPopoverView.swift CalendarProTests/CalendarProTests.swift
+git commit -m "feat(app): present event detail in standalone macos window"
+```
