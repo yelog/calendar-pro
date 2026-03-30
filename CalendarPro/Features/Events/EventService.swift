@@ -18,7 +18,7 @@ final class EventService: ObservableObject {
         let reminderStatus = EKEventStore.authorizationStatus(for: .reminder)
         
         isAuthorized = eventStatus == .fullAccess || eventStatus == .writeOnly
-        remindersAuthorized = reminderStatus == .fullAccess || reminderStatus == .writeOnly
+        remindersAuthorized = reminderStatus == .fullAccess
         authorizationStatus = eventStatus
     }
     
@@ -97,18 +97,53 @@ final class EventService: ObservableObject {
         
         guard !calendarsToFetch.isEmpty else { return [] }
         
-        let predicate = eventStore.predicateForReminders(in: calendarsToFetch)
-
-        let reminders = await withCheckedContinuation { continuation in
-            eventStore.fetchReminders(matching: predicate) { reminders in
+        // Fetch incomplete reminders due on or before the selected day (includes overdue)
+        let incompletePredicate = eventStore.predicateForIncompleteReminders(
+            withDueDateStarting: nil,
+            ending: endOfDay,
+            calendars: calendarsToFetch
+        )
+        
+        // Fetch completed reminders that were due on the selected day
+        let completedPredicate = eventStore.predicateForCompletedReminders(
+            withCompletionDateStarting: startOfDay,
+            ending: endOfDay,
+            calendars: calendarsToFetch
+        )
+        
+        let store = eventStore
+        
+        async let incompleteResult = withCheckedContinuation { (continuation: CheckedContinuation<[EKReminder], Never>) in
+            store.fetchReminders(matching: incompletePredicate) { reminders in
                 continuation.resume(returning: reminders ?? [])
             }
         }
-
-        return reminders.filter { reminder in
-            guard let dueDate = reminder.dueDateComponents?.date else { return false }
-            return dueDate >= startOfDay && dueDate < endOfDay
+        
+        async let completedResult = withCheckedContinuation { (continuation: CheckedContinuation<[EKReminder], Never>) in
+            store.fetchReminders(matching: completedPredicate) { reminders in
+                continuation.resume(returning: reminders ?? [])
+            }
         }
+        
+        let (incomplete, completed) = await (incompleteResult, completedResult)
+        
+        // Filter incomplete reminders: due today or overdue (has a due date before end of today)
+        let filteredIncomplete = incomplete.filter { reminder in
+            guard let components = reminder.dueDateComponents,
+                  let dueDate = calendar.date(from: components) else { return false }
+            return dueDate < endOfDay
+        }
+        
+        // Combine and deduplicate
+        var seen = Set<String>()
+        var result: [EKReminder] = []
+        for reminder in filteredIncomplete + completed {
+            if seen.insert(reminder.calendarItemIdentifier).inserted {
+                result.append(reminder)
+            }
+        }
+        
+        return result
     }
     
     func fetchCalendarItems(for date: Date, enabledCalendarIDs: [String], enabledReminderCalendarIDs: [String], showReminders: Bool) async -> [CalendarItem] {

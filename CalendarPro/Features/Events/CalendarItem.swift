@@ -28,7 +28,8 @@ enum CalendarItem: Identifiable {
         case .event(let event):
             return event.startDate
         case .reminder(let reminder):
-            return reminder.dueDateComponents?.date
+            guard let components = reminder.dueDateComponents else { return nil }
+            return Calendar.current.date(from: components)
         }
     }
     
