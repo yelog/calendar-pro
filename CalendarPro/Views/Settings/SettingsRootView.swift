@@ -31,7 +31,7 @@ struct SettingsRootView: View {
             RegionSettingsView(viewModel: regionViewModel)
                 .tabItem { Text("地区与节假日") }
         }
-        .frame(width: 680, height: 380)
+        .frame(width: 680, height: 460)
         .onAppear {
             eventService.checkAuthorizationStatus()
             eventService.fetchCalendars()

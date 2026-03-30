@@ -34,7 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             rootView: SettingsRootView(store: settingsStore, eventService: eventService)
         )
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 680, height: 380),
+            contentRect: NSRect(x: 0, y: 0, width: 680, height: 460),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
