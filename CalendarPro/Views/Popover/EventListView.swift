@@ -42,7 +42,8 @@ struct EventListView: View {
                 }
                 .onAppear {
                     if let targetID = activeGroupID(in: groups) {
-                        proxy.scrollTo(targetID, anchor: .top)
+                        let anchor: UnitPoint = isScrollingToLastGroup(in: groups, targetID: targetID) ? .bottom : .top
+                        proxy.scrollTo(targetID, anchor: anchor)
                     }
                 }
             }
@@ -84,7 +85,19 @@ struct EventListView: View {
             }
         }
 
+        // 3. No ongoing or future events - scroll to last timed group (most recent past)
+        let timedGroups = groups.filter { $0.key != "allDay" && $0.key != "noTime" }
+        if let lastGroup = timedGroups.last {
+            return lastGroup.id
+        }
+
         return nil
+    }
+
+    private func isScrollingToLastGroup(in groups: [TimeGroup], targetID: String) -> Bool {
+        let timedGroups = groups.filter { $0.key != "allDay" && $0.key != "noTime" }
+        guard let lastGroup = timedGroups.last else { return false }
+        return targetID == lastGroup.id
     }
 
     // MARK: - Single item (existing card style)
