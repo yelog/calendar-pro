@@ -50,7 +50,7 @@ final class MenuBarViewModel: ObservableObject {
         .sink { [weak self] preferences, _ in
             guard let self else { return }
             self.refreshGranularity = preferences.requiresSecondRefresh ? .second : .minute
-            self.renderNow()
+            self.renderNow(with: preferences)
             self.scheduleTimer()
         }
 
@@ -66,7 +66,7 @@ final class MenuBarViewModel: ObservableObject {
         }
 
         refreshGranularity = settingsStore.menuBarPreferences.requiresSecondRefresh ? .second : .minute
-        renderNow()
+        renderNow(with: settingsStore.menuBarPreferences)
     }
 
     func start() {
@@ -89,14 +89,14 @@ final class MenuBarViewModel: ObservableObject {
             }
     }
 
-    private func renderNow() {
+    private func renderNow(with preferences: MenuBarPreferences? = nil) {
         let currentDate = now()
-        let preferences = settingsStore.menuBarPreferences
+        let prefs = preferences ?? settingsStore.menuBarPreferences
         let supplementalText: MenuBarSupplementalText
 
-        if preferences.tokens.contains(where: { $0.isEnabled && ($0.token == .lunar || $0.token == .holiday) }) {
+        if prefs.tokens.contains(where: { $0.isEnabled && ($0.token == .lunar || $0.token == .holiday) }) {
             let factory = CalendarDayFactory(calendar: calendarProvider(), registry: registry, now: now)
-            let day = try? factory.makeDay(for: currentDate, displayedMonth: currentDate, preferences: preferences)
+            let day = try? factory.makeDay(for: currentDate, displayedMonth: currentDate, preferences: prefs)
             supplementalText = MenuBarSupplementalText(
                 lunarText: day?.lunarText,
                 holidayText: day?.badges.first?.text
@@ -107,7 +107,7 @@ final class MenuBarViewModel: ObservableObject {
 
         displayText = renderer.render(
             now: currentDate,
-            preferences: preferences,
+            preferences: prefs,
             locale: localeProvider(),
             calendar: calendarProvider(),
             timeZone: timeZoneProvider(),

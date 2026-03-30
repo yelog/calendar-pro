@@ -26,22 +26,25 @@ final class SettingsStore: ObservableObject {
 
     func setTokenEnabled(_ isEnabled: Bool, for token: DisplayTokenKind) {
         guard let index = menuBarPreferences.tokens.firstIndex(where: { $0.token == token }) else { return }
-        objectWillChange.send()
-        menuBarPreferences.tokens[index].isEnabled = isEnabled
+        var prefs = menuBarPreferences
+        prefs.tokens[index].isEnabled = isEnabled
+        menuBarPreferences = prefs
         persistMenuBarPreferences()
     }
 
     func setTokenStyle(_ style: DisplayTokenStyle, for token: DisplayTokenKind) {
         guard let index = menuBarPreferences.tokens.firstIndex(where: { $0.token == token }) else { return }
-        objectWillChange.send()
-        menuBarPreferences.tokens[index].style = style
+        var prefs = menuBarPreferences
+        prefs.tokens[index].style = style
+        menuBarPreferences = prefs
         persistMenuBarPreferences()
     }
 
     func setTimeShowsSeconds(_ showsSeconds: Bool) {
         guard let index = menuBarPreferences.tokens.firstIndex(where: { $0.token == .time }) else { return }
-        objectWillChange.send()
-        menuBarPreferences.tokens[index].showsSeconds = showsSeconds
+        var prefs = menuBarPreferences
+        prefs.tokens[index].showsSeconds = showsSeconds
+        menuBarPreferences = prefs
         persistMenuBarPreferences()
     }
 
@@ -60,14 +63,16 @@ final class SettingsStore: ObservableObject {
             reordered[index].order = index
         }
 
-        objectWillChange.send()
-        menuBarPreferences.tokens = reordered
+        var prefs = menuBarPreferences
+        prefs.tokens = reordered
+        menuBarPreferences = prefs
         persistMenuBarPreferences()
     }
 
     func setSeparator(_ separator: String) {
-        objectWillChange.send()
-        menuBarPreferences.separator = separator
+        var prefs = menuBarPreferences
+        prefs.separator = separator
+        menuBarPreferences = prefs
         persistMenuBarPreferences()
     }
 
@@ -82,8 +87,9 @@ final class SettingsStore: ObservableObject {
             activeRegions.removeAll { $0 == regionID }
         }
 
-        objectWillChange.send()
-        menuBarPreferences.activeRegionIDs = activeRegions
+        var prefs = menuBarPreferences
+        prefs.activeRegionIDs = activeRegions
+        menuBarPreferences = prefs
         persistMenuBarPreferences()
     }
 
@@ -100,12 +106,13 @@ final class SettingsStore: ObservableObject {
             enabledSetIDs.remove(holidaySetID)
         }
 
-        objectWillChange.send()
+        var prefs = menuBarPreferences
         if enabledSetIDs.count == allKnownSetIDs.count {
-            menuBarPreferences.enabledHolidayIDs = []
+            prefs.enabledHolidayIDs = []
         } else {
-            menuBarPreferences.enabledHolidayIDs = allKnownSetIDs.filter { enabledSetIDs.contains($0) }
+            prefs.enabledHolidayIDs = allKnownSetIDs.filter { enabledSetIDs.contains($0) }
         }
+        menuBarPreferences = prefs
         persistMenuBarPreferences()
     }
 
@@ -114,8 +121,9 @@ final class SettingsStore: ObservableObject {
     }
 
     func setShowEvents(_ show: Bool) {
-        objectWillChange.send()
-        menuBarPreferences.showEvents = show
+        var prefs = menuBarPreferences
+        prefs.showEvents = show
+        menuBarPreferences = prefs
         persistMenuBarPreferences()
     }
 
@@ -128,8 +136,9 @@ final class SettingsStore: ObservableObject {
         } else {
             ids.removeAll { $0 == calendarID }
         }
-        objectWillChange.send()
-        menuBarPreferences.enabledCalendarIDs = ids
+        var prefs = menuBarPreferences
+        prefs.enabledCalendarIDs = ids
+        menuBarPreferences = prefs
         persistMenuBarPreferences()
     }
 
