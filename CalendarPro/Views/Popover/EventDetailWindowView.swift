@@ -86,7 +86,7 @@ struct EventDetailWindowView: View {
                 }
 
                 if let notesText {
-                    EventDetailRow(icon: "note.text", title: "备注", value: notesText, lineLimit: nil)
+                    NotesDetailRow(notes: notesText)
                 }
 
                 if locationText == nil, event.url == nil, notesText == nil {
@@ -199,10 +199,12 @@ private struct LinkDetailRow: View {
                 Link(destination: url) {
                     Text(url.absoluteString)
                         .font(.system(size: 12))
-                        .foregroundStyle(.link)
+                        .foregroundColor(.accentColor)
+                        .underline()
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+                .buttonStyle(.plain)
                 .help(url.absoluteString)
             }
 
@@ -218,6 +220,86 @@ private struct LinkDetailRow: View {
                         .stroke(Color(nsColor: .separatorColor).opacity(0.12), lineWidth: 1)
                 )
         )
+    }
+}
+
+private struct NotesDetailRow: View {
+    let notes: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "note.text")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(Color(nsColor: .controlAccentColor).opacity(0.08))
+                )
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text("备注")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                if #available(macOS 13.0, *) {
+                    AttributedTextView(notes: notes)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    Text(notes)
+                        .font(.system(size: 12))
+                        .textSelection(.enabled)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(nsColor: .controlBackgroundColor).opacity(0.88))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color(nsColor: .separatorColor).opacity(0.12), lineWidth: 1)
+                )
+        )
+    }
+}
+
+@available(macOS 13.0, *)
+private struct AttributedTextView: NSViewRepresentable {
+    let notes: String
+
+    func makeNSView(context: Context) -> NSTextView {
+        let textView = NSTextView()
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.backgroundColor = .clear
+        textView.textContainer?.lineFragmentPadding = 0
+        textView.textContainerInset = .zero
+        return textView
+    }
+
+    func updateNSView(_ textView: NSTextView, context: Context) {
+        let attributedString = NSMutableAttributedString(string: notes)
+        let fullRange = NSRange(location: 0, length: attributedString.length)
+
+        attributedString.addAttribute(.font, value: NSFont.systemFont(ofSize: 12), range: fullRange)
+        attributedString.addAttribute(.foregroundColor, value: NSColor.labelColor, range: fullRange)
+
+        if let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) {
+            let matches = detector.matches(in: notes, options: [], range: fullRange)
+            for match in matches {
+                if let url = match.url {
+                    attributedString.addAttribute(.link, value: url, range: match.range)
+                    attributedString.addAttribute(.foregroundColor, value: NSColor.controlAccentColor, range: match.range)
+                    attributedString.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: match.range)
+                }
+            }
+        }
+
+        textView.textStorage?.setAttributedString(attributedString)
     }
 }
 
@@ -276,6 +358,13 @@ private struct EmptyDetailState: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color(nsColor: .controlBackgroundColor).opacity(0.7))
             )
+    }
+}
+
+private extension URL {
+    var isValidURL: Bool {
+        guard let scheme = scheme else { return false }
+        return scheme.hasPrefix("http") || scheme.hasPrefix("https") || scheme.hasPrefix("mailto")
     }
 }
 

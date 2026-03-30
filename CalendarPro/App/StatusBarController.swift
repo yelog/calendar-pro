@@ -45,13 +45,10 @@ final class StatusBarController {
     private func configureStatusItems() {
         statusItems.forEach { NSStatusBar.system.removeStatusItem($0) }
         statusItems.removeAll()
-        
-        let screens = NSScreen.screens
-        for screen in screens {
-            let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-            configureStatusButton(statusItem.button)
-            statusItems.append(statusItem)
-        }
+
+        let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        configureStatusButton(statusItem.button)
+        statusItems.append(statusItem)
     }
     
     private func configureStatusButton(_ button: NSStatusBarButton?) {
