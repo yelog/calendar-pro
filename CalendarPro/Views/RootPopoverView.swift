@@ -58,10 +58,22 @@ struct RootPopoverView: View {
                 clearLoadedEvents()
             }
         }
+        .onChange(of: eventService.remindersAuthorized) { _, isAuthorized in
+            if isAuthorized {
+                eventService.fetchReminderCalendars()
+                refreshEventsForCurrentSelection()
+            }
+        }
         .onChange(of: settingsStore.menuBarPreferences.showEvents) { _, _ in
             refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
         }
+        .onChange(of: settingsStore.menuBarPreferences.showReminders) { _, _ in
+            refreshEventsForCurrentSelection()
+        }
         .onChange(of: settingsStore.menuBarPreferences.enabledCalendarIDs) { _, _ in
+            refreshEventsForCurrentSelection()
+        }
+        .onChange(of: settingsStore.menuBarPreferences.enabledReminderCalendarIDs) { _, _ in
             refreshEventsForCurrentSelection()
         }
         .onChange(of: viewModel.selectedDate) { _, newDate in
@@ -104,6 +116,10 @@ struct RootPopoverView: View {
         }
 
         eventService.fetchCalendars()
+
+        if eventService.remindersAuthorized {
+            eventService.fetchReminderCalendars()
+        }
 
         if let selectedDate = viewModel.selectedDate {
             loadEvents(for: selectedDate)
