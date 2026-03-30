@@ -48,8 +48,13 @@ struct EventsSettingsView: View {
                                             .fill(Color(nsColor: calendar.color))
                                             .frame(width: 12, height: 12)
                                         
-                                        Text(calendar.title)
-                                            .font(.system(size: 12))
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(calendar.title)
+                                                .font(.system(size: 12))
+                                            Text(calendar.source.title)
+                                                .font(.system(size: 10))
+                                                .foregroundStyle(.secondary)
+                                        }
                                         
                                         Spacer()
                                         
@@ -60,6 +65,48 @@ struct EventsSettingsView: View {
                             }
                         }
                         .frame(maxHeight: 200)
+                    }
+                }
+                
+                if eventService.remindersAuthorized {
+                    Divider()
+                    
+                    Text("提醒事项")
+                        .font(.system(size: 12, weight: .medium))
+                    
+                    Toggle("显示提醒事项", isOn: showRemindersBinding)
+                        .toggleStyle(.checkbox)
+                    
+                    if store.menuBarPreferences.showReminders {
+                        Text("选择提醒事项列表")
+                            .font(.system(size: 12, weight: .medium))
+                        
+                        if eventService.reminderCalendars.isEmpty {
+                            Text("暂无可用提醒事项列表")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ScrollView {
+                                VStack(spacing: 8) {
+                                    ForEach(eventService.reminderCalendars, id: \.calendarIdentifier) { calendar in
+                                        HStack {
+                                            Circle()
+                                                .fill(Color(nsColor: calendar.color))
+                                                .frame(width: 12, height: 12)
+                                            
+                                            Text(calendar.title)
+                                                .font(.system(size: 12))
+                                            
+                                            Spacer()
+                                            
+                                            Toggle("", isOn: reminderCalendarEnabledBinding(for: calendar.calendarIdentifier))
+                                                .toggleStyle(.checkbox)
+                                        }
+                                    }
+                                }
+                            }
+                            .frame(maxHeight: 200)
+                        }
                     }
                 }
             }
@@ -80,6 +127,23 @@ struct EventsSettingsView: View {
                 return enabledIDs.isEmpty || enabledIDs.contains(calendarID)
             },
             set: { store.setCalendarEnabled($0, calendarID: calendarID) }
+        )
+    }
+    
+    private var showRemindersBinding: Binding<Bool> {
+        Binding(
+            get: { store.menuBarPreferences.showReminders },
+            set: { store.setShowReminders($0) }
+        )
+    }
+    
+    private func reminderCalendarEnabledBinding(for calendarID: String) -> Binding<Bool> {
+        Binding(
+            get: {
+                let enabledIDs = store.menuBarPreferences.enabledReminderCalendarIDs
+                return enabledIDs.isEmpty || enabledIDs.contains(calendarID)
+            },
+            set: { store.setReminderCalendarEnabled($0, calendarID: calendarID) }
         )
     }
 }
