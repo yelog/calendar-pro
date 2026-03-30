@@ -5,6 +5,18 @@ struct EventsSettingsView: View {
     @ObservedObject var store: SettingsStore
     @ObservedObject var eventService: EventService
     
+    struct CalendarGroup {
+        let source: EKSource?
+        let calendars: [EKCalendar]
+    }
+    
+    private var calendarGroups: [CalendarGroup] {
+        let calendars = eventService.calendars
+        let sources = Dictionary(grouping: calendars, by: { $0.source })
+        return sources.map { CalendarGroup(source: $0.key, calendars: $0.value) }
+            .sorted { ($0.source?.title ?? "") < ($1.source?.title ?? "") }
+    }
+    
     var body: some View {
         GroupBox("日历日程") {
             VStack(alignment: .leading, spacing: 12) {
@@ -41,25 +53,27 @@ struct EventsSettingsView: View {
                             .foregroundStyle(.secondary)
                     } else {
                         ScrollView {
-                            VStack(spacing: 8) {
-                                ForEach(eventService.calendars, id: \.calendarIdentifier) { calendar in
-                                    HStack {
-                                        Circle()
-                                            .fill(Color(nsColor: calendar.color))
-                                            .frame(width: 12, height: 12)
+                            VStack(spacing: 12) {
+                                ForEach(calendarGroups, id: \.source?.title) { group in
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text(group.source?.title ?? "未知")
+                                            .font(.system(size: 11, weight: .semibold))
+                                            .foregroundStyle(.secondary)
                                         
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(calendar.title)
-                                                .font(.system(size: 12))
-                                            Text(calendar.source.title)
-                                                .font(.system(size: 10))
-                                                .foregroundStyle(.secondary)
+                                        VStack(spacing: 4) {
+                                            ForEach(group.calendars, id: \.calendarIdentifier) { calendar in
+                                                HStack {
+                                                    Circle()
+                                                        .fill(Color(nsColor: calendar.color))
+                                                        .frame(width: 10, height: 10)
+                                                    Text(calendar.title)
+                                                        .font(.system(size: 12))
+                                                    Spacer()
+                                                    Toggle("", isOn: calendarEnabledBinding(for: calendar.calendarIdentifier))
+                                                        .toggleStyle(.checkbox)
+                                                }
+                                            }
                                         }
-                                        
-                                        Spacer()
-                                        
-                                        Toggle("", isOn: calendarEnabledBinding(for: calendar.calendarIdentifier))
-                                            .toggleStyle(.checkbox)
                                     }
                                 }
                             }
