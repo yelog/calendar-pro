@@ -3,8 +3,8 @@ import EventKit
 
 struct RootPopoverView: View {
     @ObservedObject var settingsStore: SettingsStore
+    @ObservedObject var eventService: EventService
     @StateObject private var viewModel = CalendarPopoverViewModel()
-    @StateObject private var eventService = EventService()
     let onQuit: () -> Void
     
     @State private var eventsForSelectedDate: [EKEvent] = []
@@ -15,7 +15,6 @@ struct RootPopoverView: View {
             displayedMonth: viewModel.displayedMonth,
             weekdaySymbols: viewModel.weekdaySymbols(using: displayCalendar),
             monthDays: monthDays,
-            regionSummary: regionSummary,
             showEvents: settingsStore.menuBarPreferences.showEvents && eventService.isAuthorized,
             selectedDate: viewModel.selectedDate,
             events: eventsForSelectedDate,
@@ -37,10 +36,12 @@ struct RootPopoverView: View {
             onQuit: onQuit
         )
         .onAppear {
-            // 每次显示时重新检查授权状态
             eventService.checkAuthorizationStatus()
             if eventService.isAuthorized && settingsStore.menuBarPreferences.showEvents {
                 eventService.fetchCalendars()
+                let today = Date()
+                viewModel.selectDate(today)
+                loadEvents(for: today)
             }
         }
         .onChange(of: viewModel.selectedDate) { _, newDate in
@@ -92,17 +93,5 @@ struct RootPopoverView: View {
             preferences: settingsStore.menuBarPreferences,
             selectedDate: viewModel.selectedDate
         )) ?? monthService.makeMonthGrid(for: viewModel.displayedMonth)
-    }
-    
-    private var regionSummary: String {
-        let names = settingsStore.menuBarPreferences.activeRegionIDs.compactMap { regionID in
-            HolidayProviderRegistry.live.provider(for: regionID)?.descriptor.displayName
-        }
-        
-        if names.isEmpty {
-            return "未启用地区节假日"
-        }
-        
-        return "地区：\(names.joined(separator: "、"))"
     }
 }

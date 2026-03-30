@@ -92,7 +92,7 @@ private struct CalendarDayCellView: View {
             if day.isSelected {
                 Color.accentColor.opacity(0.3)
             } else if day.isToday {
-                Color.accentColor.opacity(0.15)
+                Color.orange.opacity(0.18)
             } else if let badge = day.badges.first {
                 switch badge.kind {
                 case .statutoryHoliday, .publicHoliday:

@@ -5,9 +5,11 @@ import SwiftUI
 final class PopoverController {
     private let popover: NSPopover
     private let settingsStore: SettingsStore
+    private let eventService: EventService
 
-    init(settingsStore: SettingsStore) {
+    init(settingsStore: SettingsStore, eventService: EventService) {
         self.settingsStore = settingsStore
+        self.eventService = eventService
         popover = NSPopover()
         popover.behavior = .transient
         popover.animates = true
@@ -31,6 +33,7 @@ final class PopoverController {
         popover.contentViewController = NSHostingController(
             rootView: RootPopoverView(
                 settingsStore: settingsStore,
+                eventService: eventService,
                 onQuit: { [weak self] in
                     self?.quitApp()
                 }

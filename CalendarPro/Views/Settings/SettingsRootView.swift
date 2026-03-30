@@ -2,11 +2,12 @@ import SwiftUI
 
 struct SettingsRootView: View {
     @ObservedObject var store: SettingsStore
+    @ObservedObject var eventService: EventService
     @StateObject private var regionViewModel: RegionSettingsViewModel
-    @StateObject private var eventService = EventService()
     
-    init(store: SettingsStore) {
+    init(store: SettingsStore, eventService: EventService) {
         self.store = store
+        self.eventService = eventService
         _regionViewModel = StateObject(
             wrappedValue: RegionSettingsViewModel(
                 store: store,
@@ -30,7 +31,7 @@ struct SettingsRootView: View {
             RegionSettingsView(viewModel: regionViewModel)
                 .tabItem { Text("地区与节假日") }
         }
-        .frame(width: 480, height: 380)
+        .frame(width: 680, height: 380)
         .onAppear {
             eventService.checkAuthorizationStatus()
             eventService.fetchCalendars()

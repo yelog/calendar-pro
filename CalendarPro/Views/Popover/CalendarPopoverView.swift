@@ -5,7 +5,6 @@ struct CalendarPopoverView: View {
     let displayedMonth: Date
     let weekdaySymbols: [String]
     let monthDays: [CalendarDay]
-    let regionSummary: String
     let showEvents: Bool
     let selectedDate: Date?
     let events: [EKEvent]
@@ -37,10 +36,6 @@ struct CalendarPopoverView: View {
                 EventListView(events: events, isLoading: isLoadingEvents)
                     .frame(maxHeight: 200)
             }
-            
-            Text(regionSummary)
-                .font(.caption)
-                .foregroundStyle(.secondary)
             
             Divider()
                 .padding(.horizontal, -16)

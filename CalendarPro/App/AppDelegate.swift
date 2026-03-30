@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let settingsStore = SettingsStore()
+    let eventService = EventService()
 
     private var statusBarController: StatusBarController?
     private var uiTestWindow: NSWindow?
@@ -17,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if isUITestPopoverMode {
             presentUITestWindow()
         } else {
-            statusBarController = StatusBarController(settingsStore: settingsStore)
+            statusBarController = StatusBarController(settingsStore: settingsStore, eventService: eventService)
         }
     }
     
@@ -29,10 +30,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         let hostingController = NSHostingController(
-            rootView: SettingsRootView(store: settingsStore)
+            rootView: SettingsRootView(store: settingsStore, eventService: eventService)
         )
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 480, height: 380),
+            contentRect: NSRect(x: 0, y: 0, width: 680, height: 380),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -53,6 +54,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let hostingController = NSHostingController(
             rootView: RootPopoverView(
                 settingsStore: settingsStore,
+                eventService: eventService,
                 onQuit: { NSApp.terminate(nil) }
             )
         )

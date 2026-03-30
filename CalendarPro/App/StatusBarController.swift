@@ -7,12 +7,14 @@ final class StatusBarController {
     private var popoverController: PopoverController
     private let menuBarViewModel: MenuBarViewModel
     private let settingsStore: SettingsStore
+    private let eventService: EventService
 
     private var cancellables = Set<AnyCancellable>()
 
-    init(settingsStore: SettingsStore) {
+    init(settingsStore: SettingsStore, eventService: EventService) {
         self.settingsStore = settingsStore
-        popoverController = PopoverController(settingsStore: settingsStore)
+        self.eventService = eventService
+        popoverController = PopoverController(settingsStore: settingsStore, eventService: eventService)
         menuBarViewModel = MenuBarViewModel(settingsStore: settingsStore)
 
         configureStatusItems()

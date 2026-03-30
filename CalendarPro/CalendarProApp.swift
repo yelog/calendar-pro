@@ -6,7 +6,7 @@ struct CalendarProApp: App {
 
     var body: some Scene {
         Settings {
-            SettingsRootView(store: appDelegate.settingsStore)
+            SettingsRootView(store: appDelegate.settingsStore, eventService: appDelegate.eventService)
         }
     }
 }
