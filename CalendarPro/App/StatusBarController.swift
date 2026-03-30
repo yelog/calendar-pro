@@ -21,6 +21,11 @@ final class StatusBarController {
         bindViewModel()
         menuBarViewModel.start()
         
+        Task {
+            await eventService.requestAccess()
+            await eventService.requestReminderAccess()
+        }
+        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(screenParametersDidChange),
