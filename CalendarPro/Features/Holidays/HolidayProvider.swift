@@ -45,7 +45,7 @@ struct BundledHolidayDataLoader {
         let resourceName = "\(regionID)-\(year)"
 
         guard let url = bundle.url(forResource: resourceName, withExtension: "json") else {
-            throw HolidayProviderError.resourceNotFound(resourceName)
+            return []
         }
 
         let data = try Data(contentsOf: url)
