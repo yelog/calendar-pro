@@ -38,7 +38,7 @@ struct MonthPickerView: View {
             Spacer()
 
             Button(action: onEnterYearSelection) {
-                Text("\(displayedYear)年")
+                Text("\(displayedYear, format: .number.grouping(.never))年")
                     .font(.system(.subheadline, design: .rounded).weight(.semibold))
             }
             .buttonStyle(.plain)
