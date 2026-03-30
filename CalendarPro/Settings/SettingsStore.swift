@@ -142,6 +142,28 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
+    func setShowReminders(_ enabled: Bool) {
+        var prefs = menuBarPreferences
+        prefs.showReminders = enabled
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setReminderCalendarEnabled(_ enabled: Bool, calendarID: String) {
+        var ids = menuBarPreferences.enabledReminderCalendarIDs
+        if enabled {
+            if !ids.contains(calendarID) {
+                ids.append(calendarID)
+            }
+        } else {
+            ids.removeAll { $0 == calendarID }
+        }
+        var prefs = menuBarPreferences
+        prefs.enabledReminderCalendarIDs = ids
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
     private func persistMenuBarPreferences() {
         guard let data = try? encoder.encode(menuBarPreferences) else { return }
         userDefaults.set(data, forKey: menuBarPreferencesKey)
