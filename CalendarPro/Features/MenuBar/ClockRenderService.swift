@@ -68,6 +68,11 @@ struct ClockRenderService {
             formatter.dateFormat = "MM/dd"
         case .full:
             formatter.dateFormat = "yyyy/MM/dd"
+        case .chineseMonthDay:
+            formatter.locale = Locale(identifier: "zh_CN")
+            formatter.dateFormat = "MM月dd日"
+        case .chineseWeekday:
+            formatter.dateFormat = "MM/dd"
         }
 
         return formatter.string(from: now)
@@ -89,6 +94,14 @@ struct ClockRenderService {
         calendar: Calendar,
         timeZone: TimeZone
     ) -> String {
+        if style == .chineseWeekday {
+            var localizedCalendar = calendar
+            localizedCalendar.timeZone = timeZone
+            let weekday = localizedCalendar.component(.weekday, from: now)
+            let chineseWeekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+            return chineseWeekdays[weekday - 1]
+        }
+
         let formatter = DateFormatter()
         formatter.locale = locale
         formatter.timeZone = timeZone

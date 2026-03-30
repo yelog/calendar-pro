@@ -44,6 +44,19 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertFalse(store.menuBarPreferences.enabledCalendarIDs.contains("calendar-1"))
     }
 
+    func testTokenStylePersistsForChineseFormats() {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        let store = SettingsStore(userDefaults: userDefaults)
+
+        store.setTokenStyle(.chineseMonthDay, for: .date)
+        store.setTokenStyle(.chineseWeekday, for: .weekday)
+
+        let reloaded = SettingsStore(userDefaults: userDefaults)
+        XCTAssertEqual(reloaded.menuBarPreferences.tokens.first(where: { $0.token == .date })?.style, .chineseMonthDay)
+        XCTAssertEqual(reloaded.menuBarPreferences.tokens.first(where: { $0.token == .weekday })?.style, .chineseWeekday)
+    }
+
     private func makeIsolatedUserDefaults(name: String = #function) -> UserDefaults {
         let userDefaults = UserDefaults(suiteName: name)!
         userDefaults.removePersistentDomain(forName: name)

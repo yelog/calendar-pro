@@ -37,9 +37,9 @@ struct MenuBarSettingsView: View {
                                     .frame(width: 120, alignment: .leading)
 
                                 Picker("样式", selection: styleBinding(for: token.token)) {
-                                    Text("数字").tag(DisplayTokenStyle.numeric)
-                                    Text("简写").tag(DisplayTokenStyle.short)
-                                    Text("完整").tag(DisplayTokenStyle.full)
+                                    ForEach(styleOptions(for: token.token), id: \.self) { style in
+                                        Text(styleDisplayName(style)).tag(style)
+                                    }
                                 }
                                 .labelsHidden()
                                 .frame(width: 120)
@@ -117,10 +117,48 @@ struct MenuBarSettingsView: View {
     private func styleBinding(for token: DisplayTokenKind) -> Binding<DisplayTokenStyle> {
         Binding(
             get: {
-                store.menuBarPreferences.tokens.first(where: { $0.token == token })?.style ?? .short
+                resolvedStyle(for: token)
             },
             set: { store.setTokenStyle($0, for: token) }
         )
+    }
+
+    private func resolvedStyle(for token: DisplayTokenKind) -> DisplayTokenStyle {
+        let storedStyle = store.menuBarPreferences.tokens.first(where: { $0.token == token })?.style ?? defaultStyle(for: token)
+        return styleOptions(for: token).contains(storedStyle) ? storedStyle : defaultStyle(for: token)
+    }
+
+    private func styleOptions(for token: DisplayTokenKind) -> [DisplayTokenStyle] {
+        switch token {
+        case .date:
+            [.numeric, .short, .full, .chineseMonthDay]
+        case .weekday:
+            [.short, .full, .chineseWeekday]
+        case .time, .lunar, .holiday:
+            [.numeric, .short, .full]
+        }
+    }
+
+    private func defaultStyle(for token: DisplayTokenKind) -> DisplayTokenStyle {
+        switch token {
+        case .date, .time, .weekday, .lunar, .holiday:
+            .short
+        }
+    }
+
+    private func styleDisplayName(_ style: DisplayTokenStyle) -> String {
+        switch style {
+        case .numeric:
+            "数字"
+        case .short:
+            "简写"
+        case .full:
+            "完整"
+        case .chineseMonthDay:
+            "中文月日"
+        case .chineseWeekday:
+            "中文周"
+        }
     }
 
     private func tokenDisplayName(_ token: DisplayTokenKind) -> String {

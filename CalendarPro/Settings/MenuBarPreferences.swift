@@ -14,6 +14,8 @@ enum DisplayTokenStyle: String, Codable, CaseIterable {
     case numeric
     case short
     case full
+    case chineseMonthDay
+    case chineseWeekday
 }
 
 enum WeekStart: String, Codable, CaseIterable {
