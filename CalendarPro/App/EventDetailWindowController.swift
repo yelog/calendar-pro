@@ -18,8 +18,8 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
 
         let panel = makePanelIfNeeded()
         let hostingController = NSHostingController(
-            rootView: EventDetailWindowView(event: event) { [weak panel] in
-                panel?.close()
+            rootView: EventDetailWindowView(event: event) { [weak self] in
+                self?.close()
             }
         )
         if #available(macOS 13.0, *) {
@@ -27,12 +27,10 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         }
 
         panel.contentViewController = hostingController
+        hostingController.view.layoutSubtreeIfNeeded()
 
         let fittingSize = hostingController.view.fittingSize
-        let panelSize = NSSize(
-            width: max(320, fittingSize.width),
-            height: max(360, fittingSize.height)
-        )
+        let panelSize = EventDetailWindowSizing.panelSize(for: fittingSize)
         panel.setContentSize(panelSize)
         panel.setFrame(frame(for: panelSize, anchoredTo: anchorWindow), display: false)
         panel.orderFrontRegardless()
@@ -54,8 +52,13 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         }
 
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 320, height: 360),
-            styleMask: [.titled, .closable, .fullSizeContentView, .nonactivatingPanel],
+            contentRect: NSRect(
+                x: 0,
+                y: 0,
+                width: EventDetailWindowSizing.width,
+                height: EventDetailWindowSizing.idealHeight
+            ),
+            styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -63,12 +66,13 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
         panel.level = .floating
-        panel.collectionBehavior = [.moveToActiveSpace]
-        panel.titleVisibility = .hidden
-        panel.titlebarAppearsTransparent = true
+        panel.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
+        panel.becomesKeyOnlyIfNeeded = true
+        panel.isReleasedWhenClosed = false
         panel.isMovableByWindowBackground = false
-        panel.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        panel.standardWindowButton(.zoomButton)?.isHidden = true
 
         self.panel = panel
         return panel

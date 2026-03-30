@@ -19,9 +19,9 @@ struct CalendarPopoverView: View {
     
     var body: some View {
         mainPanel
-            .frame(width: CalendarPopoverLayout.mainPanelWidth)
+            .frame(width: PopoverSurfaceMetrics.width)
             .fixedSize(horizontal: false, vertical: true)
-        .background(popoverBackground)
+            .background(popoverBackground)
     }
 
     private var mainPanel: some View {
@@ -41,7 +41,7 @@ struct CalendarPopoverView: View {
             eventsSection
             
             Divider()
-                .padding(.horizontal, -16)
+                .padding(.horizontal, -PopoverSurfaceMetrics.outerPadding)
             
             HStack {
                 Button {
@@ -73,7 +73,7 @@ struct CalendarPopoverView: View {
             .foregroundStyle(.secondary)
             .padding(.bottom, 4)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, PopoverSurfaceMetrics.outerPadding)
         .padding(.vertical, 12)
     }
 
@@ -81,7 +81,7 @@ struct CalendarPopoverView: View {
     private var eventsSection: some View {
         if showEvents, let date = selectedDate {
             Divider()
-                .padding(.horizontal, -16)
+                .padding(.horizontal, -PopoverSurfaceMetrics.outerPadding)
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -151,8 +151,4 @@ struct CalendarPopoverView: View {
             endPoint: .bottomTrailing
         )
     }
-}
-
-private enum CalendarPopoverLayout {
-    static let mainPanelWidth: CGFloat = 340
 }
