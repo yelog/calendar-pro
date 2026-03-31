@@ -10,8 +10,19 @@ final class EventService: ObservableObject {
     @Published private(set) var isAuthorized: Bool = false
     @Published private(set) var remindersAuthorized: Bool = false
     @Published private(set) var reminderCalendars: [EKCalendar] = []
+    @Published private(set) var storeChangeRevision: Int = 0
     
     private let eventStore = EKEventStore()
+    private var debounceTask: Task<Void, Never>?
+    
+    init() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleStoreChanged),
+            name: .EKEventStoreChanged,
+            object: nil
+        )
+    }
     
     func checkAuthorizationStatus() {
         let eventStatus = EKEventStore.authorizationStatus(for: .event)
@@ -192,5 +203,16 @@ final class EventService: ObservableObject {
     
     func reminderCalendar(withIdentifier identifier: String) -> EKCalendar? {
         return reminderCalendars.first { $0.calendarIdentifier == identifier }
+    }
+    
+    @objc private func handleStoreChanged(_ notification: Notification) {
+        debounceTask?.cancel()
+        debounceTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(300))
+            guard !Task.isCancelled else { return }
+            fetchCalendars()
+            fetchReminderCalendars()
+            storeChangeRevision += 1
+        }
     }
 }

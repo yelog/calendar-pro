@@ -95,6 +95,9 @@ struct RootPopoverView: View {
         .onChange(of: settingsStore.menuBarPreferences.enabledReminderCalendarIDs) { _, _ in
             refreshEventsForCurrentSelection()
         }
+        .onChange(of: eventService.storeChangeRevision) { _, _ in
+            refreshEventsForCurrentSelection()
+        }
         .onChange(of: viewModel.selectedDate) { _, newDate in
             if let date = newDate {
                 loadEvents(for: date)
