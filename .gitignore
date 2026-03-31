@@ -5,7 +5,7 @@ xcuserdata/
 
 # Build outputs
 DerivedData/
-build/
+/build/
 *.build/
 
 # macOS
