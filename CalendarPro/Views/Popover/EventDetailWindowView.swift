@@ -337,7 +337,7 @@ private struct AttendeesDetailRow: View {
 
 private struct NotesDetailRow: View {
     let notes: String
-    @State private var isExpanded = false
+    @State private var isExpanded = true
     @State private var needsCollapse = false
 
     private let collapsedLineLimit = 4
@@ -413,8 +413,7 @@ private struct NotesDetailRow: View {
     @ViewBuilder
     private var expandedContent: some View {
         if #available(macOS 13.0, *) {
-            AttributedTextView(notes: notes)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            SelfSizingTextView(notes: notes)
         } else {
             Text(notes)
                 .font(.system(size: 12))
@@ -437,10 +436,23 @@ private struct NotesDetailRow: View {
 }
 
 @available(macOS 13.0, *)
+private struct SelfSizingTextView: View {
+    let notes: String
+    @State private var textHeight: CGFloat = 40
+
+    var body: some View {
+        AttributedTextView(notes: notes, textHeight: $textHeight)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: textHeight)
+    }
+}
+
+@available(macOS 13.0, *)
 private struct AttributedTextView: NSViewRepresentable {
     let notes: String
+    @Binding var textHeight: CGFloat
 
-    func makeNSView(context: Context) -> NSTextView {
+    func makeNSView(context: Context) -> NSScrollView {
         let textView = NSTextView()
         textView.isEditable = false
         textView.isSelectable = true
@@ -452,10 +464,19 @@ private struct AttributedTextView: NSViewRepresentable {
         textView.textContainer?.widthTracksTextView = true
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         textView.setContentHuggingPriority(.defaultHigh, for: .vertical)
-        return textView
+
+        let scrollView = NSScrollView()
+        scrollView.documentView = textView
+        scrollView.hasVerticalScroller = false
+        scrollView.hasHorizontalScroller = false
+        scrollView.drawsBackground = false
+        scrollView.autoresizingMask = [.width]
+        return scrollView
     }
 
-    func updateNSView(_ textView: NSTextView, context: Context) {
+    func updateNSView(_ scrollView: NSScrollView, context: Context) {
+        guard let textView = scrollView.documentView as? NSTextView else { return }
+
         let attributedString = NSMutableAttributedString(string: notes)
         let fullRange = NSRange(location: 0, length: attributedString.length)
 
@@ -474,16 +495,30 @@ private struct AttributedTextView: NSViewRepresentable {
         }
 
         textView.textStorage?.setAttributedString(attributedString)
+
+        DispatchQueue.main.async {
+            let width = scrollView.contentSize.width
+            guard width > 0 else { return }
+            textView.textContainer?.containerSize = CGSize(width: width, height: .greatestFiniteMagnitude)
+            textView.layoutManager?.ensureLayout(for: textView.textContainer!)
+            if let usedRect = textView.layoutManager?.usedRect(for: textView.textContainer!) {
+                let newHeight = ceil(usedRect.height)
+                if abs(self.textHeight - newHeight) > 1 {
+                    self.textHeight = newHeight
+                }
+            }
+        }
     }
 
-    func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSTextView, context: Context) -> CGSize? {
+    func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSScrollView, context: Context) -> CGSize? {
+        guard let textView = nsView.documentView as? NSTextView else { return nil }
         let width = proposal.width ?? nsView.bounds.width
         guard width > 0 else { return nil }
 
-        nsView.textContainer?.containerSize = CGSize(width: width, height: .greatestFiniteMagnitude)
-        nsView.layoutManager?.ensureLayout(for: nsView.textContainer!)
+        textView.textContainer?.containerSize = CGSize(width: width, height: .greatestFiniteMagnitude)
+        textView.layoutManager?.ensureLayout(for: textView.textContainer!)
 
-        guard let usedRect = nsView.layoutManager?.usedRect(for: nsView.textContainer!) else {
+        guard let usedRect = textView.layoutManager?.usedRect(for: textView.textContainer!) else {
             return nil
         }
 
