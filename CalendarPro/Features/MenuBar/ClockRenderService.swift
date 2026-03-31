@@ -33,7 +33,20 @@ struct ClockRenderService {
             .joined(separator: preferences.separator)
     }
 
-    private func renderToken(
+    func renderPreview(
+        token: DisplayTokenKind,
+        style: DisplayTokenStyle,
+        now: Date = Date(),
+        locale: Locale = .autoupdatingCurrent,
+        calendar: Calendar = .autoupdatingCurrent,
+        timeZone: TimeZone = .autoupdatingCurrent,
+        supplementalText: MenuBarSupplementalText = .empty
+    ) -> String {
+        let preference = DisplayTokenPreference(token: token, isEnabled: true, order: 0, style: style)
+        return renderToken(preference, now: now, locale: locale, calendar: calendar, timeZone: timeZone, supplementalText: supplementalText) ?? ""
+    }
+
+    func renderToken(
         _ tokenPreference: DisplayTokenPreference,
         now: Date,
         locale: Locale,

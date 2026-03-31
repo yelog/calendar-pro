@@ -38,7 +38,7 @@ struct MenuBarSettingsView: View {
 
                                 Picker("样式", selection: styleBinding(for: token.token)) {
                                     ForEach(styleOptions(for: token.token), id: \.self) { style in
-                                        Text(styleDisplayName(style)).tag(style)
+                                        Text(stylePreviewText(style, for: token.token)).tag(style)
                                     }
                                 }
                                 .labelsHidden()
@@ -146,18 +146,22 @@ struct MenuBarSettingsView: View {
         }
     }
 
-    private func styleDisplayName(_ style: DisplayTokenStyle) -> String {
-        switch style {
-        case .numeric:
-            "数字"
-        case .short:
-            "简写"
-        case .full:
-            "完整"
-        case .chineseMonthDay:
-            "中文月日"
-        case .chineseWeekday:
-            "中文周"
+    private func stylePreviewText(_ style: DisplayTokenStyle, for token: DisplayTokenKind) -> String {
+        let now = Date()
+        let factory = CalendarDayFactory(calendar: .autoupdatingCurrent, registry: .live)
+        let day = try? factory.makeDay(for: now, displayedMonth: now, preferences: store.menuBarPreferences)
+
+        switch token {
+        case .date:
+            return renderer.renderPreview(token: token, style: style, now: now)
+        case .time:
+            return renderer.renderPreview(token: token, style: style, now: now)
+        case .weekday:
+            return renderer.renderPreview(token: token, style: style, now: now)
+        case .lunar:
+            return day?.lunarText ?? "农历"
+        case .holiday:
+            return day?.badges.first?.text ?? "节假日"
         }
     }
 
