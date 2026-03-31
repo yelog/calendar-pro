@@ -16,3 +16,9 @@ build/
 # Temporary files
 *.tmp
 *.temp
+
+# Build distribution
+dist/
+
+# Agent skills (local)
+.agents/
