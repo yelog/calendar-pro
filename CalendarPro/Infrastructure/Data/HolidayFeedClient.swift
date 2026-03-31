@@ -39,12 +39,14 @@ struct HolidayFeedClient: Sendable {
         self.refreshInterval = refreshInterval
     }
 
+    static let defaultManifestURL = URL(string: "https://raw.githubusercontent.com/yelog/calendar-pro/main/feed/holidays/manifest.json")!
+
     static var configuredManifestURL: URL? {
-        guard let value = ProcessInfo.processInfo.environment["CALENDAR_PRO_HOLIDAY_MANIFEST_URL"] else {
-            return nil
+        if let value = ProcessInfo.processInfo.environment["CALENDAR_PRO_HOLIDAY_MANIFEST_URL"] {
+            return URL(string: value)
         }
 
-        return URL(string: value)
+        return defaultManifestURL
     }
 
     static func configuredClient(cache: HolidayCacheStore = .default) -> HolidayFeedClient? {

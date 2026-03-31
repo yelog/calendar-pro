@@ -1,0 +1,19 @@
+[
+  { "date": "2026-01-01", "name": "The first day of January", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2026-02-17", "name": "Lunar New Year’s Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2026-02-18", "name": "The second day of Lunar New Year", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2026-02-19", "name": "The third day of Lunar New Year", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2026-04-03", "name": "Good Friday", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2026-04-04", "name": "The day following Good Friday", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2026-04-06", "name": "The day following Ching Ming Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2026-04-07", "name": "The day following Easter Monday", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2026-05-01", "name": "Labour Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2026-05-25", "name": "The day following the Birthday of the Buddha", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2026-06-19", "name": "Tuen Ng Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2026-07-01", "name": "Hong Kong Special Administrative Region Establishment Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2026-09-26", "name": "The day following the Chinese Mid-Autumn Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2026-10-01", "name": "National Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2026-10-19", "name": "The day following Chung Yeung Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2026-12-25", "name": "Christmas Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2026-12-26", "name": "The first weekday after Christmas Day", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true }
+]

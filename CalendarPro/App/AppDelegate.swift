@@ -21,6 +21,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             statusBarController = StatusBarController(settingsStore: settingsStore, eventService: eventService)
         }
+
+        Task {
+            await refreshHolidayFeedIfNeeded()
+        }
     }
     
     @objc func openSettings() {
@@ -49,6 +53,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var isUITestPopoverMode: Bool {
         ProcessInfo.processInfo.environment["CALENDAR_PRO_UI_TEST_MODE"] == "popover-window"
+    }
+
+    private func refreshHolidayFeedIfNeeded() async {
+        guard let client = HolidayFeedClient.configuredClient() else { return }
+
+        do {
+            let result = try await client.refreshIfNeeded()
+            if result.source == .remote {
+                settingsStore.noteHolidayDataUpdated()
+            }
+        } catch {
+            // 启动时静默失败，不影响用户体验
+        }
     }
 
     private func presentUITestWindow() {

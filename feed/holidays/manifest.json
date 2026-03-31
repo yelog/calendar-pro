@@ -1,0 +1,8 @@
+{
+  "version": "2026.03.31",
+  "generatedAt": "2026-03-31T00:00:00Z",
+  "payloads": [
+    { "regionID": "mainland-cn", "year": 2026, "path": "mainland-cn-2026.json" },
+    { "regionID": "hong-kong", "year": 2026, "path": "hong-kong-2026.json" }
+  ]
+}
