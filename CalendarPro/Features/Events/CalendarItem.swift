@@ -87,4 +87,14 @@ enum CalendarItem: Identifiable {
             return nil
         }
     }
+
+    /// Deep-link URL that opens the reminder in Reminders.app.
+    var remindersAppURL: URL? {
+        guard case .reminder(let reminder) = self,
+              let externalID = reminder.calendarItemExternalIdentifier,
+              !externalID.isEmpty else {
+            return nil
+        }
+        return URL(string: "x-apple-reminderkit://REMCDReminder/\(externalID)")
+    }
 }

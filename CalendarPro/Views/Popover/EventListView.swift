@@ -8,6 +8,7 @@ struct EventListView: View {
     let selectedEventIdentifier: String?
     let onSelectEvent: (EKEvent) -> Void
     let onToggleReminder: (EKReminder) -> Void
+    let onOpenReminder: (EKReminder) -> Void
 
     var body: some View {
         if isLoading {
@@ -116,13 +117,18 @@ struct EventListView: View {
                 )
             }
             .buttonStyle(.plain)
-        case .reminder:
-            EventCardView(
-                item: item,
-                isSelected: false,
-                showsDisclosure: false,
-                onToggleReminder: onToggleReminder
-            )
+        case .reminder(let reminder):
+            Button {
+                onOpenReminder(reminder)
+            } label: {
+                EventCardView(
+                    item: item,
+                    isSelected: false,
+                    showsDisclosure: true,
+                    onToggleReminder: onToggleReminder
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -147,8 +153,13 @@ struct EventListView: View {
                         )
                     }
                     .buttonStyle(.plain)
-                case .reminder:
-                    compactItemRow(item: item, isSelected: false, showsDisclosure: false)
+                case .reminder(let reminder):
+                    Button {
+                        onOpenReminder(reminder)
+                    } label: {
+                        compactItemRow(item: item, isSelected: false, showsDisclosure: true)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }

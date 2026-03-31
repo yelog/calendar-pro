@@ -58,6 +58,9 @@ struct RootPopoverView: View {
             onToggleReminder: { reminder in
                 handleToggleReminder(reminder)
             },
+            onOpenReminder: { reminder in
+                handleOpenReminder(reminder)
+            },
             onResetToToday: {
                 dismissEventDetail()
                 viewModel.resetToToday()
@@ -195,6 +198,18 @@ struct RootPopoverView: View {
         } catch {
             print("Failed to toggle reminder completion: \(error)")
         }
+    }
+
+    private func handleOpenReminder(_ reminder: EKReminder) {
+        let item = CalendarItem.reminder(reminder)
+        guard let url = item.remindersAppURL else {
+            // Fallback: open Reminders.app without navigating to a specific item
+            if let fallback = URL(string: "x-apple-reminderkit://") {
+                NSWorkspace.shared.open(fallback)
+            }
+            return
+        }
+        NSWorkspace.shared.open(url)
     }
 
     private func dismissEventDetail() {

@@ -25,6 +25,7 @@ struct CalendarPopoverView: View {
     let onSelectDate: (Date) -> Void
     let onSelectEvent: (EKEvent) -> Void
     let onToggleReminder: (EKReminder) -> Void
+    let onOpenReminder: (EKReminder) -> Void
     let onResetToToday: () -> Void
     let onQuit: () -> Void
 
@@ -145,7 +146,8 @@ struct CalendarPopoverView: View {
                     selectedDate: date,
                     selectedEventIdentifier: selectedEventIdentifier,
                     onSelectEvent: onSelectEvent,
-                    onToggleReminder: onToggleReminder
+                    onToggleReminder: onToggleReminder,
+                    onOpenReminder: onOpenReminder
                 )
                 .frame(maxHeight: 200)
             }
@@ -166,16 +168,17 @@ struct CalendarPopoverView: View {
                 count += 1
             }
         }
+        let reminderCount = items.count - eventCount
 
         if eventCount == 0 {
-            return "\(items.count) 条提醒事项"
+            return "\(reminderCount) 条提醒事项，点击打开提醒事项"
         }
 
-        if eventCount == items.count {
+        if reminderCount == 0 {
             return "\(eventCount) 条日程，点击查看详情"
         }
 
-        return "\(items.count) 个项目，其中 \(eventCount) 条日程可查看详情"
+        return "\(items.count) 个项目，点击查看详情"
     }
 
     private func formattedSelectedDate(_ date: Date) -> String {
