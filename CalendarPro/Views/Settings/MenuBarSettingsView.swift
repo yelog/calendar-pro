@@ -134,7 +134,9 @@ struct MenuBarSettingsView: View {
             [.numeric, .short, .full, .chineseMonthDay]
         case .weekday:
             [.short, .full, .chineseWeekday]
-        case .time, .lunar, .holiday:
+        case .time:
+            [.short, .full]
+        case .lunar, .holiday:
             [.numeric, .short, .full]
         }
     }
