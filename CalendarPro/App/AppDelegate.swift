@@ -59,7 +59,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             object: window,
             queue: .main
         ) { [weak self] _ in
-            self?.settingsWindow = nil
+            MainActor.assumeIsolated {
+                self?.settingsWindow = nil
+            }
         }
     }
 

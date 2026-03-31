@@ -145,8 +145,8 @@ struct AboutSettingsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Toggle("自动检查更新", isOn: $autoCheckUpdates)
                     .font(.system(size: 13))
-                    .onChange(of: autoCheckUpdates) { newValue in
-                        UpdateChecker.shared.automaticallyChecksForUpdates = newValue
+                    .onChange(of: autoCheckUpdates) {
+                        UpdateChecker.shared.automaticallyChecksForUpdates = autoCheckUpdates
                     }
 
                 HStack(spacing: 12) {
