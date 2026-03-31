@@ -41,6 +41,39 @@ struct GeneralSettingsView: View {
                         caption: "影响月历面板中的星期排列方式",
                         systemImage: "rectangle.grid.2x2"
                     )
+
+                    SettingsSummaryCard(
+                        title: "开机启动",
+                        value: store.launchAtLoginStatus.summaryText,
+                        caption: launchAtLoginSummaryCaption,
+                        systemImage: "power.circle"
+                    )
+                }
+
+                GroupBox("启动行为") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Toggle("开机自动启动 Calendar Pro", isOn: launchAtLoginBinding)
+
+                        Text("开机并登录当前用户后自动启动，修改后立即生效。")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        if let detail = launchAtLoginDetail {
+                            Text(detail)
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        if let statusMessage = store.launchAtLoginStatusMessage {
+                            Text(statusMessage)
+                                .font(.system(size: 11))
+                                .foregroundStyle(.red)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 GroupBox("当前状态") {
@@ -49,6 +82,7 @@ struct GeneralSettingsView: View {
                         SettingsStatusRow(label: "菜单栏分隔符", value: separatorSummary)
                         SettingsStatusRow(label: "已启用显示项", value: enabledTokenNames.isEmpty ? "无" : enabledTokenNames.joined(separator: "、"))
                         SettingsStatusRow(label: "日历面板", value: eventSummary)
+                        SettingsStatusRow(label: "开机启动", value: store.launchAtLoginStatus.summaryText)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -102,6 +136,21 @@ struct GeneralSettingsView: View {
         case .monday:
             return "周一"
         }
+    }
+
+    private var launchAtLoginBinding: Binding<Bool> {
+        Binding(
+            get: { store.launchAtLoginEnabled },
+            set: { store.setLaunchAtLoginEnabled($0) }
+        )
+    }
+
+    private var launchAtLoginSummaryCaption: String {
+        launchAtLoginDetail ?? "控制开机后是否自动启动应用"
+    }
+
+    private var launchAtLoginDetail: String? {
+        store.launchAtLoginStatus.detailText
     }
 
     private var enabledTokenNames: [String] {

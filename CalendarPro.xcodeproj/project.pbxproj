@@ -73,6 +73,8 @@
 		E4D47EE6984C9E60229F87ED /* ClockRenderServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C07F9A1F954043128FAEC9 /* ClockRenderServiceTests.swift */; };
 		E5C15741798653D32B4F657C /* CalendarGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 992F56460D64940F969DBC07 /* CalendarGridView.swift */; };
 		EEFF5136738EE480F310F225 /* MenuBarPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0EB0CA919037158C63048B4 /* MenuBarPreferences.swift */; };
+		F15C1A0A5D084B709A100001 /* LaunchAtLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F15C1A0A5D084B709A100003 /* LaunchAtLoginController.swift */; };
+		F15C1A0A5D084B709A100002 /* LaunchAtLoginControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F15C1A0A5D084B709A100004 /* LaunchAtLoginControllerTests.swift */; };
 		F9A698A926B60B5A882AB15C /* RegionSettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07487100A656025A2FA65F9E /* RegionSettingsViewModelTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -162,6 +164,8 @@
 		F461C2B3C81C46269389E6C6 /* StatusBarController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		F4DD23F9DCA1518A45639E4F /* SettingsRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
 		F84D345B037726DD42AD5B55 /* MainlandCNProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainlandCNProvider.swift; sourceTree = "<group>"; };
+		F15C1A0A5D084B709A100003 /* LaunchAtLoginController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginController.swift; sourceTree = "<group>"; };
+		F15C1A0A5D084B709A100004 /* LaunchAtLoginControllerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginControllerTests.swift; sourceTree = "<group>"; };
 		FA2E0732D63AF40BA5A896DF /* MenuBarViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -231,6 +235,7 @@
 				03ACEE7D1F29E56B17097235 /* EventDetailWindowController.swift */,
 				C6BBE78AD58E7F62B995D222 /* EventDetailWindowLayout.swift */,
 				C22FDF4697735991CF3CB778 /* EventDetailWindowSizing.swift */,
+				F15C1A0A5D084B709A100003 /* LaunchAtLoginController.swift */,
 				EA00D5F3EE390912C6D0F9BF /* PopoverController.swift */,
 				F461C2B3C81C46269389E6C6 /* StatusBarController.swift */,
 			);
@@ -343,6 +348,7 @@
 			children = (
 				C241F78C829480E5CE1FD55D /* EventDetailWindowLayoutTests.swift */,
 				33BCC2AAED9757B4EF58ED05 /* EventDetailWindowSizingTests.swift */,
+				F15C1A0A5D084B709A100004 /* LaunchAtLoginControllerTests.swift */,
 			);
 			name = App;
 			path = App;
@@ -695,6 +701,7 @@
 			files = (
 				81D50CE926F587D901C789A3 /* EventDetailWindowLayoutTests.swift in Sources */,
 				677FE6438C496C6E74623EC0 /* EventDetailWindowSizingTests.swift in Sources */,
+				F15C1A0A5D084B709A100002 /* LaunchAtLoginControllerTests.swift in Sources */,
 				B6DD6678247C307DAC61CE07 /* CalendarDayFactoryTests.swift in Sources */,
 				656AA581511E73FA30D9CACA /* MonthCalendarServiceTests.swift in Sources */,
 				7D8CE99E133F0CD256458BE5 /* CalendarProTests.swift in Sources */,
@@ -728,6 +735,7 @@
 				8BEE4F031E1E8075E8346990 /* EventDetailWindowController.swift in Sources */,
 				3EBA037F18217C36D3156599 /* EventDetailWindowLayout.swift in Sources */,
 				6A84CF6EE93B1673EB23B215 /* EventDetailWindowSizing.swift in Sources */,
+				F15C1A0A5D084B709A100001 /* LaunchAtLoginController.swift in Sources */,
 				3485081DE97C21BCC6DCF29E /* PopoverController.swift in Sources */,
 				8CB3F0927C640611919EC0B9 /* StatusBarController.swift in Sources */,
 				11B361587DB28C1D5CEE411E /* CalendarProApp.swift in Sources */,

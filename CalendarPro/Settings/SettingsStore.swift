@@ -5,14 +5,22 @@ import Foundation
 final class SettingsStore: ObservableObject {
     @Published var menuBarPreferences: MenuBarPreferences
     @Published private(set) var holidayDataRevision: Int = 0
+    @Published private(set) var launchAtLoginStatus: LaunchAtLoginStatus = .disabled
+    @Published private(set) var launchAtLoginEnabled: Bool = false
+    @Published private(set) var launchAtLoginStatusMessage: String?
 
     private let userDefaults: UserDefaults
+    private let launchAtLoginController: any LaunchAtLoginControlling
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private let menuBarPreferencesKey = "menuBarPreferences"
 
-    init(userDefaults: UserDefaults = .standard) {
+    init(
+        userDefaults: UserDefaults = .standard,
+        launchAtLoginController: any LaunchAtLoginControlling = SystemLaunchAtLoginController()
+    ) {
         self.userDefaults = userDefaults
+        self.launchAtLoginController = launchAtLoginController
 
         if
             let data = userDefaults.data(forKey: menuBarPreferencesKey),
@@ -22,6 +30,8 @@ final class SettingsStore: ObservableObject {
         } else {
             menuBarPreferences = .default
         }
+
+        syncLaunchAtLoginState()
     }
 
     func setTokenEnabled(_ isEnabled: Bool, for token: DisplayTokenKind) {
@@ -164,8 +174,46 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
+    func setLaunchAtLoginEnabled(_ enabled: Bool) {
+        launchAtLoginStatusMessage = nil
+
+        do {
+            try launchAtLoginController.setEnabled(enabled)
+            syncLaunchAtLoginState()
+        } catch {
+            syncLaunchAtLoginState()
+            launchAtLoginStatusMessage = launchAtLoginFailureMessage(
+                requestedState: enabled,
+                currentStatus: launchAtLoginStatus,
+                error: error
+            )
+        }
+    }
+
     private func persistMenuBarPreferences() {
         guard let data = try? encoder.encode(menuBarPreferences) else { return }
         userDefaults.set(data, forKey: menuBarPreferencesKey)
+    }
+
+    private func syncLaunchAtLoginState() {
+        let status = launchAtLoginController.status()
+        launchAtLoginStatus = status
+        launchAtLoginEnabled = status.isEnabled
+    }
+
+    private func launchAtLoginFailureMessage(
+        requestedState: Bool,
+        currentStatus: LaunchAtLoginStatus,
+        error: Error
+    ) -> String {
+        switch currentStatus {
+        case .requiresApproval:
+            return "系统需要批准后才能完成开机启动，请前往“系统设置 > 通用 > 登录项”继续操作。"
+        case .unavailable:
+            return "当前无法配置开机启动，请从已安装的应用包启动 Calendar Pro 后重试。"
+        case .enabled, .disabled:
+            let action = requestedState ? "开启" : "关闭"
+            return "无法\(action)开机启动：\(error.localizedDescription)"
+        }
     }
 }
