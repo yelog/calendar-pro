@@ -164,6 +164,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
 
     private func closePopover() {
         interactionMonitor.stop()
+        closeEventDetailWindow()
         popover.performClose(nil)
     }
 
