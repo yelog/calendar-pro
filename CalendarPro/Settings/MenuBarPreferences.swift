@@ -28,7 +28,6 @@ struct DisplayTokenPreference: Codable, Equatable, Identifiable {
     var isEnabled: Bool
     var order: Int
     var style: DisplayTokenStyle
-    var showsSeconds: Bool = false
 
     var id: DisplayTokenKind { token }
 }
@@ -46,7 +45,7 @@ struct MenuBarPreferences: Codable, Equatable {
     var enabledReminderCalendarIDs: [String]
 
     var requiresSecondRefresh: Bool {
-        tokens.contains { $0.token == .time && $0.isEnabled && ($0.showsSeconds || $0.style == .full) }
+        tokens.contains { $0.token == .time && $0.isEnabled && $0.style == .full }
     }
 
     static let `default` = MenuBarPreferences(

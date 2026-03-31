@@ -58,7 +58,7 @@ struct ClockRenderService {
         case .date:
             return renderDate(now: now, style: tokenPreference.style, locale: locale, timeZone: timeZone)
         case .time:
-            return renderTime(now: now, showSeconds: tokenPreference.showsSeconds || tokenPreference.style == .full, locale: locale, timeZone: timeZone)
+            return renderTime(now: now, showSeconds: tokenPreference.style == .full, locale: locale, timeZone: timeZone)
         case .weekday:
             return renderWeekday(now: now, style: tokenPreference.style, locale: locale, calendar: calendar, timeZone: timeZone)
         case .lunar:

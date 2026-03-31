@@ -50,14 +50,6 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
-    func setTimeShowsSeconds(_ showsSeconds: Bool) {
-        guard let index = menuBarPreferences.tokens.firstIndex(where: { $0.token == .time }) else { return }
-        var prefs = menuBarPreferences
-        prefs.tokens[index].showsSeconds = showsSeconds
-        menuBarPreferences = prefs
-        persistMenuBarPreferences()
-    }
-
     func moveToken(_ token: DisplayTokenKind, by delta: Int) {
         let sorted = menuBarPreferences.tokens.sorted { $0.order < $1.order }
 

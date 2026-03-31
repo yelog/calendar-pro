@@ -23,8 +23,6 @@ struct MenuBarSettingsView: View {
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 80)
                         }
-
-                        Toggle("时间显示秒", isOn: timeShowsSecondsBinding)
                     }
                 }
 
@@ -80,15 +78,6 @@ struct MenuBarSettingsView: View {
         Binding(
             get: { store.menuBarPreferences.separator },
             set: { store.setSeparator($0) }
-        )
-    }
-
-    private var timeShowsSecondsBinding: Binding<Bool> {
-        Binding(
-            get: {
-                store.menuBarPreferences.tokens.first(where: { $0.token == .time })?.showsSeconds ?? false
-            },
-            set: { store.setTimeShowsSeconds($0) }
         )
     }
 

@@ -10,16 +10,6 @@ final class MenuBarViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.refreshGranularity, .minute)
     }
 
-    func testMenuBarSchedulerUsesSecondGranularityWhenSecondsEnabled() async {
-        let store = makeStore(name: #function)
-        let viewModel = makeViewModel(store: store)
-
-        store.setTimeShowsSeconds(true)
-        await Task.yield()
-
-        XCTAssertEqual(viewModel.refreshGranularity, .second)
-    }
-
     func testMenuBarSchedulerUsesSecondGranularityWhenStyleIsFull() async {
         let store = makeStore(name: #function)
         let viewModel = makeViewModel(store: store)
