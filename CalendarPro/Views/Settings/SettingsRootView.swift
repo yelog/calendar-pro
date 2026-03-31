@@ -18,6 +18,32 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
     }
 
     var title: String { rawValue }
+
+    var sidebarDescription: String {
+        switch self {
+        case .general:
+            return "查看当前配置摘要"
+        case .menuBar:
+            return "调整菜单栏文本与顺序"
+        case .events:
+            return "管理日历与提醒事项来源"
+        case .region:
+            return "配置地区与节假日数据"
+        }
+    }
+
+    var detailDescription: String {
+        switch self {
+        case .general:
+            return "集中查看当前设置概览，确认菜单栏、日程和地区能力的启用状态。"
+        case .menuBar:
+            return "调整菜单栏显示项、分隔符、排序与样式，实时预览最终显示效果。"
+        case .events:
+            return "管理日历与提醒事项访问权限，并选择要在面板中显示的数据来源。"
+        case .region:
+            return "选择节假日地区数据集，必要时手动刷新远程节假日清单。"
+        }
+    }
 }
 
 struct SettingsRootView: View {
@@ -39,20 +65,87 @@ struct SettingsRootView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
-            List(SettingsSidebarItem.allCases, selection: $selectedItem) { item in
-                Label(item.title, systemImage: item.icon)
-            }
-            .navigationSplitViewColumnWidth(180)
-            .listStyle(.sidebar)
-        } detail: {
-            detailView
+        HStack(spacing: 0) {
+            sidebar
+
+            Divider()
+
+            detailPanel
         }
-        .frame(width: 680, height: 460)
+        .frame(width: 840, height: 560)
+        .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
             eventService.checkAuthorizationStatus()
             eventService.fetchCalendars()
         }
+    }
+
+    private var sidebar: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("设置")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                Text("Calendar Pro")
+                    .font(.system(size: 24, weight: .semibold))
+
+                Text("原生 macOS 菜单栏日历、日程与地区化节假日配置。")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            VStack(spacing: 8) {
+                ForEach(SettingsSidebarItem.allCases) { item in
+                    Button {
+                        selectedItem = item
+                    } label: {
+                        SettingsSidebarButton(item: item, isSelected: item == selectedItem)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Spacer()
+
+            Text("设置会自动保存，修改后立即生效。")
+                .font(.system(size: 11))
+                .foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 22)
+        .frame(width: 248)
+        .frame(maxHeight: .infinity, alignment: .topLeading)
+        .background(
+            Color(nsColor: .underPageBackgroundColor)
+                .opacity(0.85)
+        )
+    }
+
+    private var detailPanel: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(selectedItem.title)
+                    .font(.system(size: 28, weight: .semibold))
+
+                Text(selectedItem.detailDescription)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 30)
+            .padding(.top, 28)
+            .padding(.bottom, 18)
+
+            Divider()
+
+            detailView
+                .id(selectedItem)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+        .animation(.easeInOut(duration: 0.16), value: selectedItem)
     }
 
     @ViewBuilder
@@ -67,5 +160,61 @@ struct SettingsRootView: View {
         case .region:
             RegionSettingsView(viewModel: regionViewModel)
         }
+    }
+}
+
+private struct SettingsSidebarButton: View {
+    let item: SettingsSidebarItem
+    let isSelected: Bool
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: item.icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                .frame(width: 30, height: 30)
+                .background(
+                    Circle()
+                        .fill(
+                            isSelected
+                                ? Color.accentColor.opacity(0.14)
+                                : Color.primary.opacity(0.06)
+                        )
+                )
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(item.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.primary)
+
+                Text(item.sidebarDescription)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 11)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(
+                    isSelected
+                        ? Color.accentColor.opacity(0.11)
+                        : Color.clear
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(
+                    isSelected
+                        ? Color.accentColor.opacity(0.18)
+                        : Color(nsColor: .separatorColor).opacity(0.14),
+                    lineWidth: isSelected ? 1 : 0.5
+                )
+        )
+        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
