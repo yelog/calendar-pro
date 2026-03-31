@@ -9,12 +9,20 @@ struct EventDetailWindowView: View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
             header
             summaryCard
+            if let meetingLink {
+                JoinMeetingButton(meetingLink: meetingLink, calendarColor: calendarColor)
+            }
             detailScrollView
+            FooterActions(event: event)
         }
         .padding(PopoverSurfaceMetrics.outerPadding)
         .frame(width: PopoverSurfaceMetrics.width, alignment: .topLeading)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(surfaceBackground)
+    }
+
+    private var meetingLink: MeetingLink? {
+        MeetingLinkDetector.detect(in: event)
     }
 
     private var calendarColor: Color {
@@ -81,6 +89,10 @@ struct EventDetailWindowView: View {
                     EventDetailRow(icon: "mappin.and.ellipse", title: "地点", value: locationText)
                 }
 
+                if let attendees = event.attendees, !attendees.isEmpty {
+                    AttendeesDetailRow(attendees: attendees)
+                }
+
                 if let url = event.url {
                     LinkDetailRow(url: url)
                 }
@@ -89,7 +101,8 @@ struct EventDetailWindowView: View {
                     NotesDetailRow(notes: notesText)
                 }
 
-                if locationText == nil, event.url == nil, notesText == nil {
+                if locationText == nil, event.url == nil, notesText == nil,
+                   (event.attendees ?? []).isEmpty {
                     EmptyDetailState()
                 }
             }
@@ -223,8 +236,111 @@ private struct LinkDetailRow: View {
     }
 }
 
+private struct AttendeesDetailRow: View {
+    let attendees: [EKParticipant]
+    @State private var isExpanded = false
+
+    private let defaultVisibleCount = 3
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "person.2")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(Color(nsColor: .controlAccentColor).opacity(0.08))
+                )
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text("参会人")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                ForEach(Array(visibleAttendees.enumerated()), id: \.offset) { _, participant in
+                    attendeeRow(participant)
+                }
+
+                if attendees.count > defaultVisibleCount {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            isExpanded.toggle()
+                        }
+                    } label: {
+                        Text(isExpanded ? "收起" : "还有 \(attendees.count - defaultVisibleCount) 人...")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.accentColor)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(nsColor: .controlBackgroundColor).opacity(0.88))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color(nsColor: .separatorColor).opacity(0.12), lineWidth: 1)
+                )
+        )
+    }
+
+    private var visibleAttendees: [EKParticipant] {
+        if isExpanded || attendees.count <= defaultVisibleCount {
+            return attendees
+        }
+        return Array(attendees.prefix(defaultVisibleCount))
+    }
+
+    private func attendeeRow(_ participant: EKParticipant) -> some View {
+        HStack(spacing: 6) {
+            statusIcon(for: participant.participantStatus)
+            Text(participantName(participant))
+                .font(.system(size: 12))
+                .lineLimit(1)
+        }
+    }
+
+    private func statusIcon(for status: EKParticipantStatus) -> some View {
+        Group {
+            switch status {
+            case .accepted:
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+            case .declined:
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.red)
+            case .tentative:
+                Image(systemName: "questionmark.circle.fill")
+                    .foregroundColor(.orange)
+            default:
+                Image(systemName: "circle")
+                    .foregroundColor(.secondary)
+            }
+        }
+        .font(.system(size: 11))
+    }
+
+    private func participantName(_ participant: EKParticipant) -> String {
+        if let name = participant.name, !name.isEmpty {
+            return name
+        }
+        let email = (participant.url as NSURL).resourceSpecifier ?? ""
+        return email.isEmpty ? "未知参会人" : email
+    }
+}
+
 private struct NotesDetailRow: View {
     let notes: String
+    @State private var isExpanded = false
+    @State private var needsCollapse = false
+
+    private let collapsedLineLimit = 4
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -242,13 +358,14 @@ private struct NotesDetailRow: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
-                if #available(macOS 13.0, *) {
-                    AttributedTextView(notes: notes)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                if isExpanded {
+                    expandedContent
                 } else {
-                    Text(notes)
-                        .font(.system(size: 12))
-                        .textSelection(.enabled)
+                    collapsedContent
+                }
+
+                if needsCollapse {
+                    toggleButton
                 }
             }
 
@@ -264,6 +381,58 @@ private struct NotesDetailRow: View {
                         .stroke(Color(nsColor: .separatorColor).opacity(0.12), lineWidth: 1)
                 )
         )
+        .onAppear {
+            needsCollapse = notes.components(separatedBy: .newlines).count > collapsedLineLimit
+                || notes.count > 200
+        }
+    }
+
+    private var collapsedContent: some View {
+        ZStack(alignment: .bottomLeading) {
+            Text(notes)
+                .font(.system(size: 12))
+                .lineLimit(collapsedLineLimit)
+                .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
+
+            if needsCollapse {
+                LinearGradient(
+                    colors: [
+                        Color(nsColor: .controlBackgroundColor).opacity(0),
+                        Color(nsColor: .controlBackgroundColor).opacity(0.95),
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 20)
+                .allowsHitTesting(false)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var expandedContent: some View {
+        if #available(macOS 13.0, *) {
+            AttributedTextView(notes: notes)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            Text(notes)
+                .font(.system(size: 12))
+                .textSelection(.enabled)
+        }
+    }
+
+    private var toggleButton: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isExpanded.toggle()
+            }
+        } label: {
+            Text(isExpanded ? "收起" : "展开")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.accentColor)
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -377,6 +546,65 @@ private struct EmptyDetailState: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color(nsColor: .controlBackgroundColor).opacity(0.7))
             )
+    }
+}
+
+private struct JoinMeetingButton: View {
+    let meetingLink: MeetingLink
+    let calendarColor: Color
+
+    var body: some View {
+        Button {
+            NSWorkspace.shared.open(meetingLink.url)
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: meetingLink.iconName)
+                    .font(.system(size: 13, weight: .semibold))
+
+                Text("加入\(meetingLink.platform)会议")
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(calendarColor)
+            )
+            .foregroundColor(.white)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct FooterActions: View {
+    let event: EKEvent
+
+    var body: some View {
+        Button {
+            let timestamp = event.startDate.timeIntervalSinceReferenceDate
+            if let calURL = URL(string: "calshow:\(timestamp)") {
+                NSWorkspace.shared.open(calURL)
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("在日历中打开")
+                    .font(.system(size: 12, weight: .medium))
+            }
+            .foregroundColor(.secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color(nsColor: .controlBackgroundColor).opacity(0.6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(Color(nsColor: .separatorColor).opacity(0.12), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 

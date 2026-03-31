@@ -17,6 +17,8 @@
 		186E98588CC0E000AAA9209E /* MenuBarPreferencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABD9D6019169F06A6A77A9CC /* MenuBarPreferencesTests.swift */; };
 		1A10C3548E01FDA7626D74A9 /* EventDetailWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32529AB5A3ED75191996F858 /* EventDetailWindowView.swift */; };
 		1EEBDFC7C4EC86D7877A75F0 /* EventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CB85085B0CED3F5D0A7312 /* EventService.swift */; };
+		A2B4C6D8E0F13579D2E4F6A1 /* MeetingLinkDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A3B5D7E9024C6A8B1D3F50 /* MeetingLinkDetector.swift */; };
+		D4E6F8A0B1C2D3E5F7091B2C /* MeetingLinkDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D5E7F90A1B2C4D6E8F0A1B /* MeetingLinkDetectorTests.swift */; };
 		23C02B752DA0FED9CD3A22C5 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DD23F9DCA1518A45639E4F /* SettingsRootView.swift */; };
 		245939D417B47A3CDA9212A3 /* EventServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCCF140AEEDBFC2C24BD04A /* EventServiceTests.swift */; };
 		2B6C2D717F39D3AD6882D6F6 /* MenuBarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA2E0732D63AF40BA5A896DF /* MenuBarViewModel.swift */; };
@@ -130,6 +132,8 @@
 		9A7BBBDC186710705E2AE6C4 /* ClockRenderService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClockRenderService.swift; sourceTree = "<group>"; };
 		9B0EEEC58325C6EBA577709F /* EventsSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventsSettingsView.swift; sourceTree = "<group>"; };
 		A6CB85085B0CED3F5D0A7312 /* EventService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventService.swift; sourceTree = "<group>"; };
+		F1A3B5D7E9024C6A8B1D3F50 /* MeetingLinkDetector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MeetingLinkDetector.swift; sourceTree = "<group>"; };
+		C3D5E7F90A1B2C4D6E8F0A1B /* MeetingLinkDetectorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MeetingLinkDetectorTests.swift; sourceTree = "<group>"; };
 		A93ACBA52FC740BCF35EC5FC /* CalendarPopoverUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverUITests.swift; sourceTree = "<group>"; };
 		AA4335A1EE90845DB2DF8FA3 /* RootPopoverView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RootPopoverView.swift; sourceTree = "<group>"; };
 		ABD9D6019169F06A6A77A9CC /* MenuBarPreferencesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarPreferencesTests.swift; sourceTree = "<group>"; };
@@ -314,6 +318,7 @@
 			isa = PBXGroup;
 			children = (
 				3DCCF140AEEDBFC2C24BD04A /* EventServiceTests.swift */,
+				C3D5E7F90A1B2C4D6E8F0A1B /* MeetingLinkDetectorTests.swift */,
 			);
 			name = Events;
 			path = Events;
@@ -501,6 +506,7 @@
 			children = (
 				77C28F2EEB88C53D500027A3 /* CalendarItem.swift */,
 				A6CB85085B0CED3F5D0A7312 /* EventService.swift */,
+				F1A3B5D7E9024C6A8B1D3F50 /* MeetingLinkDetector.swift */,
 			);
 			name = Events;
 			path = Events;
@@ -707,6 +713,7 @@
 				7D8CE99E133F0CD256458BE5 /* CalendarProTests.swift in Sources */,
 				44BD432353E56B5D621EBE1C /* HolidayFeedClientTests.swift in Sources */,
 				245939D417B47A3CDA9212A3 /* EventServiceTests.swift in Sources */,
+				D4E6F8A0B1C2D3E5F7091B2C /* MeetingLinkDetectorTests.swift in Sources */,
 				B37C32C1DAF469F89B98D06A /* HolidayProviderRegistryTests.swift in Sources */,
 				45A106A8C1048A1618EC9784 /* MainlandCNProviderTests.swift in Sources */,
 				512C5DCC20C87E94D653A40A /* LunarServiceTests.swift in Sources */,
@@ -744,6 +751,7 @@
 				E28C64600401EE1C0FC9E44B /* MonthCalendarService.swift in Sources */,
 				A0E8D6014FB4A188D573E3E4 /* CalendarItem.swift in Sources */,
 				1EEBDFC7C4EC86D7877A75F0 /* EventService.swift in Sources */,
+				A2B4C6D8E0F13579D2E4F6A1 /* MeetingLinkDetector.swift in Sources */,
 				D65C25AE30D05024F02B709C /* HolidayOccurrence.swift in Sources */,
 				B351E7E82ABC0C4B0123DDD4 /* HolidayProvider.swift in Sources */,
 				49627A72D7ED2172EB8A974A /* HolidayProviderRegistry.swift in Sources */,
