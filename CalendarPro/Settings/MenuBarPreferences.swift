@@ -36,7 +36,6 @@ struct MenuBarPreferences: Codable, Equatable {
     var tokens: [DisplayTokenPreference]
     var separator: String
     var showLunarInMenuBar: Bool
-    var lunarDisplayStyle: LunarDisplayStyle
     var activeRegionIDs: [String]
     var enabledHolidayIDs: [String]
     var weekStart: WeekStart
@@ -59,7 +58,6 @@ struct MenuBarPreferences: Codable, Equatable {
         ],
         separator: " ",
         showLunarInMenuBar: false,
-        lunarDisplayStyle: .day,
         activeRegionIDs: ["mainland-cn"],
         enabledHolidayIDs: [],
         weekStart: .monday,
@@ -77,7 +75,6 @@ struct MenuBarPreferences: Codable, Equatable {
         ],
         separator: " ",
         showLunarInMenuBar: false,
-        lunarDisplayStyle: .day,
         activeRegionIDs: ["mainland-cn"],
         enabledHolidayIDs: [],
         weekStart: .monday,

@@ -151,13 +151,6 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
-    func setLunarDisplayStyle(_ style: LunarDisplayStyle) {
-        var prefs = menuBarPreferences
-        prefs.lunarDisplayStyle = style
-        menuBarPreferences = prefs
-        persistMenuBarPreferences()
-    }
-
     func setReminderCalendarEnabled(_ enabled: Bool, calendarID: String) {
         var ids = menuBarPreferences.enabledReminderCalendarIDs
         if enabled {

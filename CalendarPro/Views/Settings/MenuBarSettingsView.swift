@@ -23,18 +23,6 @@ struct MenuBarSettingsView: View {
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 80)
                         }
-
-                        HStack {
-                            Text("农历格式")
-                            Spacer()
-                            Picker("", selection: lunarDisplayStyleBinding) {
-                                ForEach(LunarDisplayStyle.allCases, id: \.self) { style in
-                                    Text(lunarDisplayStyleName(style)).tag(style)
-                                }
-                            }
-                            .labelsHidden()
-                            .frame(width: 120)
-                        }
                     }
                 }
 
@@ -93,13 +81,6 @@ struct MenuBarSettingsView: View {
         )
     }
 
-    private var lunarDisplayStyleBinding: Binding<LunarDisplayStyle> {
-        Binding(
-            get: { store.menuBarPreferences.lunarDisplayStyle },
-            set: { store.setLunarDisplayStyle($0) }
-        )
-    }
-
     private var previewText: String {
         let now = Date()
         let factory = CalendarDayFactory(calendar: .autoupdatingCurrent, registry: .live)
@@ -146,7 +127,9 @@ struct MenuBarSettingsView: View {
             [.short, .full, .chineseWeekday]
         case .time:
             [.short, .full]
-        case .lunar, .holiday:
+        case .lunar:
+            [.short, .chineseMonthDay, .full]
+        case .holiday:
             [.short]
         }
     }
@@ -171,7 +154,20 @@ struct MenuBarSettingsView: View {
         case .weekday:
             return renderer.renderPreview(token: token, style: style, now: now)
         case .lunar:
-            return day?.lunarText ?? "农历"
+            let lunarService = LunarService()
+            let lunarDescriptor = lunarService.describe(date: now, timeZone: .autoupdatingCurrent)
+            let lunarStyle: LunarDisplayStyle
+            switch style {
+            case .short:
+                lunarStyle = .day
+            case .chineseMonthDay:
+                lunarStyle = .monthDay
+            case .full:
+                lunarStyle = .yearMonthDay
+            default:
+                lunarStyle = .day
+            }
+            return lunarDescriptor.displayText(style: lunarStyle)
         case .holiday:
             return day?.badges.first?.text ?? "节假日"
         }
@@ -189,17 +185,6 @@ struct MenuBarSettingsView: View {
             "农历"
         case .holiday:
             "节假日"
-        }
-    }
-
-    private func lunarDisplayStyleName(_ style: LunarDisplayStyle) -> String {
-        switch style {
-        case .day:
-            "仅日"
-        case .monthDay:
-            "月+日"
-        case .yearMonthDay:
-            "年+月+日"
         }
     }
 }

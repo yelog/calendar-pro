@@ -36,7 +36,7 @@ struct CalendarDayFactory {
             isToday: calendar.isDate(date, inSameDayAs: monthService.now()),
             isSelected: selectedDate != nil && calendar.isDate(date, inSameDayAs: selectedDate!),
             solarText: String(calendar.component(.day, from: date)),
-            lunarText: lunarDescriptor.displayText(style: preferences.lunarDisplayStyle),
+            lunarText: lunarDescriptor.displayText(style: lunarDisplayStyle(from: preferences)),
             badges: holidays.map(\.dayBadge)
         )
     }
@@ -63,9 +63,23 @@ struct CalendarDayFactory {
                 isToday: day.isToday,
                 isSelected: selectedDate != nil && calendar.isDate(day.date, inSameDayAs: selectedDate!),
                 solarText: day.solarText,
-                lunarText: lunarDescriptor.displayText(style: preferences.lunarDisplayStyle),
+                lunarText: lunarDescriptor.displayText(style: lunarDisplayStyle(from: preferences)),
                 badges: resolvedBadges
             )
+        }
+    }
+
+    private func lunarDisplayStyle(from preferences: MenuBarPreferences) -> LunarDisplayStyle {
+        let lunarTokenStyle = preferences.tokens.first(where: { $0.token == .lunar })?.style ?? .short
+        switch lunarTokenStyle {
+        case .short:
+            return .day
+        case .chineseMonthDay:
+            return .monthDay
+        case .full:
+            return .yearMonthDay
+        default:
+            return .day
         }
     }
 
