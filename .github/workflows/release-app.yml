@@ -94,13 +94,238 @@ jobs:
           echo "is_prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
           echo "Release type: prerelease=$PRERELEASE (tag: $TAG)"
 
+      - name: Install Sparkle tools
+        run: |
+          SPARKLE_VERSION="2.6.4"
+          curl -L -o /tmp/Sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          mkdir -p /tmp/sparkle-tools
+          tar -xf /tmp/Sparkle.tar.xz -C /tmp/sparkle-tools
+          cp /tmp/sparkle-tools/bin/sign_update /usr/local/bin/sign_update
+          cp /tmp/sparkle-tools/bin/generate_appcast /usr/local/bin/generate_appcast
+          chmod +x /usr/local/bin/sign_update /usr/local/bin/generate_appcast
+
+      - name: Sign release with Sparkle
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          DMG_PATH="dist/CalendarPro-${TAG#v}-universal.dmg"
+
+          # Create EdDSA signature
+          SIGNATURE=$(echo "$SPARKLE_PRIVATE_KEY" | sign_update --ed-key-file - "$DMG_PATH")
+          echo "Sparkle signature: $SIGNATURE"
+          echo "$SIGNATURE" > "${DMG_PATH}.sparkle-signature"
+
+      - name: Update appcast.xml
+        id: update_appcast
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          DMG_PATH="dist/CalendarPro-${TAG#v}-universal.dmg"
+          VERSION="${TAG#v}"
+
+          FILE_SIZE=$(stat -f%z "$DMG_PATH")
+          SIGNATURE=$(cat "${DMG_PATH}.sparkle-signature")
+
+          # Calculate sparkle:version (numeric)
+          BASE_VERSION=$(echo "$VERSION" | sed -E 's/([0-9]+)\.([0-9]+)\.([0-9]+).*/\1\2\3/')
+          if [[ "$VERSION" =~ -(alpha|beta|rc)\.?([0-9]+) ]]; then
+            PRERELEASE_TYPE="${BASH_REMATCH[1]}"
+            PRERELEASE_NUM="${BASH_REMATCH[2]:-0}"
+            case "$PRERELEASE_TYPE" in
+              alpha) OFFSET=0 ;;
+              beta)  OFFSET=0 ;;
+              rc)    OFFSET=90 ;;
+              *)     OFFSET=0 ;;
+            esac
+            SPARKLE_VERSION="${BASE_VERSION}$(printf "%02d" $((OFFSET + PRERELEASE_NUM)))"
+          else
+            SPARKLE_VERSION="${BASE_VERSION}99"
+          fi
+
+          IS_BETA="false"
+          if [[ "$TAG" =~ -(beta|alpha|rc) ]]; then
+            IS_BETA="true"
+          fi
+
+          # Beta: only appcast-beta.xml; Stable: both
+          if [ "$IS_BETA" == "true" ]; then
+            APPCAST_FILES=("docs/appcast-beta.xml")
+          else
+            APPCAST_FILES=("docs/appcast.xml" "docs/appcast-beta.xml")
+          fi
+
+          for APPCAST_FILE in "${APPCAST_FILES[@]}"; do
+            echo "Updating $APPCAST_FILE for version $VERSION (sparkle:version=$SPARKLE_VERSION)"
+
+          python3 << PYTHON_SCRIPT
+          import xml.etree.ElementTree as ET
+          import re
+          from datetime import datetime
+
+          ET.register_namespace('sparkle', 'http://www.andymatuschak.org/xml-namespaces/sparkle')
+
+          tree = ET.parse('$APPCAST_FILE')
+          root = tree.getroot()
+          channel = root.find('channel')
+
+          # Check if version already exists
+          existing = False
+          for item in channel.findall('item'):
+              version_elem = item.find('{http://www.andymatuschak.org/xml-namespaces/sparkle}version')
+              if version_elem is not None and version_elem.text == '$SPARKLE_VERSION':
+                  print(f"Version $SPARKLE_VERSION already exists, skipping")
+                  existing = True
+                  break
+
+          if existing:
+              exit(0)
+
+          item = ET.Element('item')
+
+          title = ET.SubElement(item, 'title')
+          title.text = f'Version $VERSION'
+
+          pubDate = ET.SubElement(item, 'pubDate')
+          pubDate.text = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S +0000')
+
+          sparkle_version = ET.SubElement(item, '{http://www.andymatuschak.org/xml-namespaces/sparkle}version')
+          sparkle_version.text = '$SPARKLE_VERSION'
+
+          sparkle_short = ET.SubElement(item, '{http://www.andymatuschak.org/xml-namespaces/sparkle}shortVersionString')
+          sparkle_short.text = '$VERSION'
+
+          sparkle_min = ET.SubElement(item, '{http://www.andymatuschak.org/xml-namespaces/sparkle}minimumSystemVersion')
+          sparkle_min.text = '14.0'
+
+          description = ET.SubElement(item, 'description')
+
+          # Parse changelog
+          def parse_changelog(version):
+              try:
+                  with open('CHANGELOG.md', 'r', encoding='utf-8') as f:
+                      content = f.read()
+              except Exception:
+                  return None
+
+              pattern = rf'## \[{re.escape(version)}\].*?\n(.*?)(?=\n## \[|$)'
+              match = re.search(pattern, content, re.DOTALL)
+              if not match:
+                  return None
+
+              section = match.group(1).strip()
+              if not section:
+                  return None
+
+              html_parts = [f'<h2>CalendarPro {version}</h2>']
+              current_list = []
+              current_heading = None
+
+              for line in section.split('\n'):
+                  line = line.strip()
+                  if not line:
+                      continue
+                  if line.startswith('### '):
+                      if current_list:
+                          html_parts.append(f'<ul>{"".join(current_list)}</ul>')
+                          current_list = []
+                      current_heading = line[4:]
+                      html_parts.append(f'<h4>{current_heading}</h4>')
+                  elif line.startswith('- ') or line.startswith('* '):
+                      item_text = line[2:]
+                      current_list.append(f'<li>{item_text}</li>')
+
+              if current_list:
+                  html_parts.append(f'<ul>{"".join(current_list)}</ul>')
+
+              return ''.join(html_parts) if len(html_parts) > 1 else None
+
+          changelog_html = parse_changelog('$VERSION')
+          if changelog_html:
+              description.text = changelog_html
+          else:
+              description.text = f'<h2>CalendarPro $VERSION</h2><ul><li>Version $VERSION release</li></ul>'
+
+          enclosure = ET.SubElement(item, 'enclosure')
+          enclosure.set('url', 'https://github.com/yelog/calendar-pro/releases/download/$TAG/CalendarPro-$VERSION-universal.dmg')
+          enclosure.set('length', '$FILE_SIZE')
+          enclosure.set('type', 'application/octet-stream')
+          # Parse signature format: sparkle:edSignature="..." length="..."
+          sig_parts = '$SIGNATURE'.split()
+          for part in sig_parts:
+              if '=' in part:
+                  key, val = part.split('=', 1)
+                  if val.startswith('"') and val.endswith('"'):
+                      val = val[1:-1]
+                  enclosure.set(key, val)
+
+          # Insert after comment or as first item
+          insert_pos = 4
+          for i, child in enumerate(channel):
+              if isinstance(child, ET.Element) and child.tag == 'item':
+                  insert_pos = i
+                  break
+          channel.insert(insert_pos, item)
+
+          tree.write('$APPCAST_FILE', encoding='UTF-8', xml_declaration=True)
+
+          # Pretty print
+          with open('$APPCAST_FILE', 'r') as f:
+              content = f.read()
+          content = re.sub(r'><item>', '>\n        <item>', content)
+          content = re.sub(r'></item>', '>\n        </item>', content)
+          content = re.sub(r'><title>', '>\n            <title>', content)
+          content = re.sub(r'></title>', '</title>', content)
+          content = re.sub(r'><pubDate>', '>\n            <pubDate>', content)
+          content = re.sub(r'><sparkle:', '>\n            <sparkle:', content)
+          content = re.sub(r'><description>', '>\n            <description>', content)
+          content = re.sub(r'><enclosure', '>\n            <enclosure', content)
+          content = re.sub(r'</channel></rss>', '</channel>\n</rss>', content)
+
+          with open('$APPCAST_FILE', 'w') as f:
+              f.write(content)
+
+          print(f"Successfully added version $VERSION to $APPCAST_FILE")
+          PYTHON_SCRIPT
+
+          done
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push appcast changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Stash appcast changes
+          git stash push -m "appcast update"
+
+          # Fetch main branch (we're in detached HEAD from tag push)
+          git fetch origin main
+          git checkout -B main origin/main
+
+          # Apply stashed changes
+          if ! git stash pop; then
+            git checkout --theirs docs/appcast-beta.xml docs/appcast.xml || true
+          fi
+
+          git add docs/appcast-beta.xml docs/appcast.xml
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit (appcast already up to date)"
+          else
+            git commit -m "chore(appcast): add ${{ steps.update_appcast.outputs.version }} release entry [skip ci]"
+            git push origin main
+            echo "Appcast updated and pushed to main"
+          fi
+
       - name: Extract changelog for release notes
         id: extract_changelog
         run: |
           VERSION="${{ steps.version.outputs.tag }}"
           VERSION="${VERSION#v}"
 
-          # Extract changelog entry from CHANGELOG.md
           changelog_body=$(python3 << PYTHON
           import re
 
@@ -111,7 +336,6 @@ jobs:
               print("")
               exit(0)
 
-          # Find version section: ## [x.x.x] - YYYY-MM-DD
           pattern = rf'## \[{re.escape("$VERSION")}\] - \d{{4}}-\d{{2}}-\d{{2}}\n(.*?)(?=\n## \[|$)'
           match = re.search(pattern, content, re.DOTALL)
           if not match:
@@ -123,7 +347,6 @@ jobs:
               print("")
               exit(0)
 
-          # Convert to markdown format
           lines = []
           for line in section.split('\n'):
               line = line.strip()
@@ -134,7 +357,6 @@ jobs:
           PYTHON
           )
 
-          # Save to file for multi-line output
           echo "$changelog_body" > /tmp/release_notes.md
           echo "Extracted changelog:"
           cat /tmp/release_notes.md
@@ -152,7 +374,6 @@ jobs:
             PRERELEASE_FLAG="--prerelease"
           fi
 
-          # Check if we have custom release notes
           if [ -s /tmp/release_notes.md ]; then
             echo "Using changelog from CHANGELOG.md"
             gh release create "$TAG" \

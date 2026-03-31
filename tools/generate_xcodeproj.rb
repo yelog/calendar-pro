@@ -39,7 +39,20 @@ app_target.build_configurations.each do |config|
   config.build_settings['DEFINES_MODULE'] = 'YES'
   config.build_settings['SWIFT_EMIT_LOC_STRINGS'] = 'YES'
   config.build_settings['LD_RUNPATH_SEARCH_PATHS'] = '$(inherited) @executable_path/../Frameworks'
+  config.build_settings['MARKETING_VERSION'] = '1.0.0'
+  config.build_settings['CURRENT_PROJECT_VERSION'] = '1'
 end
+
+# ─── Sparkle SPM dependency ───
+sparkle_pkg = project.new(Xcodeproj::Project::Object::XCRemoteSwiftPackageReference)
+sparkle_pkg.repositoryURL = 'https://github.com/sparkle-project/Sparkle'
+sparkle_pkg.requirement = { 'kind' => 'upToNextMajorVersion', 'minimumVersion' => '2.6.4' }
+project.root_object.package_references << sparkle_pkg
+
+sparkle_dep = project.new(Xcodeproj::Project::Object::XCSwiftPackageProductDependency)
+sparkle_dep.product_name = 'Sparkle'
+sparkle_dep.package = sparkle_pkg
+app_target.package_product_dependencies << sparkle_dep
 
 test_target.build_configurations.each do |config|
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.yelog.CalendarProTests'
@@ -87,8 +100,14 @@ def add_project_files(group, app_target, test_target, ui_test_target, path, role
 
     full_path = File.join(path, entry)
     if File.directory?(full_path)
-      subgroup = group.new_group(entry, entry)
-      add_project_files(subgroup, app_target, test_target, ui_test_target, full_path, role)
+      # Treat .xcassets as opaque resource bundles, not as directories to recurse into
+      if File.extname(entry) == '.xcassets'
+        file_ref = group.new_file(entry)
+        app_target.resources_build_phase.add_file_reference(file_ref) if role == :app
+      else
+        subgroup = group.new_group(entry, entry)
+        add_project_files(subgroup, app_target, test_target, ui_test_target, full_path, role)
+      end
     elsif File.extname(entry) == '.swift'
       file_ref = group.new_file(entry)
       target = case role

@@ -22,6 +22,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             statusBarController = StatusBarController(settingsStore: settingsStore, eventService: eventService)
         }
 
+        // 初始化 Sparkle 自动更新
+        UpdateChecker.shared.initialize()
+
         Task {
             await refreshHolidayFeedIfNeeded()
         }

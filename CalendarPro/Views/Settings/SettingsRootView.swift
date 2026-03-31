@@ -5,6 +5,7 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
     case menuBar = "菜单栏"
     case events = "日程"
     case region = "地区与节假日"
+    case about = "关于"
 
     var id: String { rawValue }
 
@@ -14,6 +15,7 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
         case .menuBar: return "menubar.rectangle"
         case .events: return "calendar.badge.clock"
         case .region: return "globe"
+        case .about: return "info.circle.fill"
         }
     }
 
@@ -29,6 +31,8 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
             return "管理日历与提醒事项来源"
         case .region:
             return "配置地区与节假日数据"
+        case .about:
+            return "版本信息与检查更新"
         }
     }
 
@@ -42,6 +46,8 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
             return "管理日历与提醒事项访问权限，并选择要在面板中显示的数据来源。"
         case .region:
             return "选择节假日地区数据集，必要时手动刷新远程节假日清单。"
+        case .about:
+            return "查看应用版本、作者信息，以及检查软件更新。"
         }
     }
 }
@@ -159,6 +165,8 @@ struct SettingsRootView: View {
             EventsSettingsView(store: store, eventService: eventService)
         case .region:
             RegionSettingsView(viewModel: regionViewModel)
+        case .about:
+            AboutSettingsView()
         }
     }
 }

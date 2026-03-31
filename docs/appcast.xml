@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>CalendarPro Changelog</title>
+        <link>https://yelog.github.io/calendar-pro/appcast.xml</link>
+        <description>Most recent changes with links to updates.</description>
+        <language>zh-CN</language>
+
+        <!-- Latest stable release -->
+
+    </channel>
+</rss>
