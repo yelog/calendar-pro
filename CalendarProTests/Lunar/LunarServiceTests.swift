@@ -7,7 +7,7 @@ final class LunarServiceTests: XCTestCase {
         let result = service.describe(date: makeDate(year: 2026, month: 9, day: 25))
 
         XCTAssertEqual(result.festivalName, "中秋节")
-        XCTAssertEqual(result.displayText, "中秋节")
+        XCTAssertEqual(result.displayText(), "中秋节")
     }
 
     func testLunarServiceResolvesSpringFestival() {
@@ -25,7 +25,7 @@ final class LunarServiceTests: XCTestCase {
 
         XCTAssertNil(result.festivalName)
         XCTAssertEqual(result.dayText, "初二")
-        XCTAssertEqual(result.displayText, "初二")
+        XCTAssertEqual(result.displayText(), "初二")
     }
 
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
