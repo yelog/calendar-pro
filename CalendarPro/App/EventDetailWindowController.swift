@@ -5,6 +5,7 @@ import EventKit
 @MainActor
 protocol EventDetailWindowPresenting: AnyObject {
     func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onClose: @escaping () -> Void)
+    func show(reminder: EKReminder, anchoredTo anchorWindow: NSWindow?, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void)
     func close()
 }
 
@@ -23,6 +24,35 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
             }
         )
 
+        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, prefersFullHeight: true)
+    }
+
+    func show(reminder: EKReminder, anchoredTo anchorWindow: NSWindow?, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void) {
+        self.onClose = onClose
+
+        let panel = makePanelIfNeeded()
+        let hostingController = NSHostingController(
+            rootView: ReminderDetailWindowView(reminder: reminder, onToggle: onToggle) { [weak self] in
+                self?.close()
+            }
+        )
+
+        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, prefersFullHeight: false)
+    }
+
+    func close() {
+        panel?.close()
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        let onClose = self.onClose
+        self.onClose = nil
+        onClose?()
+    }
+
+    // MARK: - Private
+
+    private func presentPanel(_ panel: NSPanel, hosting hostingController: NSHostingController<some View>, anchoredTo anchorWindow: NSWindow?, prefersFullHeight: Bool) {
         panel.contentViewController = hostingController
         hostingController.view.layoutSubtreeIfNeeded()
 
@@ -40,21 +70,11 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
             availableHeight = visibleFrame.height
         }
 
-        let panelSize = EventDetailWindowSizing.panelSize(for: fittingSize, availableHeight: availableHeight)
+        let panelSize = EventDetailWindowSizing.panelSize(for: fittingSize, availableHeight: availableHeight, prefersFullHeight: prefersFullHeight)
         let panelFrame = frame(for: panelSize, anchoredTo: anchorWindow)
         panel.setContentSize(panelFrame.size)
         panel.setFrame(panelFrame, display: false)
         panel.orderFrontRegardless()
-    }
-
-    func close() {
-        panel?.close()
-    }
-
-    func windowWillClose(_ notification: Notification) {
-        let onClose = self.onClose
-        self.onClose = nil
-        onClose?()
     }
 
     private func makePanelIfNeeded() -> NSPanel {

@@ -123,7 +123,7 @@ struct EventListView: View {
             } label: {
                 EventCardView(
                     item: item,
-                    isSelected: false,
+                    isSelected: selectedEventIdentifier == CalendarItem.reminder(reminder).selectionIdentifier,
                     showsDisclosure: true,
                     onToggleReminder: onToggleReminder
                 )
@@ -157,7 +157,11 @@ struct EventListView: View {
                     Button {
                         onOpenReminder(reminder)
                     } label: {
-                        compactItemRow(item: item, isSelected: false, showsDisclosure: true)
+                        compactItemRow(
+                            item: item,
+                            isSelected: selectedEventIdentifier == CalendarItem.reminder(reminder).selectionIdentifier,
+                            showsDisclosure: true
+                        )
                     }
                     .buttonStyle(.plain)
                 }

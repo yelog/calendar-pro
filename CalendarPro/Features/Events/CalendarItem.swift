@@ -88,6 +88,16 @@ enum CalendarItem: Identifiable {
         }
     }
 
+    /// Stable identifier used for tracking selection state in the detail panel.
+    var selectionIdentifier: String {
+        switch self {
+        case .event(let event):
+            return event.selectionIdentifier
+        case .reminder(let reminder):
+            return "reminder-\(reminder.calendarItemIdentifier)"
+        }
+    }
+
     /// Deep-link URL that opens the reminder in Reminders.app.
     var remindersAppURL: URL? {
         guard case .reminder(let reminder) = self,

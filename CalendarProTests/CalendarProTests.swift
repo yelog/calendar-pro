@@ -211,6 +211,8 @@ private final class FakePopover: NSObject, PopoverPresenting {
 
     func performClose(_ sender: Any?) {
         guard isShown else { return }
+        let shouldClose = delegate?.popoverShouldClose?(NSPopover()) ?? true
+        guard shouldClose else { return }
         isShown = false
         closeCallCount += 1
         delegate?.popoverDidClose?(Notification(name: NSPopover.didCloseNotification, object: self))
@@ -272,6 +274,11 @@ private final class FakeEventDetailWindowPresenter: EventDetailWindowPresenting 
         showCallCount += 1
         lastEvent = event
         lastAnchorWindow = anchorWindow
+        lastOnClose = onClose
+    }
+
+    func show(reminder: EKReminder, anchoredTo anchorWindow: NSWindow?, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void) {
+        showCallCount += 1
         lastOnClose = onClose
     }
 

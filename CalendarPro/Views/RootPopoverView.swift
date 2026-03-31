@@ -6,6 +6,7 @@ struct RootPopoverView: View {
     @ObservedObject var eventService: EventService
     @StateObject private var viewModel = CalendarPopoverViewModel()
     let onPresentEventDetailWindow: (EKEvent, @escaping () -> Void) -> Void
+    let onPresentReminderDetailWindow: (EKReminder, @escaping (EKReminder) -> Void, @escaping () -> Void) -> Void
     let onDismissEventDetailWindow: () -> Void
     let onQuit: () -> Void
 
@@ -168,10 +169,7 @@ struct RootPopoverView: View {
     private func syncSelectedEvent(with items: [CalendarItem]) {
         guard let selectedIdentifier = viewModel.selectedEventIdentifier else { return }
         let found = items.contains { item in
-            if case .event(let event) = item {
-                return event.selectionIdentifier == selectedIdentifier
-            }
-            return false
+            return item.selectionIdentifier == selectedIdentifier
         }
         guard found else {
             viewModel.clearSelectedEvent()
@@ -202,14 +200,20 @@ struct RootPopoverView: View {
 
     private func handleOpenReminder(_ reminder: EKReminder) {
         let item = CalendarItem.reminder(reminder)
-        guard let url = item.remindersAppURL else {
-            // Fallback: open Reminders.app without navigating to a specific item
-            if let fallback = URL(string: "x-apple-reminderkit://") {
-                NSWorkspace.shared.open(fallback)
+        let shouldPresent = viewModel.toggleEventSelection(identifier: item.selectionIdentifier)
+        if shouldPresent {
+            onPresentReminderDetailWindow(reminder, { [weak eventService] toggledReminder in
+                do {
+                    try eventService?.toggleReminderCompletion(toggledReminder)
+                } catch {
+                    print("Failed to toggle reminder completion: \(error)")
+                }
+            }) {
+                viewModel.clearSelectedEvent()
             }
-            return
+        } else {
+            onDismissEventDetailWindow()
         }
-        NSWorkspace.shared.open(url)
     }
 
     private func dismissEventDetail() {

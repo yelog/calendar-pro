@@ -171,7 +171,7 @@ struct CalendarPopoverView: View {
         let reminderCount = items.count - eventCount
 
         if eventCount == 0 {
-            return "\(reminderCount) 条提醒事项，点击打开提醒事项"
+            return "\(reminderCount) 条提醒事项，点击查看详情"
         }
 
         if reminderCount == 0 {

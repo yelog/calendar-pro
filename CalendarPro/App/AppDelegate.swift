@@ -29,6 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func openSettings() {
         if let window = settingsWindow {
+            window.center()
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
@@ -49,6 +50,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow = window
+
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.willCloseNotification,
+            object: window,
+            queue: .main
+        ) { [weak self] _ in
+            self?.settingsWindow = nil
+        }
     }
 
     private var isUITestPopoverMode: Bool {
@@ -77,6 +86,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     self?.uiTestEventDetailWindowController.show(
                         event: event,
                         anchoredTo: self?.uiTestWindow,
+                        onClose: onClose
+                    )
+                },
+                onPresentReminderDetailWindow: { [weak self] reminder, onToggle, onClose in
+                    self?.uiTestEventDetailWindowController.show(
+                        reminder: reminder,
+                        anchoredTo: self?.uiTestWindow,
+                        onToggle: onToggle,
                         onClose: onClose
                     )
                 },

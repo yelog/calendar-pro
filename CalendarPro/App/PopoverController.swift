@@ -140,6 +140,9 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                 onPresentEventDetailWindow: { [weak self] event, onClose in
                     self?.showEventDetailWindow(for: event, onClose: onClose)
                 },
+                onPresentReminderDetailWindow: { [weak self] reminder, onToggle, onClose in
+                    self?.showReminderDetailWindow(for: reminder, onToggle: onToggle, onClose: onClose)
+                },
                 onDismissEventDetailWindow: { [weak self] in
                     self?.closeEventDetailWindow()
                 },
@@ -167,15 +170,28 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         popover.performClose(nil)
     }
 
+    func popoverShouldClose(_ popover: NSPopover) -> Bool {
+        closeEventDetailWindow()
+        return true
+    }
+
     func popoverDidClose(_ notification: Notification) {
         interactionMonitor.stop()
-        closeEventDetailWindow()
     }
 
     func showEventDetailWindow(for event: EKEvent, onClose: @escaping () -> Void) {
         eventDetailPresenter.show(
             event: event,
             anchoredTo: popover.contentViewController?.view.window,
+            onClose: onClose
+        )
+    }
+
+    func showReminderDetailWindow(for reminder: EKReminder, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void) {
+        eventDetailPresenter.show(
+            reminder: reminder,
+            anchoredTo: popover.contentViewController?.view.window,
+            onToggle: onToggle,
             onClose: onClose
         )
     }
