@@ -36,7 +36,7 @@ struct CalendarDayFactory {
             isToday: calendar.isDate(date, inSameDayAs: monthService.now()),
             isSelected: selectedDate != nil && calendar.isDate(date, inSameDayAs: selectedDate!),
             solarText: String(calendar.component(.day, from: date)),
-            lunarText: lunarDescriptor.displayText,
+            lunarText: lunarDescriptor.displayText(style: preferences.lunarDisplayStyle),
             badges: holidays.map(\.dayBadge)
         )
     }
@@ -63,7 +63,7 @@ struct CalendarDayFactory {
                 isToday: day.isToday,
                 isSelected: selectedDate != nil && calendar.isDate(day.date, inSameDayAs: selectedDate!),
                 solarText: day.solarText,
-                lunarText: lunarDescriptor.displayText,
+                lunarText: lunarDescriptor.displayText(style: preferences.lunarDisplayStyle),
                 badges: resolvedBadges
             )
         }

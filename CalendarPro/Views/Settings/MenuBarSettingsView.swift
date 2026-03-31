@@ -23,6 +23,18 @@ struct MenuBarSettingsView: View {
                                 .textFieldStyle(.roundedBorder)
                                 .frame(width: 80)
                         }
+
+                        HStack {
+                            Text("农历格式")
+                            Spacer()
+                            Picker("", selection: lunarDisplayStyleBinding) {
+                                ForEach(LunarDisplayStyle.allCases, id: \.self) { style in
+                                    Text(lunarDisplayStyleName(style)).tag(style)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 120)
+                        }
                     }
                 }
 
@@ -78,6 +90,13 @@ struct MenuBarSettingsView: View {
         Binding(
             get: { store.menuBarPreferences.separator },
             set: { store.setSeparator($0) }
+        )
+    }
+
+    private var lunarDisplayStyleBinding: Binding<LunarDisplayStyle> {
+        Binding(
+            get: { store.menuBarPreferences.lunarDisplayStyle },
+            set: { store.setLunarDisplayStyle($0) }
         )
     }
 
@@ -170,6 +189,17 @@ struct MenuBarSettingsView: View {
             "农历"
         case .holiday:
             "节假日"
+        }
+    }
+
+    private func lunarDisplayStyleName(_ style: LunarDisplayStyle) -> String {
+        switch style {
+        case .day:
+            "仅日"
+        case .monthDay:
+            "月+日"
+        case .yearMonthDay:
+            "年+月+日"
         }
     }
 }

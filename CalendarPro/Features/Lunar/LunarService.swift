@@ -16,21 +16,35 @@ struct LunarService {
 
     func describe(date: Date, timeZone: TimeZone = .autoupdatingCurrent) -> LunarDateDescriptor {
         let components = chineseCalendar.dateComponents(in: timeZone, from: date)
+        let year = components.year ?? 1
         let month = components.month ?? 1
         let day = components.day ?? 1
         let isLeapMonth = components.isLeapMonth ?? false
 
+        let yearText = Self.yearText(for: year)
         let monthText = Self.monthText(for: month, isLeapMonth: isLeapMonth)
         let dayText = Self.dayText(for: day)
 
         return LunarDateDescriptor(
+            year: year,
             month: month,
             day: day,
             isLeapMonth: isLeapMonth,
+            yearText: yearText,
             monthText: monthText,
             dayText: dayText,
             festivalName: festivalResolver.festivalName(month: month, day: day, isLeapMonth: isLeapMonth)
         )
+    }
+
+    private static func yearText(for year: Int) -> String {
+        let gan = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
+        let zhi = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
+        
+        let ganIndex = (year - 4) % 10
+        let zhiIndex = (year - 4) % 12
+        
+        return gan[max(0, min(9, ganIndex))] + zhi[max(0, min(11, zhiIndex))] + "年"
     }
 
     private static func monthText(for month: Int, isLeapMonth: Bool) -> String {
