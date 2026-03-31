@@ -46,7 +46,7 @@ struct MenuBarPreferences: Codable, Equatable {
     var enabledReminderCalendarIDs: [String]
 
     var requiresSecondRefresh: Bool {
-        tokens.contains { $0.token == .time && $0.isEnabled && $0.showsSeconds }
+        tokens.contains { $0.token == .time && $0.isEnabled && ($0.showsSeconds || $0.style == .full) }
     }
 
     static let `default` = MenuBarPreferences(

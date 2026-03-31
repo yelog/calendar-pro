@@ -20,6 +20,16 @@ final class MenuBarViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.refreshGranularity, .second)
     }
 
+    func testMenuBarSchedulerUsesSecondGranularityWhenStyleIsFull() async {
+        let store = makeStore(name: #function)
+        let viewModel = makeViewModel(store: store)
+
+        store.setTokenStyle(.full, for: .time)
+        await Task.yield()
+
+        XCTAssertEqual(viewModel.refreshGranularity, .second)
+    }
+
     func testLocaleChangeNotificationRerendersDisplayText() async {
         let store = makeStore(name: #function)
         let notificationCenter = NotificationCenter()

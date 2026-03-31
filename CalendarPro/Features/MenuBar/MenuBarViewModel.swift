@@ -47,6 +47,7 @@ final class MenuBarViewModel: ObservableObject {
             settingsStore.$menuBarPreferences,
             settingsStore.$holidayDataRevision
         )
+        .receive(on: DispatchQueue.main)
         .sink { [weak self] preferences, _ in
             guard let self else { return }
             self.refreshGranularity = preferences.requiresSecondRefresh ? .second : .minute
