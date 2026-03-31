@@ -36,13 +36,15 @@ struct MenuBarSettingsView: View {
                                     .toggleStyle(.checkbox)
                                     .frame(width: 120, alignment: .leading)
 
-                                Picker("样式", selection: styleBinding(for: token.token)) {
-                                    ForEach(styleOptions(for: token.token), id: \.self) { style in
-                                        Text(stylePreviewText(style, for: token.token)).tag(style)
+                                if styleOptions(for: token.token).count > 1 {
+                                    Picker("样式", selection: styleBinding(for: token.token)) {
+                                        ForEach(styleOptions(for: token.token), id: \.self) { style in
+                                            Text(stylePreviewText(style, for: token.token)).tag(style)
+                                        }
                                     }
+                                    .labelsHidden()
+                                    .frame(width: 120)
                                 }
-                                .labelsHidden()
-                                .frame(width: 120)
 
                                 Spacer()
 
@@ -137,7 +139,7 @@ struct MenuBarSettingsView: View {
         case .time:
             [.short, .full]
         case .lunar, .holiday:
-            [.numeric, .short, .full]
+            [.short]
         }
     }
 
