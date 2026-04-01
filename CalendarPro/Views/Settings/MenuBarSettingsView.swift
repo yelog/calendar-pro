@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuBarSettingsView: View {
     @ObservedObject var store: SettingsStore
+    @State private var availableWidth: CGFloat = .zero
 
     private let renderer = ClockRenderService()
 
@@ -16,12 +17,20 @@ struct MenuBarSettingsView: View {
 
                 GroupBox("基础设置") {
                     VStack(alignment: .leading, spacing: 12) {
-                        HStack {
+                        if usesCompactLayout {
                             Text("分隔符")
-                            Spacer()
+
                             TextField("空格", text: separatorBinding)
                                 .textFieldStyle(.roundedBorder)
-                                .frame(width: 80)
+                                .frame(maxWidth: 120, alignment: .leading)
+                        } else {
+                            HStack {
+                                Text("分隔符")
+                                Spacer()
+                                TextField("空格", text: separatorBinding)
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(width: 80)
+                            }
                         }
                     }
                 }
@@ -29,46 +38,64 @@ struct MenuBarSettingsView: View {
                 GroupBox("显示项") {
                     VStack(alignment: .leading, spacing: 12) {
                         ForEach(sortedTokens) { token in
-                            HStack(spacing: 12) {
-                                Toggle(tokenDisplayName(token.token), isOn: enabledBinding(for: token.token))
-                                    .toggleStyle(.checkbox)
-                                    .frame(width: 120, alignment: .leading)
+                            if usesCompactLayout {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Toggle(tokenDisplayName(token.token), isOn: enabledBinding(for: token.token))
+                                        .toggleStyle(.checkbox)
 
-                                if styleOptions(for: token.token).count > 1 {
-                                    Picker("样式", selection: styleBinding(for: token.token)) {
-                                        ForEach(styleOptions(for: token.token), id: \.self) { style in
-                                            Text(stylePreviewText(style, for: token.token)).tag(style)
+                                    HStack(alignment: .center, spacing: 12) {
+                                        if styleOptions(for: token.token).count > 1 {
+                                            Picker("样式", selection: styleBinding(for: token.token)) {
+                                                ForEach(styleOptions(for: token.token), id: \.self) { style in
+                                                    Text(stylePreviewText(style, for: token.token)).tag(style)
+                                                }
+                                            }
+                                            .labelsHidden()
+                                            .frame(maxWidth: 160, alignment: .leading)
                                         }
+
+                                        Spacer(minLength: 0)
+
+                                        movementButtons(for: token)
                                     }
-                                    .labelsHidden()
-                                    .frame(width: 120)
                                 }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            } else {
+                                HStack(spacing: 12) {
+                                    Toggle(tokenDisplayName(token.token), isOn: enabledBinding(for: token.token))
+                                        .toggleStyle(.checkbox)
+                                        .frame(width: 120, alignment: .leading)
 
-                                Spacer()
+                                    if styleOptions(for: token.token).count > 1 {
+                                        Picker("样式", selection: styleBinding(for: token.token)) {
+                                            ForEach(styleOptions(for: token.token), id: \.self) { style in
+                                                Text(stylePreviewText(style, for: token.token)).tag(style)
+                                            }
+                                        }
+                                        .labelsHidden()
+                                        .frame(width: 120)
+                                    }
 
-                                Button {
-                                    store.moveToken(token.token, by: -1)
-                                } label: {
-                                    Image(systemName: "arrow.up")
+                                    Spacer(minLength: 0)
+
+                                    movementButtons(for: token)
                                 }
-                                .buttonStyle(.borderless)
-                                .disabled(token.order == 0)
-
-                                Button {
-                                    store.moveToken(token.token, by: 1)
-                                } label: {
-                                    Image(systemName: "arrow.down")
-                                }
-                                .buttonStyle(.borderless)
-                                .disabled(token.order == sortedTokens.count - 1)
                             }
                         }
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 30)
             .padding(.vertical, 24)
+            .background {
+                GeometryReader { proxy in
+                    Color.clear
+                        .preference(key: MenuBarSettingsContentWidthKey.self, value: proxy.size.width)
+                }
+            }
         }
+        .onPreferenceChange(MenuBarSettingsContentWidthKey.self) { availableWidth = $0 }
     }
 
     private var sortedTokens: [DisplayTokenPreference] {
@@ -80,6 +107,10 @@ struct MenuBarSettingsView: View {
             get: { store.menuBarPreferences.separator },
             set: { store.setSeparator($0) }
         )
+    }
+
+    private var usesCompactLayout: Bool {
+        availableWidth > 0 && availableWidth < 500
     }
 
     private var previewText: String {
@@ -187,5 +218,34 @@ struct MenuBarSettingsView: View {
         case .holiday:
             "节假日"
         }
+    }
+
+    @ViewBuilder
+    private func movementButtons(for token: DisplayTokenPreference) -> some View {
+        HStack(spacing: 8) {
+            Button {
+                store.moveToken(token.token, by: -1)
+            } label: {
+                Image(systemName: "arrow.up")
+            }
+            .buttonStyle(.borderless)
+            .disabled(token.order == 0)
+
+            Button {
+                store.moveToken(token.token, by: 1)
+            } label: {
+                Image(systemName: "arrow.down")
+            }
+            .buttonStyle(.borderless)
+            .disabled(token.order == sortedTokens.count - 1)
+        }
+    }
+}
+
+private struct MenuBarSettingsContentWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = .zero
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }

@@ -2,18 +2,12 @@ import SwiftUI
 
 struct GeneralSettingsView: View {
     @ObservedObject var store: SettingsStore
-    private let renderer = ClockRenderService()
+    @State private var availableWidth: CGFloat = .zero
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                GroupBox("菜单栏当前效果") {
-                    Text(previewText)
-                        .font(.system(.body, design: .rounded))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-
-                LazyVGrid(columns: summaryColumns, spacing: 14) {
+                LazyVGrid(columns: summaryColumns(for: availableWidth), spacing: 14) {
                     SettingsSummaryCard(
                         title: "启用地区",
                         value: activeRegionSummary,
@@ -24,7 +18,7 @@ struct GeneralSettingsView: View {
                     SettingsSummaryCard(
                         title: "显示项",
                         value: "\(enabledTokenNames.count) 项",
-                        caption: enabledTokenNames.isEmpty ? "当前菜单栏没有启用显示项" : enabledTokenNames.joined(separator: "、"),
+                        caption: displayItemsCaption,
                         systemImage: "textformat"
                     )
 
@@ -75,42 +69,25 @@ struct GeneralSettingsView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-
-                GroupBox("当前状态") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        SettingsStatusRow(label: "启用地区", value: activeRegionSummary)
-                        SettingsStatusRow(label: "菜单栏分隔符", value: separatorSummary)
-                        SettingsStatusRow(label: "已启用显示项", value: enabledTokenNames.isEmpty ? "无" : enabledTokenNames.joined(separator: "、"))
-                        SettingsStatusRow(label: "日历面板", value: eventSummary)
-                        SettingsStatusRow(label: "开机启动", value: store.launchAtLoginStatus.summaryText)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 30)
             .padding(.vertical, 24)
+            .background {
+                GeometryReader { proxy in
+                    Color.clear
+                        .preference(key: GeneralSettingsContentWidthKey.self, value: proxy.size.width)
+                }
+            }
         }
+        .onPreferenceChange(GeneralSettingsContentWidthKey.self) { availableWidth = $0 }
     }
 
-    private var summaryColumns: [GridItem] {
-        [
-            GridItem(.flexible(), spacing: 14),
-            GridItem(.flexible(), spacing: 14)
-        ]
-    }
-
-    private var previewText: String {
-        let now = Date()
-        let factory = CalendarDayFactory(calendar: .autoupdatingCurrent, registry: .live)
-        let day = try? factory.makeDay(for: now, displayedMonth: now, preferences: store.menuBarPreferences)
-
-        return renderer.render(
-            now: now,
-            preferences: store.menuBarPreferences,
-            supplementalText: MenuBarSupplementalText(
-                lunarText: day?.lunarText,
-                holidayText: day?.badges.first?.text
-            )
+    private func summaryColumns(for width: CGFloat) -> [GridItem] {
+        let columnCount = width > 0 && width < 500 ? 1 : 2
+        return Array(
+            repeating: GridItem(.flexible(), spacing: 14, alignment: .top),
+            count: columnCount
         )
     }
 
@@ -119,9 +96,13 @@ struct GeneralSettingsView: View {
         return ids.isEmpty ? "未启用" : ids.joined(separator: "、")
     }
 
-    private var separatorSummary: String {
+    private var displayItemsCaption: String {
+        if enabledTokenNames.isEmpty {
+            return "当前菜单栏没有启用显示项"
+        }
         let separator = store.menuBarPreferences.separator
-        return separator.isEmpty ? "无分隔符" : "\"\(separator)\""
+        let separatorText = separator.isEmpty ? "" : "，分隔符 \"\(separator)\""
+        return enabledTokenNames.joined(separator: "、") + separatorText
     }
 
     private var eventSummary: String {
@@ -175,6 +156,14 @@ struct GeneralSettingsView: View {
     }
 }
 
+private struct GeneralSettingsContentWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = .zero
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
 private struct SettingsSummaryCard: View {
     let title: String
     let value: String
@@ -215,23 +204,5 @@ private struct SettingsSummaryCard: View {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(Color(nsColor: .separatorColor).opacity(0.28), lineWidth: 1)
         )
-    }
-}
-
-private struct SettingsStatusRow: View {
-    let label: String
-    let value: String
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 16) {
-            Text(label)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-                .frame(width: 84, alignment: .leading)
-
-            Text(value)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .textSelection(.enabled)
-        }
     }
 }

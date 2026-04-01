@@ -3,6 +3,12 @@ import SwiftUI
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private enum SettingsWindowConfiguration {
+        static let defaultSize = NSSize(width: 840, height: 560)
+        static let minimumSize = NSSize(width: 760, height: 520)
+        static let autosaveName = "CalendarProSettingsWindowFrame"
+    }
+
     let settingsStore = SettingsStore()
     let eventService = EventService()
 
@@ -32,6 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func openSettings() {
         if let window = settingsWindow {
+            centerSettingsWindowOnCurrentScreen(window)
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
@@ -41,19 +48,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             rootView: SettingsRootView(store: settingsStore, eventService: eventService)
         )
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 840, height: 560),
-            styleMask: [.titled, .closable],
+            contentRect: NSRect(origin: .zero, size: SettingsWindowConfiguration.defaultSize),
+            styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
         )
         window.contentViewController = hostingController
         window.title = "设置"
-        
-        if let popoverWindow = statusBarController?.popoverContentWindow() {
-            positionWindowNearPopover(window, popoverWindow: popoverWindow)
-        } else {
-            window.center()
-        }
+        window.minSize = SettingsWindowConfiguration.minimumSize
+        window.setFrameAutosaveName(SettingsWindowConfiguration.autosaveName)
+        window.setFrameUsingName(SettingsWindowConfiguration.autosaveName, force: false)
+        centerSettingsWindowOnCurrentScreen(window)
         
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -70,22 +75,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func positionWindowNearPopover(_ settingsWindow: NSWindow, popoverWindow: NSWindow) {
-        let popoverFrame = popoverWindow.frame
-        let settingsSize = settingsWindow.frame.size
-        
-        let screenFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
-        
-        var x = popoverFrame.origin.x + popoverFrame.size.width + 20
-        var y = popoverFrame.origin.y - settingsSize.height / 2 + popoverFrame.size.height / 2
-        
-        if x + settingsSize.width > screenFrame.origin.x + screenFrame.size.width {
-            x = popoverFrame.origin.x - settingsSize.width - 20
+    private func centerSettingsWindowOnCurrentScreen(_ settingsWindow: NSWindow) {
+        let targetScreen = settingsTargetScreen()
+            ?? NSScreen.main
+            ?? NSScreen.screens.first
+
+        guard let targetScreen else { return }
+
+        let visibleFrame = targetScreen.visibleFrame
+        let windowSize = settingsWindow.frame.size
+        let centeredOrigin = NSPoint(
+            x: visibleFrame.midX - windowSize.width / 2,
+            y: visibleFrame.midY - windowSize.height / 2
+        )
+
+        let clampedOrigin = NSPoint(
+            x: max(visibleFrame.minX, min(centeredOrigin.x, visibleFrame.maxX - windowSize.width)),
+            y: max(visibleFrame.minY, min(centeredOrigin.y, visibleFrame.maxY - windowSize.height))
+        )
+
+        settingsWindow.setFrameOrigin(clampedOrigin)
+    }
+
+    private func settingsTargetScreen() -> NSScreen? {
+        if let popoverScreen = statusBarController?.popoverContentWindow()?.screen {
+            return popoverScreen
         }
-        
-        y = max(screenFrame.origin.y, min(y, screenFrame.origin.y + screenFrame.size.height - settingsSize.height))
-        
-        settingsWindow.setFrameOrigin(NSPoint(x: x, y: y))
+
+        if let keyWindowScreen = NSApp.keyWindow?.screen {
+            return keyWindowScreen
+        }
+
+        let mouseLocation = NSEvent.mouseLocation
+        if let mouseScreen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }) {
+            return mouseScreen
+        }
+
+        return nil
     }
 
     private var isUITestPopoverMode: Bool {

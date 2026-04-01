@@ -76,7 +76,7 @@ struct SettingsRootView: View {
 
             detailPanel
         }
-        .frame(width: 840, height: 560)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(SettingsWindowPalette.windowBackground)
         .onAppear {
             eventService.checkAuthorizationStatus()
