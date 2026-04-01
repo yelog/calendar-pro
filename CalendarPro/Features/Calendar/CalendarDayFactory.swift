@@ -37,6 +37,7 @@ struct CalendarDayFactory {
             isSelected: selectedDate != nil && calendar.isDate(date, inSameDayAs: selectedDate!),
             solarText: String(calendar.component(.day, from: date)),
             lunarText: lunarDescriptor.displayText(style: lunarDisplayStyle(from: preferences)),
+            lunarTextSemantic: lunarDescriptor.displaySemantic,
             badges: holidays.map(\.dayBadge)
         )
     }
@@ -64,6 +65,7 @@ struct CalendarDayFactory {
                 isSelected: selectedDate != nil && calendar.isDate(day.date, inSameDayAs: selectedDate!),
                 solarText: day.solarText,
                 lunarText: lunarDescriptor.displayText(style: lunarDisplayStyle(from: preferences)),
+                lunarTextSemantic: lunarDescriptor.displaySemantic,
                 badges: resolvedBadges
             )
         }

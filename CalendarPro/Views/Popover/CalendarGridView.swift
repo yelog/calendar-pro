@@ -200,6 +200,18 @@ private struct CalendarDayCellView: View {
             return day.isInDisplayedMonth ? semanticStyle.subtitle : semanticStyle.subtitle.opacity(colorScheme == .dark ? 0.82 : 0.68)
         }
 
+        if day.lunarTextSemantic == .solarTerm {
+            if day.isInDisplayedMonth {
+                return colorScheme == .dark
+                    ? Color(red: 1.0, green: 0.50, blue: 0.50)
+                    : Color.red.opacity(0.82)
+            }
+
+            return colorScheme == .dark
+                ? Color(red: 1.0, green: 0.50, blue: 0.50).opacity(0.72)
+                : Color.red.opacity(0.58)
+        }
+
         guard day.isInDisplayedMonth else {
             return .secondary.opacity(0.45)
         }

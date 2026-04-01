@@ -3,15 +3,18 @@ import Foundation
 struct LunarService {
     private var chineseCalendar: Calendar
     private let festivalResolver: TraditionalFestivalResolver
+    private let solarTermResolver: SolarTermResolver
 
     init(
         calendar: Calendar = Calendar(identifier: .chinese),
-        festivalResolver: TraditionalFestivalResolver = TraditionalFestivalResolver()
+        festivalResolver: TraditionalFestivalResolver = TraditionalFestivalResolver(),
+        solarTermResolver: SolarTermResolver = SolarTermResolver()
     ) {
         var calendar = calendar
         calendar.locale = Locale(identifier: "zh_Hans_CN")
         chineseCalendar = calendar
         self.festivalResolver = festivalResolver
+        self.solarTermResolver = solarTermResolver
     }
 
     func describe(date: Date, timeZone: TimeZone = .autoupdatingCurrent) -> LunarDateDescriptor {
@@ -33,7 +36,8 @@ struct LunarService {
             yearText: yearText,
             monthText: monthText,
             dayText: dayText,
-            festivalName: festivalResolver.festivalName(month: month, day: day, isLeapMonth: isLeapMonth)
+            festivalName: festivalResolver.festivalName(month: month, day: day, isLeapMonth: isLeapMonth),
+            solarTermName: solarTermResolver.solarTermName(for: date, timeZone: timeZone)
         )
     }
 

@@ -24,6 +24,28 @@ final class CalendarDayFactoryTests: XCTestCase {
         XCTAssertTrue(nationalDay.badges.contains { $0.kind == .publicHoliday })
     }
 
+    func testDayFactoryShowsSolarTermTextOnSolarTermDay() throws {
+        let factory = CalendarDayFactory.makePreview()
+        let day = try factory.makeDay(
+            for: makeDate(year: 2026, month: 2, day: 4),
+            displayedMonth: makeDate(year: 2026, month: 2, day: 1)
+        )
+
+        XCTAssertEqual(day.lunarText, "立春")
+        XCTAssertEqual(day.lunarTextSemantic, .solarTerm)
+    }
+
+    func testDayFactoryMarksRegularLunarTextAsNonSolarTerm() throws {
+        let factory = CalendarDayFactory.makePreview()
+        let day = try factory.makeDay(
+            for: makeDate(year: 2026, month: 2, day: 20),
+            displayedMonth: makeDate(year: 2026, month: 2, day: 1)
+        )
+
+        XCTAssertEqual(day.lunarText, "初四")
+        XCTAssertEqual(day.lunarTextSemantic, .regular)
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         DateComponents(
             calendar: Calendar.gregorianMondayFirst,

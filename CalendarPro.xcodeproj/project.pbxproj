@@ -11,6 +11,7 @@
 		0E864FCA004741E8D35E0259 /* CalendarGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847D23D7016D2258B4D079F9 /* CalendarGridView.swift */; };
 		164C83D32A1CB2BFBB242418 /* ReminderDetailWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06C6393ACAC0D5D3D148EDA1 /* ReminderDetailWindowView.swift */; };
 		197707BFD7CACD30B9FC36CC /* LunarServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50D016B7ADCAC59EE49A0AD0 /* LunarServiceTests.swift */; };
+		1D6A7C553A8B4A8D90D11AA1 /* SolarTermResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6A7C543A8B4A8D90D11AA1 /* SolarTermResolver.swift */; };
 		19C471A2336FD6232CD2186D /* EventDetailWindowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D848A57A7029B3B4AB532302 /* EventDetailWindowLayout.swift */; };
 		1C6D47CF55ED5C0B3B421DB8 /* hong-kong-2026.json in Resources */ = {isa = PBXBuildFile; fileRef = E561103FB7F5F7B5033C8364 /* hong-kong-2026.json */; };
 		1FF209EC5B6C65620D507521 /* CalendarPopoverViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C24C1087804A4246B0F7954 /* CalendarPopoverViewModelTests.swift */; };
@@ -115,6 +116,7 @@
 		0BFAE8AE5B3C7332436F9705 /* CalendarProApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarProApp.swift; sourceTree = "<group>"; };
 		1616F73ED4F91AEADF688650 /* HongKongProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HongKongProvider.swift; sourceTree = "<group>"; };
 		191981F96AEE3D88DFF5B797 /* MenuBarViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarViewModelTests.swift; sourceTree = "<group>"; };
+		1D6A7C543A8B4A8D90D11AA1 /* SolarTermResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SolarTermResolver.swift; sourceTree = "<group>"; };
 		1B87D253F7DEF09698005380 /* CalendarPopoverView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverView.swift; sourceTree = "<group>"; };
 		24C8DA28C978FEB1CD066010 /* EventDetailWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventDetailWindowController.swift; sourceTree = "<group>"; };
 		2BF663619F7773A20B0D3A75 /* EventDetailWindowSizingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventDetailWindowSizingTests.swift; sourceTree = "<group>"; };
@@ -567,6 +569,7 @@
 			children = (
 				8746F993168DFDFC3AE189EF /* LunarDateDescriptor.swift */,
 				D1819BAB3D763DDC3162755D /* LunarService.swift */,
+				1D6A7C543A8B4A8D90D11AA1 /* SolarTermResolver.swift */,
 				B3AB8B5127217E57F0272C75 /* TraditionalFestivalResolver.swift */,
 			);
 			name = Lunar;
@@ -761,6 +764,7 @@
 				703AF48346A0866948374541 /* MainlandCNProvider.swift in Sources */,
 				7E4296D10278B7BBA80F7B36 /* LunarDateDescriptor.swift in Sources */,
 				EB181AFBB911CD68EFD122CF /* LunarService.swift in Sources */,
+				1D6A7C553A8B4A8D90D11AA1 /* SolarTermResolver.swift in Sources */,
 				72F0C2E9CD40E3069404FB66 /* TraditionalFestivalResolver.swift in Sources */,
 				2C98F8BA78CE62EC34E6255C /* ClockRenderService.swift in Sources */,
 				C0BF17E696AA3EC3FCEBCCAA /* MenuBarViewModel.swift in Sources */,
