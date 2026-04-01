@@ -81,6 +81,9 @@ struct SettingsRootView: View {
         .onAppear {
             eventService.checkAuthorizationStatus()
             eventService.fetchCalendars()
+            if eventService.remindersAuthorized {
+                eventService.fetchReminderCalendars()
+            }
         }
     }
 

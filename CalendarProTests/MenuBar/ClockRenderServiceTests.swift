@@ -28,6 +28,7 @@ final class ClockRenderServiceTests: XCTestCase {
             enabledHolidayIDs: [],
             weekStart: .monday,
             showEvents: true,
+            showCalendarEvents: true,
             enabledCalendarIDs: [],
             showReminders: true,
             enabledReminderCalendarIDs: []
@@ -62,6 +63,7 @@ final class ClockRenderServiceTests: XCTestCase {
             enabledHolidayIDs: [],
             weekStart: .monday,
             showEvents: true,
+            showCalendarEvents: true,
             enabledCalendarIDs: [],
             showReminders: true,
             enabledReminderCalendarIDs: []

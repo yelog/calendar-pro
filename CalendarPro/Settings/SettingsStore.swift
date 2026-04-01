@@ -129,8 +129,21 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
-    func setCalendarEnabled(_ enabled: Bool, calendarID: String) {
+    func setShowCalendarEvents(_ enabled: Bool) {
+        var prefs = menuBarPreferences
+        prefs.showCalendarEvents = enabled
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setCalendarEnabled(_ enabled: Bool, calendarID: String, allCalendarIDs: [String] = []) {
+        let hasAllCalendarIDs = !allCalendarIDs.isEmpty
         var ids = menuBarPreferences.enabledCalendarIDs
+
+        if hasAllCalendarIDs && ids.isEmpty {
+            ids = allCalendarIDs
+        }
+
         if enabled {
             if !ids.contains(calendarID) {
                 ids.append(calendarID)
@@ -138,8 +151,15 @@ final class SettingsStore: ObservableObject {
         } else {
             ids.removeAll { $0 == calendarID }
         }
+
         var prefs = menuBarPreferences
-        prefs.enabledCalendarIDs = ids
+        if hasAllCalendarIDs && Set(ids) == Set(allCalendarIDs) {
+            prefs.enabledCalendarIDs = []
+        } else if hasAllCalendarIDs {
+            prefs.enabledCalendarIDs = allCalendarIDs.filter { ids.contains($0) }
+        } else {
+            prefs.enabledCalendarIDs = ids
+        }
         menuBarPreferences = prefs
         persistMenuBarPreferences()
     }
@@ -151,8 +171,14 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
-    func setReminderCalendarEnabled(_ enabled: Bool, calendarID: String) {
+    func setReminderCalendarEnabled(_ enabled: Bool, calendarID: String, allCalendarIDs: [String] = []) {
+        let hasAllCalendarIDs = !allCalendarIDs.isEmpty
         var ids = menuBarPreferences.enabledReminderCalendarIDs
+
+        if hasAllCalendarIDs && ids.isEmpty {
+            ids = allCalendarIDs
+        }
+
         if enabled {
             if !ids.contains(calendarID) {
                 ids.append(calendarID)
@@ -160,8 +186,15 @@ final class SettingsStore: ObservableObject {
         } else {
             ids.removeAll { $0 == calendarID }
         }
+
         var prefs = menuBarPreferences
-        prefs.enabledReminderCalendarIDs = ids
+        if hasAllCalendarIDs && Set(ids) == Set(allCalendarIDs) {
+            prefs.enabledReminderCalendarIDs = []
+        } else if hasAllCalendarIDs {
+            prefs.enabledReminderCalendarIDs = allCalendarIDs.filter { ids.contains($0) }
+        } else {
+            prefs.enabledReminderCalendarIDs = ids
+        }
         menuBarPreferences = prefs
         persistMenuBarPreferences()
     }

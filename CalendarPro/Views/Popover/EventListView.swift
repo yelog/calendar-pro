@@ -160,6 +160,7 @@ struct EventTimelineSnapshot {
 struct EventListView: View {
     let items: [CalendarItem]
     let isLoading: Bool
+    let emptyStateText: String
     let selectedDate: Date?
     let selectedEventIdentifier: String?
     let onSelectEvent: (EKEvent) -> Void
@@ -179,7 +180,7 @@ struct EventListView: View {
             }
             .frame(height: 60)
         } else if items.isEmpty {
-            Text("当天无日程")
+            Text(emptyStateText)
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)

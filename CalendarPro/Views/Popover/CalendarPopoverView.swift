@@ -11,6 +11,7 @@ struct CalendarPopoverView: View {
     let weekdaySymbols: [String]
     let monthDays: [CalendarDay]
     let showEvents: Bool
+    let emptyStateText: String
     let selectedDate: Date?
     let items: [CalendarItem]
     let selectedEventIdentifier: String?
@@ -146,6 +147,7 @@ struct CalendarPopoverView: View {
                 EventListView(
                     items: items,
                     isLoading: isLoadingEvents,
+                    emptyStateText: emptyStateText,
                     selectedDate: date,
                     selectedEventIdentifier: selectedEventIdentifier,
                     onSelectEvent: onSelectEvent,
@@ -163,7 +165,7 @@ struct CalendarPopoverView: View {
         }
 
         if items.isEmpty {
-            return "当天无日程"
+            return emptyStateText
         }
 
         let eventCount = items.reduce(into: 0) { count, item in

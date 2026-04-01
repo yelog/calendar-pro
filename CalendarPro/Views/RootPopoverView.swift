@@ -23,7 +23,8 @@ struct RootPopoverView: View {
             selectionMode: viewModel.selectionMode,
             weekdaySymbols: viewModel.weekdaySymbols(using: displayCalendar),
             monthDays: monthDays,
-            showEvents: settingsStore.menuBarPreferences.showEvents && eventService.isAuthorized,
+            showEvents: settingsStore.menuBarPreferences.showEvents,
+            emptyStateText: settingsStore.menuBarPreferences.eventListEmptyStateText,
             selectedDate: viewModel.selectedDate,
             items: itemsForSelectedDate,
             selectedEventIdentifier: viewModel.selectedEventIdentifier,
@@ -78,21 +79,20 @@ struct RootPopoverView: View {
         .onReceive(NotificationCenter.default.publisher(for: .PopoverDidCloseNotification)) { _ in
             viewModel.popoverDidClose()
         }
-        .onChange(of: eventService.isAuthorized) { _, isAuthorized in
-            if isAuthorized {
-                refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
-            } else {
-                clearLoadedEvents()
-            }
+        .onChange(of: eventService.isAuthorized) { _, _ in
+            refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
         }
         .onChange(of: eventService.remindersAuthorized) { _, isAuthorized in
             if isAuthorized {
                 eventService.fetchReminderCalendars()
-                refreshEventsForCurrentSelection()
             }
+            refreshEventsForCurrentSelection()
         }
         .onChange(of: settingsStore.menuBarPreferences.showEvents) { _, _ in
             refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+        }
+        .onChange(of: settingsStore.menuBarPreferences.showCalendarEvents) { _, _ in
+            refreshEventsForCurrentSelection()
         }
         .onChange(of: settingsStore.menuBarPreferences.showReminders) { _, _ in
             refreshEventsForCurrentSelection()
@@ -116,12 +116,22 @@ struct RootPopoverView: View {
     }
 
     private func loadEvents(for date: Date) {
-        guard settingsStore.menuBarPreferences.showEvents, eventService.isAuthorized else {
+        let preferences = settingsStore.menuBarPreferences
+
+        guard preferences.showEvents else {
             clearLoadedEvents()
             return
         }
 
-        eventService.fetchCalendars()
+        guard preferences.hasEnabledEventSources else {
+            clearLoadedEvents()
+            return
+        }
+
+        if eventService.isAuthorized {
+            eventService.fetchCalendars()
+        }
+
         if eventService.remindersAuthorized {
             eventService.fetchReminderCalendars()
         }
@@ -131,9 +141,10 @@ struct RootPopoverView: View {
         Task {
             let items = await eventService.fetchCalendarItems(
                 for: date,
-                enabledCalendarIDs: settingsStore.menuBarPreferences.enabledCalendarIDs,
-                enabledReminderCalendarIDs: settingsStore.menuBarPreferences.enabledReminderCalendarIDs,
-                showReminders: settingsStore.menuBarPreferences.showReminders
+                enabledCalendarIDs: preferences.enabledCalendarIDs,
+                enabledReminderCalendarIDs: preferences.enabledReminderCalendarIDs,
+                showCalendarEvents: preferences.showCalendarEvents,
+                showReminders: preferences.showReminders
             )
             await MainActor.run {
                 guard viewModel.selectedDate == requestedDate else { return }
@@ -145,12 +156,16 @@ struct RootPopoverView: View {
     }
 
     private func refreshEventsForCurrentSelection(selectingTodayIfNeeded: Bool = false) {
-        guard settingsStore.menuBarPreferences.showEvents, eventService.isAuthorized else {
+        let preferences = settingsStore.menuBarPreferences
+
+        guard preferences.showEvents else {
             clearLoadedEvents()
             return
         }
 
-        eventService.fetchCalendars()
+        if eventService.isAuthorized {
+            eventService.fetchCalendars()
+        }
 
         if eventService.remindersAuthorized {
             eventService.fetchReminderCalendars()

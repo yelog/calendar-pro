@@ -34,6 +34,18 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertTrue(store.menuBarPreferences.showEvents)
     }
 
+    func testSetShowCalendarEvents() {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        let store = makeStore(userDefaults: userDefaults)
+
+        store.setShowCalendarEvents(false)
+        XCTAssertFalse(store.menuBarPreferences.showCalendarEvents)
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertFalse(reloaded.menuBarPreferences.showCalendarEvents)
+    }
+
     func testSetCalendarEnabled() {
         let userDefaults = makeIsolatedUserDefaults()
         let store = makeStore(userDefaults: userDefaults)
@@ -42,6 +54,68 @@ final class SettingsStoreTests: XCTestCase {
 
         store.setCalendarEnabled(false, calendarID: "calendar-1")
         XCTAssertFalse(store.menuBarPreferences.enabledCalendarIDs.contains("calendar-1"))
+    }
+
+    func testSetCalendarEnabledDisablesSingleCalendarWhenEmptyMeansAllSelected() {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+
+        store.setCalendarEnabled(
+            false,
+            calendarID: "calendar-2",
+            allCalendarIDs: ["calendar-1", "calendar-2", "calendar-3"]
+        )
+
+        XCTAssertEqual(store.menuBarPreferences.enabledCalendarIDs, ["calendar-1", "calendar-3"])
+
+        store.setCalendarEnabled(
+            true,
+            calendarID: "calendar-2",
+            allCalendarIDs: ["calendar-1", "calendar-2", "calendar-3"]
+        )
+
+        XCTAssertTrue(store.menuBarPreferences.enabledCalendarIDs.isEmpty)
+    }
+
+    func testSetShowEventsDoesNotResetEventSourcePreferences() {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+
+        var prefs = store.menuBarPreferences
+        prefs.showCalendarEvents = false
+        prefs.showReminders = false
+        prefs.enabledCalendarIDs = ["calendar-1"]
+        prefs.enabledReminderCalendarIDs = ["reminder-1"]
+        store.menuBarPreferences = prefs
+
+        store.setShowEvents(false)
+        store.setShowEvents(true)
+
+        XCTAssertFalse(store.menuBarPreferences.showCalendarEvents)
+        XCTAssertFalse(store.menuBarPreferences.showReminders)
+        XCTAssertEqual(store.menuBarPreferences.enabledCalendarIDs, ["calendar-1"])
+        XCTAssertEqual(store.menuBarPreferences.enabledReminderCalendarIDs, ["reminder-1"])
+    }
+
+    func testSetReminderCalendarEnabledDisablesSingleReminderListWhenEmptyMeansAllSelected() {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+
+        store.setReminderCalendarEnabled(
+            false,
+            calendarID: "reminder-2",
+            allCalendarIDs: ["reminder-1", "reminder-2"]
+        )
+
+        XCTAssertEqual(store.menuBarPreferences.enabledReminderCalendarIDs, ["reminder-1"])
+
+        store.setReminderCalendarEnabled(
+            true,
+            calendarID: "reminder-2",
+            allCalendarIDs: ["reminder-1", "reminder-2"]
+        )
+
+        XCTAssertTrue(store.menuBarPreferences.enabledReminderCalendarIDs.isEmpty)
     }
 
     func testTokenStylePersistsForChineseFormats() {

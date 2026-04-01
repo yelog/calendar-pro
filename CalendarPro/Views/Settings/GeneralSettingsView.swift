@@ -106,9 +106,7 @@ struct GeneralSettingsView: View {
     }
 
     private var eventSummary: String {
-        let showEvents = store.menuBarPreferences.showEvents ? "日程开" : "日程关"
-        let showReminders = store.menuBarPreferences.showReminders ? "提醒开" : "提醒关"
-        return "\(showEvents) / \(showReminders)"
+        store.menuBarPreferences.eventsSummaryText
     }
 
     private var weekStartSummary: String {

@@ -157,20 +157,28 @@ final class EventService: ObservableObject {
         return result
     }
     
-    func fetchCalendarItems(for date: Date, enabledCalendarIDs: [String], enabledReminderCalendarIDs: [String], showReminders: Bool) async -> [CalendarItem] {
+    func fetchCalendarItems(
+        for date: Date,
+        enabledCalendarIDs: [String],
+        enabledReminderCalendarIDs: [String],
+        showCalendarEvents: Bool,
+        showReminders: Bool
+    ) async -> [CalendarItem] {
         var items: [CalendarItem] = []
-        
-        let events = fetchEvents(for: date)
-        let filteredEvents = events.filter { event in
-            enabledCalendarIDs.isEmpty || enabledCalendarIDs.contains(event.calendar.calendarIdentifier)
+
+        if showCalendarEvents {
+            let events = fetchEvents(for: date)
+            let filteredEvents = events.filter { event in
+                enabledCalendarIDs.isEmpty || enabledCalendarIDs.contains(event.calendar.calendarIdentifier)
+            }
+            items.append(contentsOf: filteredEvents.map { .event($0) })
         }
-        items.append(contentsOf: filteredEvents.map { .event($0) })
-        
+
         if showReminders {
             let reminders = await fetchReminders(for: date, enabledCalendarIDs: enabledReminderCalendarIDs)
             items.append(contentsOf: reminders.map { .reminder($0) })
         }
-        
+
         let cal = Calendar.current
         return items.sorted { item1, item2 in
             // All-day items come first
