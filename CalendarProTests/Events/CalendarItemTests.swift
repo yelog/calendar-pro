@@ -59,4 +59,192 @@ final class CalendarItemTests: XCTestCase {
         let item = CalendarItem.event(event)
         XCTAssertFalse(item.isReminder)
     }
+
+    // MARK: - timeline
+
+    func testHasExplicitTime_trueForTimedReminder() {
+        let item = CalendarItem.reminder(makeReminder(year: 2026, month: 4, day: 1, hour: 17, minute: 15))
+
+        XCTAssertTrue(item.hasExplicitTime)
+        XCTAssertEqual(item.timelinePlacement(using: .gregorianMondayFirst), .timed(minutes: 17 * 60 + 15))
+    }
+
+    func testHasExplicitTime_falseForDateOnlyReminder() {
+        let item = CalendarItem.reminder(makeDateOnlyReminder(year: 2026, month: 4, day: 1))
+
+        XCTAssertFalse(item.hasExplicitTime)
+        XCTAssertEqual(item.timelinePlacement(using: .gregorianMondayFirst), .untimed)
+    }
+
+    func testTimelineSnapshotSplitsTimedAllDayAndUntimedItems() {
+        let timedEvent = CalendarItem.event(makeEvent(
+            title: "站会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        ))
+        let timedReminder = CalendarItem.reminder(makeReminder(
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 17,
+            minute: 15,
+            title: "发布版本"
+        ))
+        let allDayEvent = CalendarItem.event(makeAllDayEvent(
+            title: "清明节",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 23, minute: 59)
+        ))
+        let untimedReminder = CalendarItem.reminder(makeDateOnlyReminder(
+            year: 2026,
+            month: 4,
+            day: 1,
+            title: "补充周报"
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [allDayEvent, timedEvent, untimedReminder, timedReminder],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 8, minute: 30),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(snapshot.timedGroups.map(\.displayTime), ["09:00", "17:15"])
+        XCTAssertEqual(snapshot.allDayItems.count, 1)
+        XCTAssertEqual(snapshot.untimedItems.count, 1)
+    }
+
+    func testTimelineSnapshotPrefersOngoingGroupForMarker() {
+        let ongoingEvent = CalendarItem.event(makeEvent(
+            title: "评审会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 12, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 13, minute: 0)
+        ))
+        let laterReminder = CalendarItem.reminder(makeReminder(
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 17,
+            minute: 0
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [ongoingEvent, laterReminder],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 12, minute: 30),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(snapshot.marker, EventTimelineMarker(groupID: "12:00", position: .withinGroup))
+        XCTAssertEqual(snapshot.scrollTargetGroupID, "12:00")
+    }
+
+    func testTimelineSnapshotFallsBackToNextFutureGroup() {
+        let morningEvent = CalendarItem.event(makeEvent(
+            title: "晨会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 30)
+        ))
+        let futureReminder = CalendarItem.reminder(makeReminder(
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 17,
+            minute: 15
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [morningEvent, futureReminder],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(snapshot.marker, EventTimelineMarker(groupID: "17:15", position: .beforeGroup))
+        XCTAssertEqual(snapshot.scrollTargetGroupID, "17:15")
+    }
+
+    func testTimelineSnapshotDoesNotShowMarkerForNonTodaySelection() {
+        let event = CalendarItem.event(makeEvent(
+            title: "旧会议",
+            start: makeDate(year: 2026, month: 3, day: 31, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 3, day: 31, hour: 10, minute: 0)
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [event],
+            selectedDate: makeDate(year: 2026, month: 3, day: 31, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertNil(snapshot.marker)
+        XCTAssertNil(snapshot.scrollTargetGroupID)
+    }
+
+    private func makeEvent(title: String = "会议", start: Date, end: Date) -> EKEvent {
+        let event = EKEvent(eventStore: EKEventStore())
+        event.title = title
+        event.startDate = start
+        event.endDate = end
+        return event
+    }
+
+    private func makeAllDayEvent(title: String = "全天事件", start: Date, end: Date) -> EKEvent {
+        let event = makeEvent(title: title, start: start, end: end)
+        event.isAllDay = true
+        return event
+    }
+
+    private func makeReminder(
+        year: Int,
+        month: Int,
+        day: Int,
+        hour: Int,
+        minute: Int,
+        title: String = "提醒"
+    ) -> EKReminder {
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = title
+        reminder.dueDateComponents = DateComponents(
+            calendar: Calendar.gregorianMondayFirst,
+            timeZone: TimeZone(secondsFromGMT: 0),
+            year: year,
+            month: month,
+            day: day,
+            hour: hour,
+            minute: minute
+        )
+        return reminder
+    }
+
+    private func makeDateOnlyReminder(
+        year: Int,
+        month: Int,
+        day: Int,
+        title: String = "日期提醒"
+    ) -> EKReminder {
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = title
+        reminder.dueDateComponents = DateComponents(
+            calendar: Calendar.gregorianMondayFirst,
+            timeZone: TimeZone(secondsFromGMT: 0),
+            year: year,
+            month: month,
+            day: day
+        )
+        return reminder
+    }
+
+    private func makeDate(year: Int, month: Int, day: Int, hour: Int, minute: Int) -> Date {
+        DateComponents(
+            calendar: Calendar.gregorianMondayFirst,
+            timeZone: TimeZone(secondsFromGMT: 0),
+            year: year,
+            month: month,
+            day: day,
+            hour: hour,
+            minute: minute
+        ).date!
+    }
 }

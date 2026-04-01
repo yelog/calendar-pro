@@ -1,6 +1,18 @@
 import SwiftUI
 import EventKit
 
+enum CalendarItemTimelineStatus: Equatable {
+    case past
+    case ongoing
+    case future
+}
+
+enum CalendarItemTimelinePlacement: Equatable {
+    case timed(minutes: Int)
+    case allDay
+    case untimed
+}
+
 enum CalendarItem: Identifiable {
     case event(EKEvent)
     case reminder(EKReminder)
@@ -106,5 +118,66 @@ enum CalendarItem: Identifiable {
             return nil
         }
         return URL(string: "x-apple-reminderkit://REMCDReminder/\(externalID)")
+    }
+
+    var hasExplicitTime: Bool {
+        switch self {
+        case .event(let event):
+            return !event.isAllDay
+        case .reminder(let reminder):
+            guard let components = reminder.dueDateComponents else { return false }
+            return components.hour != nil || components.minute != nil || components.second != nil
+        }
+    }
+
+    var timelineDate: Date? {
+        guard hasExplicitTime else { return nil }
+        return startDate
+    }
+
+    var sourceTitle: String {
+        switch self {
+        case .event(let event):
+            return event.calendar.title
+        case .reminder(let reminder):
+            return reminder.calendar.title
+        }
+    }
+
+    func timelinePlacement(using calendar: Calendar = .autoupdatingCurrent) -> CalendarItemTimelinePlacement {
+        if isAllDay {
+            return .allDay
+        }
+
+        guard let date = timelineDate else {
+            return .untimed
+        }
+
+        let components = calendar.dateComponents([.hour, .minute], from: date)
+        let minutes = (components.hour ?? 0) * 60 + (components.minute ?? 0)
+        return .timed(minutes: minutes)
+    }
+
+    func timelineStatus(at now: Date, calendar: Calendar = .autoupdatingCurrent) -> CalendarItemTimelineStatus? {
+        switch self {
+        case .event(let event):
+            guard !event.isAllDay else { return nil }
+            if event.startDate <= now, now <= event.endDate {
+                return .ongoing
+            }
+            return event.endDate < now ? .past : .future
+        case .reminder:
+            guard let dueDate = timelineDate else { return nil }
+            if Self.isSameMinute(dueDate, now, calendar: calendar) {
+                return .ongoing
+            }
+            return dueDate < now ? .past : .future
+        }
+    }
+
+    private static func isSameMinute(_ lhs: Date, _ rhs: Date, calendar: Calendar) -> Bool {
+        let left = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: lhs)
+        let right = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: rhs)
+        return left == right
     }
 }

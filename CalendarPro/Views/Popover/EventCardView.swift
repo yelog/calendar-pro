@@ -1,6 +1,12 @@
 import SwiftUI
 import EventKit
 
+enum EventCardTimelineState: Equatable {
+    case regular
+    case past
+    case ongoing
+}
+
 extension EKEvent {
     var selectionIdentifier: String {
         if let eventIdentifier {
@@ -20,12 +26,14 @@ struct EventCardView: View {
     let item: CalendarItem
     let isSelected: Bool
     let showsDisclosure: Bool
+    let timelineState: EventCardTimelineState
     var onToggleReminder: ((EKReminder) -> Void)?
 
-    init(item: CalendarItem, isSelected: Bool = false, showsDisclosure: Bool = true, onToggleReminder: ((EKReminder) -> Void)? = nil) {
+    init(item: CalendarItem, isSelected: Bool = false, showsDisclosure: Bool = true, timelineState: EventCardTimelineState = .regular, onToggleReminder: ((EKReminder) -> Void)? = nil) {
         self.item = item
         self.isSelected = isSelected
         self.showsDisclosure = showsDisclosure
+        self.timelineState = timelineState
         self.onToggleReminder = onToggleReminder
     }
 
@@ -35,6 +43,13 @@ struct EventCardView: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
+            if timelineState == .ongoing {
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(Color(nsColor: item.color))
+                    .frame(width: 3)
+                    .padding(.vertical, 2)
+            }
+
             if item.isReminder {
                 reminderCheckbox
                     .padding(.top, 2)
@@ -55,9 +70,9 @@ struct EventCardView: View {
                     .lineLimit(2)
                     .strikethrough(item.isCompleted)
                     .foregroundStyle(item.isCompleted ? .secondary : .primary)
-                
-                if let location = item.location, !location.isEmpty {
-                    Text(location)
+
+                if let secondaryText {
+                    Text(secondaryText)
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary.opacity(0.8))
                         .lineLimit(1)
@@ -81,33 +96,40 @@ struct EventCardView: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .contentShape(RoundedRectangle(cornerRadius: 10))
+        .opacity(contentOpacity)
     }
     
     private var timeRangeText: String {
         if item.isAllDay {
             return "全天"
         }
-        
-        guard let startDate = item.startDate else {
-            return ""
+
+        guard let startDate = item.timelineDate else {
+            return "未指定时间"
         }
-        
+
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
-        
+
         let start = formatter.string(from: startDate)
-        
+
         if let endDate = item.endDate {
             let end = formatter.string(from: endDate)
             return "\(start)-\(end)"
         }
-        
+
         return start
     }
 
     private var backgroundColor: Color {
         if isSelected {
             return Color.accentColor.opacity(0.12)
+        }
+        if timelineState == .ongoing {
+            return Color.accentColor.opacity(0.08)
+        }
+        if timelineState == .past {
+            return Color(nsColor: .controlBackgroundColor).opacity(0.75)
         }
         return Color(nsColor: .controlBackgroundColor)
     }
@@ -116,7 +138,26 @@ struct EventCardView: View {
         if isSelected {
             return Color.accentColor.opacity(0.35)
         }
+        if timelineState == .ongoing {
+            return Color.accentColor.opacity(0.24)
+        }
         return Color.primary.opacity(0.05)
+    }
+
+    private var contentOpacity: Double {
+        if timelineState == .past, !isSelected {
+            return 0.78
+        }
+        return 1
+    }
+
+    private var secondaryText: String? {
+        if let location = item.location, !location.isEmpty {
+            return location
+        }
+
+        let sourceTitle = item.sourceTitle
+        return sourceTitle.isEmpty ? nil : sourceTitle
     }
 
     private var reminderCheckbox: some View {
