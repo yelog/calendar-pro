@@ -19,12 +19,18 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
 
         let panel = makePanelIfNeeded()
         let hostingController = NSHostingController(
-            rootView: EventDetailWindowView(event: event) { [weak self] in
-                self?.close()
-            }
+            rootView: EventDetailWindowView(
+                event: event,
+                onClose: { [weak self] in
+                    self?.close()
+                },
+                onPreferredHeightChange: { [weak self] preferredHeight in
+                    self?.resizePanelIfNeeded(preferredHeight: preferredHeight, anchoredTo: anchorWindow)
+                }
+            )
         )
 
-        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, prefersFullHeight: true)
+        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow)
     }
 
     func show(reminder: EKReminder, anchoredTo anchorWindow: NSWindow?, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void) {
@@ -37,7 +43,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
             }
         )
 
-        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, prefersFullHeight: false)
+        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow)
     }
 
     func close() {
@@ -52,29 +58,39 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
 
     // MARK: - Private
 
-    private func presentPanel(_ panel: NSPanel, hosting hostingController: NSHostingController<some View>, anchoredTo anchorWindow: NSWindow?, prefersFullHeight: Bool) {
+    private func presentPanel(_ panel: NSPanel, hosting hostingController: NSHostingController<some View>, anchoredTo anchorWindow: NSWindow?) {
         panel.contentViewController = hostingController
         hostingController.view.layoutSubtreeIfNeeded()
 
         let fittingSize = hostingController.view.fittingSize
-        let visibleFrame = anchorWindow?.screen?.visibleFrame
-            ?? NSScreen.main?.visibleFrame
-            ?? NSScreen.screens.first?.visibleFrame
-            ?? CGRect(x: 100, y: 100, width: 1200, height: 800)
-
-        let availableHeight: CGFloat
-        if let anchorFrame = anchorWindow?.frame {
-            let anchorContentTop = anchorFrame.maxY - EventDetailWindowLayout.popoverArrowHeight
-            availableHeight = anchorContentTop - visibleFrame.minY
-        } else {
-            availableHeight = visibleFrame.height
-        }
-
-        let panelSize = EventDetailWindowSizing.panelSize(for: fittingSize, availableHeight: availableHeight, prefersFullHeight: prefersFullHeight)
+        let availableHeight = availableHeight(anchoredTo: anchorWindow)
+        let panelSize = EventDetailWindowSizing.panelSize(for: fittingSize, availableHeight: availableHeight)
         let panelFrame = frame(for: panelSize, anchoredTo: anchorWindow)
         panel.setContentSize(panelFrame.size)
         panel.setFrame(panelFrame, display: false)
         panel.orderFrontRegardless()
+    }
+
+    private func resizePanelIfNeeded(preferredHeight: CGFloat, anchoredTo anchorWindow: NSWindow?) {
+        guard let panel, preferredHeight > 0 else { return }
+
+        let availableHeight = availableHeight(anchoredTo: anchorWindow)
+        let targetSize = EventDetailWindowSizing.panelSize(
+            for: CGSize(width: EventDetailWindowSizing.width, height: preferredHeight),
+            availableHeight: availableHeight
+        )
+        let targetFrame = frame(for: targetSize, anchoredTo: anchorWindow)
+        let currentFrame = panel.frame
+
+        guard
+            abs(currentFrame.height - targetFrame.height) > 1
+                || abs(currentFrame.origin.y - targetFrame.origin.y) > 1
+        else {
+            return
+        }
+
+        panel.setContentSize(targetFrame.size)
+        panel.setFrame(targetFrame, display: true)
     }
 
     private func makePanelIfNeeded() -> NSPanel {
@@ -110,11 +126,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     }
 
     private func frame(for panelSize: NSSize, anchoredTo anchorWindow: NSWindow?) -> NSRect {
-        let visibleFrame = anchorWindow?.screen?.visibleFrame
-            ?? NSScreen.main?.visibleFrame
-            ?? NSScreen.screens.first?.visibleFrame
-            ?? CGRect(x: 100, y: 100, width: 1200, height: 800)
-
+        let visibleFrame = visibleFrame(anchoredTo: anchorWindow)
         guard let anchorFrame = anchorWindow?.frame else {
             return NSRect(
                 x: visibleFrame.midX - panelSize.width / 2,
@@ -129,5 +141,23 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
             anchorFrame: anchorFrame,
             visibleFrame: visibleFrame
         )
+    }
+
+    private func visibleFrame(anchoredTo anchorWindow: NSWindow?) -> CGRect {
+        anchorWindow?.screen?.visibleFrame
+            ?? NSScreen.main?.visibleFrame
+            ?? NSScreen.screens.first?.visibleFrame
+            ?? CGRect(x: 100, y: 100, width: 1200, height: 800)
+    }
+
+    private func availableHeight(anchoredTo anchorWindow: NSWindow?) -> CGFloat {
+        let visibleFrame = visibleFrame(anchoredTo: anchorWindow)
+
+        if let anchorFrame = anchorWindow?.frame {
+            let anchorContentTop = anchorFrame.maxY - EventDetailWindowLayout.popoverArrowHeight
+            return anchorContentTop - visibleFrame.minY
+        }
+
+        return visibleFrame.height
     }
 }

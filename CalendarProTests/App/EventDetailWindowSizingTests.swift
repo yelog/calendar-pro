@@ -8,17 +8,21 @@ final class EventDetailWindowSizingTests: XCTestCase {
         XCTAssertEqual(size.width, 340)
     }
 
-    func testClampsHeightIntoFloatingWindowRange() {
-        let small = EventDetailWindowSizing.panelSize(for: CGSize(width: 240, height: 120), availableHeight: 280)
-        let large = EventDetailWindowSizing.panelSize(for: CGSize(width: 240, height: 1_200), availableHeight: 400)
-
-        XCTAssertEqual(small.height, 280)
-        XCTAssertEqual(large.height, 400)
-    }
-
-    func testPrefersIdealHeightForShortContent() {
-        let size = EventDetailWindowSizing.panelSize(for: CGSize(width: 240, height: 260), availableHeight: 360)
+    func testPrefersIdealHeightForShortContentEvenWhenThereIsMoreSpace() {
+        let size = EventDetailWindowSizing.panelSize(for: CGSize(width: 240, height: 260), availableHeight: 720)
 
         XCTAssertEqual(size.height, 360)
+    }
+
+    func testUsesMeasuredHeightWhenContentIsTallerThanIdealHeight() {
+        let size = EventDetailWindowSizing.panelSize(for: CGSize(width: 240, height: 420), availableHeight: 720)
+
+        XCTAssertEqual(size.height, 420)
+    }
+
+    func testClampsHeightToAvailableHeightForVeryTallContent() {
+        let size = EventDetailWindowSizing.panelSize(for: CGSize(width: 240, height: 1_200), availableHeight: 400)
+
+        XCTAssertEqual(size.height, 400)
     }
 }

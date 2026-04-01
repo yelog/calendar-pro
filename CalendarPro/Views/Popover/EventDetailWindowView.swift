@@ -4,6 +4,12 @@ import EventKit
 struct EventDetailWindowView: View {
     let event: EKEvent
     let onClose: () -> Void
+    let onPreferredHeightChange: ((CGFloat) -> Void)?
+
+    @State private var containerHeight: CGFloat = 0
+    @State private var detailViewportHeight: CGFloat = 0
+    @State private var detailContentHeight: CGFloat = 0
+    @State private var lastReportedPreferredHeight: CGFloat = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
@@ -17,8 +23,13 @@ struct EventDetailWindowView: View {
         }
         .padding(PopoverSurfaceMetrics.outerPadding)
         .frame(width: PopoverSurfaceMetrics.width, alignment: .topLeading)
-        .frame(maxHeight: .infinity, alignment: .top)
         .background(surfaceBackground)
+        .background(
+            HeightReporter { height in
+                containerHeight = height
+                reportPreferredHeightIfNeeded()
+            }
+        )
     }
 
     private var meetingLink: MeetingLink? {
@@ -82,34 +93,50 @@ struct EventDetailWindowView: View {
 
     private var detailScrollView: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
-                EventDetailRow(icon: "calendar", title: "所属日历", value: event.calendar.title)
-
-                if let locationText {
-                    EventDetailRow(icon: "mappin.and.ellipse", title: "地点", value: locationText)
-                }
-
-                if let attendees = event.attendees, !attendees.isEmpty {
-                    AttendeesDetailRow(attendees: attendees)
-                }
-
-                if let url = event.url {
-                    LinkDetailRow(url: url)
-                }
-
-                if let notesText {
-                    NotesDetailRow(notes: notesText)
-                }
-
-                if locationText == nil, event.url == nil, notesText == nil,
-                   (event.attendees ?? []).isEmpty {
-                    EmptyDetailState()
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 1)
+            detailContent
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, alignment: .top)
+        .background(
+            HeightReporter { height in
+                detailViewportHeight = height
+                reportPreferredHeightIfNeeded()
+            }
+        )
+    }
+
+    private var detailContent: some View {
+        VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
+            EventDetailRow(icon: "calendar", title: "所属日历", value: event.calendar.title)
+
+            if let locationText {
+                EventDetailRow(icon: "mappin.and.ellipse", title: "地点", value: locationText)
+            }
+
+            if let attendees = event.attendees, !attendees.isEmpty {
+                AttendeesDetailRow(attendees: attendees)
+            }
+
+            if let url = event.url {
+                LinkDetailRow(url: url)
+            }
+
+            if let notesText {
+                NotesDetailRow(notes: notesText)
+            }
+
+            if locationText == nil, event.url == nil, notesText == nil,
+               (event.attendees ?? []).isEmpty {
+                EmptyDetailState()
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 1)
+        .background(
+            HeightReporter { height in
+                detailContentHeight = height
+                reportPreferredHeightIfNeeded()
+            }
+        )
     }
 
     private var surfaceBackground: some View {
@@ -187,6 +214,39 @@ struct EventDetailWindowView: View {
             return event.endDate.addingTimeInterval(-1)
         }
         return event.endDate
+    }
+
+    private func reportPreferredHeightIfNeeded() {
+        guard containerHeight > 0, detailViewportHeight > 0, detailContentHeight > 0 else { return }
+
+        let preferredHeight = containerHeight - detailViewportHeight + detailContentHeight
+        guard abs(preferredHeight - lastReportedPreferredHeight) > 1 else { return }
+
+        lastReportedPreferredHeight = preferredHeight
+        onPreferredHeightChange?(preferredHeight)
+    }
+}
+
+private struct HeightReporter: View {
+    let onChange: (CGFloat) -> Void
+
+    var body: some View {
+        GeometryReader { proxy in
+            Color.clear
+                .onAppear {
+                    report(proxy.size.height)
+                }
+                .onChange(of: proxy.size.height) { _, newValue in
+                    report(newValue)
+                }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private func report(_ height: CGFloat) {
+        DispatchQueue.main.async {
+            onChange(height)
+        }
     }
 }
 
