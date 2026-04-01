@@ -1,6 +1,16 @@
 import SwiftUI
 import EventKit
 
+enum CalendarPopoverEventCountFormatter {
+    static func text(isLoadingEvents: Bool, itemCount: Int) -> String {
+        if isLoadingEvents {
+            return "加载中"
+        }
+
+        return "\(itemCount) 项"
+    }
+}
+
 struct CalendarPopoverView: View {
     let displayedMonth: Date
     let displayedYear: Int
@@ -132,16 +142,16 @@ struct CalendarPopoverView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(formattedSelectedDate(date))
-                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    Text(formattedSelectedDate(date))
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .lineLimit(1)
 
-                        Text(eventSummaryText)
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                    }
+                    Spacer(minLength: 12)
 
-                    Spacer()
+                    Text(eventCountText)
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                        .fixedSize()
                 }
 
                 EventListView(
@@ -159,31 +169,11 @@ struct CalendarPopoverView: View {
         }
     }
 
-    private var eventSummaryText: String {
-        if isLoadingEvents {
-            return "正在加载日程..."
-        }
-
-        if items.isEmpty {
-            return emptyStateText
-        }
-
-        let eventCount = items.reduce(into: 0) { count, item in
-            if case .event = item {
-                count += 1
-            }
-        }
-        let reminderCount = items.count - eventCount
-
-        if eventCount == 0 {
-            return "\(reminderCount) 条提醒事项，点击查看详情"
-        }
-
-        if reminderCount == 0 {
-            return "\(eventCount) 条日程，点击查看详情"
-        }
-
-        return "\(items.count) 个项目，点击查看详情"
+    private var eventCountText: String {
+        CalendarPopoverEventCountFormatter.text(
+            isLoadingEvents: isLoadingEvents,
+            itemCount: items.count
+        )
     }
 
     private func formattedSelectedDate(_ date: Date) -> String {
