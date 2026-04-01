@@ -95,6 +95,7 @@ struct CalendarPopoverView: View {
             } label: {
                 Label("设置", systemImage: "gearshape")
                     .font(.system(size: 12))
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .keyboardShortcut(",", modifiers: .command)
@@ -104,6 +105,7 @@ struct CalendarPopoverView: View {
             Button(action: onResetToToday) {
                 Label("今日", systemImage: "calendar")
                     .font(.system(size: 12))
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .keyboardShortcut("t", modifiers: .command)
@@ -113,6 +115,7 @@ struct CalendarPopoverView: View {
             Button(action: onQuit) {
                 Label("退出", systemImage: "power")
                     .font(.system(size: 12))
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
