@@ -71,10 +71,17 @@ private struct CalendarDayCellView: View {
         .shadow(color: cellShadowColor, radius: cellShadowRadius, y: cellShadowRadius == 0 ? 0 : 1)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(alignment: .topTrailing) {
-            if let badgeIndicator {
-                badgeView(badgeIndicator)
-                    .offset(x: 4, y: -4)
+            HStack(spacing: 2) {
+                // 今天标签始终显示（如果是今天）
+                if day.isToday {
+                    todayBadgeView
+                }
+                // 节日标签（休/班）
+                if let indicator = badgeIndicator {
+                    badgeView(indicator)
+                }
             }
+            .offset(x: 4, y: -4)
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
@@ -98,25 +105,46 @@ private struct CalendarDayCellView: View {
             .shadow(color: badgeIndicator.shadow, radius: colorScheme == .dark ? 6 : 0, y: 1)
     }
 
+    private var todayBadgeView: some View {
+        Text("今")
+            .font(.system(size: 8, weight: .semibold, design: .rounded))
+            .foregroundStyle(.white.opacity(0.96))
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+            .background {
+                Capsule()
+                    .fill(colorScheme == .dark ? Color(red: 0.9, green: 0.75, blue: 0.25) : Color(red: 0.95, green: 0.6, blue: 0.1))
+            }
+            .overlay {
+                Capsule()
+                    .strokeBorder(Color.orange.opacity(colorScheme == .dark ? 0.55 : 0.2), lineWidth: 0.5)
+            }
+            .shadow(color: Color.orange.opacity(colorScheme == .dark ? 0.28 : 0), radius: colorScheme == .dark ? 6 : 0, y: 1)
+    }
+
     private var cellBackgroundColor: Color {
+        // 今天的样式优先级最高
+        if day.isToday {
+            // 使用更醒目的金黄色背景
+            return colorScheme == .dark ? Color(red: 0.45, green: 0.35, blue: 0.08) : Color(red: 1.0, green: 0.92, blue: 0.65)
+        }
+        
         if day.isSelected {
             return Color.accentColor.opacity(colorScheme == .dark ? 0.34 : 0.24)
-        }
-
-        if day.isToday {
-            return Color.orange.opacity(colorScheme == .dark ? 0.22 : 0.16)
         }
 
         return semanticStyle?.fill ?? .clear
     }
 
     private var cellBorderColor: Color {
+        // 今天的边框优先级最高
+        if day.isToday {
+            // 使用深金色边框
+            return colorScheme == .dark ? Color(red: 0.9, green: 0.75, blue: 0.25).opacity(0.5) : Color(red: 0.85, green: 0.65, blue: 0.15).opacity(0.4)
+        }
+        
         if day.isSelected {
             return Color.accentColor.opacity(colorScheme == .dark ? 0.62 : 0.2)
-        }
-
-        if day.isToday {
-            return Color.orange.opacity(colorScheme == .dark ? 0.42 : 0.16)
         }
 
         return semanticStyle?.border ?? .clear
