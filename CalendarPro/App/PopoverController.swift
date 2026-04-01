@@ -2,6 +2,10 @@ import AppKit
 import EventKit
 import SwiftUI
 
+extension Notification.Name {
+    static let PopoverDidCloseNotification = Notification.Name("PopoverDidCloseNotification")
+}
+
 @MainActor
 protocol PopoverPresenting: AnyObject {
     var isShown: Bool { get }
