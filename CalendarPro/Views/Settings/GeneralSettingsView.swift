@@ -87,7 +87,8 @@ struct GeneralSettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .padding(24)
+            .padding(.horizontal, 30)
+            .padding(.vertical, 24)
         }
     }
 
@@ -188,7 +189,7 @@ private struct SettingsSummaryCard: View {
                 .frame(width: 34, height: 34)
                 .background(
                     Circle()
-                        .fill(Color.accentColor.opacity(0.12))
+                        .fill(Color.accentColor.opacity(0.10))
                 )
 
             Text(title)
@@ -208,11 +209,11 @@ private struct SettingsSummaryCard: View {
         .padding(18)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color(nsColor: .controlBackgroundColor))
+                .fill(Color(nsColor: .controlBackgroundColor).opacity(0.82))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color(nsColor: .separatorColor).opacity(0.45), lineWidth: 1)
+                .stroke(Color(nsColor: .separatorColor).opacity(0.28), lineWidth: 1)
         )
     }
 }

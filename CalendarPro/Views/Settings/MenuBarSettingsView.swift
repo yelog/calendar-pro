@@ -66,7 +66,8 @@ struct MenuBarSettingsView: View {
                     }
                 }
             }
-            .padding(20)
+            .padding(.horizontal, 30)
+            .padding(.vertical, 24)
         }
     }
 

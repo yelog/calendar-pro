@@ -74,12 +74,10 @@ struct SettingsRootView: View {
         HStack(spacing: 0) {
             sidebar
 
-            Divider()
-
             detailPanel
         }
         .frame(width: 840, height: 560)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(SettingsWindowPalette.windowBackground)
         .onAppear {
             eventService.checkAuthorizationStatus()
             eventService.fetchCalendars()
@@ -124,10 +122,12 @@ struct SettingsRootView: View {
         .padding(.vertical, 22)
         .frame(width: 248)
         .frame(maxHeight: .infinity, alignment: .topLeading)
-        .background(
-            Color(nsColor: .underPageBackgroundColor)
-                .opacity(0.85)
-        )
+        .background(SettingsWindowPalette.windowBackground)
+        .overlay(alignment: .trailing) {
+            Rectangle()
+                .fill(SettingsWindowPalette.separator)
+                .frame(width: 1)
+        }
     }
 
     private var detailPanel: some View {
@@ -145,7 +145,9 @@ struct SettingsRootView: View {
             .padding(.top, 28)
             .padding(.bottom, 18)
 
-            Divider()
+            Rectangle()
+                .fill(SettingsWindowPalette.separator)
+                .frame(height: 1)
 
             detailView
                 .id(selectedItem)
@@ -171,6 +173,15 @@ struct SettingsRootView: View {
     }
 }
 
+private enum SettingsWindowPalette {
+    static var windowBackground: Color { Color(nsColor: .windowBackgroundColor) }
+    static var separator: Color { Color(nsColor: .separatorColor).opacity(0.18) }
+    static var selectedFill: Color { Color.accentColor.opacity(0.10) }
+    static var selectedStroke: Color { Color.accentColor.opacity(0.16) }
+    static var iconSelectedFill: Color { Color.accentColor.opacity(0.13) }
+    static var iconUnselectedFill: Color { Color.primary.opacity(0.045) }
+}
+
 private struct SettingsSidebarButton: View {
     let item: SettingsSidebarItem
     let isSelected: Bool
@@ -185,8 +196,8 @@ private struct SettingsSidebarButton: View {
                     Circle()
                         .fill(
                             isSelected
-                                ? Color.accentColor.opacity(0.14)
-                                : Color.primary.opacity(0.06)
+                                ? SettingsWindowPalette.iconSelectedFill
+                                : SettingsWindowPalette.iconUnselectedFill
                         )
                 )
 
@@ -210,7 +221,7 @@ private struct SettingsSidebarButton: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(
                     isSelected
-                        ? Color.accentColor.opacity(0.11)
+                        ? SettingsWindowPalette.selectedFill
                         : Color.clear
                 )
         )
@@ -218,9 +229,9 @@ private struct SettingsSidebarButton: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(
                     isSelected
-                        ? Color.accentColor.opacity(0.18)
-                        : Color(nsColor: .separatorColor).opacity(0.14),
-                    lineWidth: isSelected ? 1 : 0.5
+                        ? SettingsWindowPalette.selectedStroke
+                        : Color.clear,
+                    lineWidth: isSelected ? 1 : 0
                 )
         )
         .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
