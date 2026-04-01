@@ -139,7 +139,7 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertEqual(snapshot.scrollTargetGroupID, "12:00")
     }
 
-    func testTimelineSnapshotFallsBackToNextFutureGroup() {
+    func testTimelineSnapshotFallsBackToNextDisplayedTimeGroup() {
         let morningEvent = CalendarItem.event(makeEvent(
             title: "晨会",
             start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
@@ -162,6 +162,42 @@ final class CalendarItemTests: XCTestCase {
 
         XCTAssertEqual(snapshot.marker, EventTimelineMarker(groupID: "17:15", position: .beforeGroup))
         XCTAssertEqual(snapshot.scrollTargetGroupID, "17:15")
+    }
+
+    func testTimelineSnapshotPlacesMarkerBeforeMixedReminderGroupUsingDisplayedTime() {
+        let overdueReminder = CalendarItem.reminder(makeReminder(
+            year: 2026,
+            month: 3,
+            day: 31,
+            hour: 20,
+            minute: 0,
+            title: "昨晚待办"
+        ))
+        let futureReminder = CalendarItem.reminder(makeReminder(
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 20,
+            minute: 0,
+            title: "今晚待办"
+        ))
+        let laterEvent = CalendarItem.event(makeEvent(
+            title: "夜间会议",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 21, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 21, minute: 30)
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [overdueReminder, futureReminder, laterEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 18, minute: 20),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(snapshot.timedGroups.map(\.displayTime), ["20:00", "21:00"])
+        XCTAssertEqual(snapshot.timedGroups.first?.items.count, 2)
+        XCTAssertEqual(snapshot.marker, EventTimelineMarker(groupID: "20:00", position: .beforeGroup))
+        XCTAssertEqual(snapshot.scrollTargetGroupID, "20:00")
     }
 
     func testTimelineSnapshotDoesNotShowMarkerForNonTodaySelection() {

@@ -73,14 +73,16 @@ struct EventTimelineSnapshot {
             )
         }
 
-        if let futureGroup = timedGroups.first(where: \.isFuture) {
-            let shouldAnchorBottom = timedGroups.last?.id == futureGroup.id
+        let currentMinutes = minutes(for: now, calendar: calendar)
+
+        if let nextGroup = timedGroups.first(where: { $0.startMinutes >= currentMinutes }) {
+            let shouldAnchorBottom = timedGroups.last?.id == nextGroup.id
             return EventTimelineSnapshot(
                 timedGroups: timedGroups,
                 allDayItems: allDayItems,
                 untimedItems: untimedItems,
-                marker: EventTimelineMarker(groupID: futureGroup.id, position: .beforeGroup),
-                scrollTargetGroupID: futureGroup.id,
+                marker: EventTimelineMarker(groupID: nextGroup.id, position: .beforeGroup),
+                scrollTargetGroupID: nextGroup.id,
                 shouldAnchorBottom: shouldAnchorBottom
             )
         }
@@ -147,6 +149,11 @@ struct EventTimelineSnapshot {
         let hour = minutes / 60
         let minute = minutes % 60
         return String(format: "%02d:%02d", hour, minute)
+    }
+
+    private static func minutes(for date: Date, calendar: Calendar) -> Int {
+        let components = calendar.dateComponents([.hour, .minute], from: date)
+        return (components.hour ?? 0) * 60 + (components.minute ?? 0)
     }
 }
 
