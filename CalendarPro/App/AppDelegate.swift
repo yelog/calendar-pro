@@ -32,7 +32,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func openSettings() {
         if let window = settingsWindow {
-            window.center()
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
@@ -49,7 +48,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         window.contentViewController = hostingController
         window.title = "设置"
-        window.center()
+        
+        if let popoverWindow = statusBarController?.popoverContentWindow() {
+            positionWindowNearPopover(window, popoverWindow: popoverWindow)
+        } else {
+            window.center()
+        }
+        
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow = window
@@ -63,6 +68,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.settingsWindow = nil
             }
         }
+    }
+
+    private func positionWindowNearPopover(_ settingsWindow: NSWindow, popoverWindow: NSWindow) {
+        let popoverFrame = popoverWindow.frame
+        let settingsSize = settingsWindow.frame.size
+        
+        let screenFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
+        
+        var x = popoverFrame.origin.x + popoverFrame.size.width + 20
+        var y = popoverFrame.origin.y - settingsSize.height / 2 + popoverFrame.size.height / 2
+        
+        if x + settingsSize.width > screenFrame.origin.x + screenFrame.size.width {
+            x = popoverFrame.origin.x - settingsSize.width - 20
+        }
+        
+        y = max(screenFrame.origin.y, min(y, screenFrame.origin.y + screenFrame.size.height - settingsSize.height))
+        
+        settingsWindow.setFrameOrigin(NSPoint(x: x, y: y))
     }
 
     private var isUITestPopoverMode: Bool {

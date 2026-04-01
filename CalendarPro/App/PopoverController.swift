@@ -128,6 +128,10 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         popover.isShown
     }
 
+    func popoverContentWindow() -> NSWindow? {
+        popover.contentViewController?.view.window
+    }
+
     func toggle(relativeTo button: NSView) {
         if popover.isShown {
             closePopover()

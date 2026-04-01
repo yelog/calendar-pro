@@ -73,4 +73,8 @@ final class StatusBarController {
         guard let button = sender as? NSStatusBarButton else { return }
         popoverController.toggle(relativeTo: button)
     }
+
+    func popoverContentWindow() -> NSWindow? {
+        popoverController.popoverContentWindow()
+    }
 }
