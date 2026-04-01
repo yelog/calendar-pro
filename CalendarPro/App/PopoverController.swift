@@ -181,6 +181,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
 
     func popoverDidClose(_ notification: Notification) {
         interactionMonitor.stop()
+        NotificationCenter.default.post(name: .PopoverDidCloseNotification, object: nil)
     }
 
     func showEventDetailWindow(for event: EKEvent, onClose: @escaping () -> Void) {
