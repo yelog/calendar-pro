@@ -42,11 +42,12 @@ struct ReminderDetailWindowView: View {
                     .buttonStyle(.plain)
                     .padding(.top, 2)
 
-                    Text(reminder.title ?? "无标题")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .strikethrough(reminder.isCompleted)
+                    SelectableDetailText(
+                        text: reminder.title ?? "无标题",
+                        font: .system(size: 16, weight: .semibold, design: .rounded),
+                        lineLimit: 2,
+                        strikethrough: reminder.isCompleted
+                    )
                 }
             }
 
@@ -72,8 +73,10 @@ struct ReminderDetailWindowView: View {
     private var summaryCard: some View {
         VStack(alignment: .leading, spacing: 6) {
             if let dueDateText {
-                Text(dueDateText)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                SelectableDetailText(
+                    text: dueDateText,
+                    font: .system(size: 14, weight: .semibold, design: .rounded)
+                )
             } else {
                 Text("无截止日期")
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
@@ -81,9 +84,11 @@ struct ReminderDetailWindowView: View {
             }
 
             if let dueTimeText {
-                Text(dueTimeText)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
+                SelectableDetailText(
+                    text: dueTimeText,
+                    font: .system(size: 12),
+                    foregroundColor: .secondary
+                )
             }
 
             if reminder.isCompleted, let completionDate = reminder.completionDate {
@@ -91,9 +96,11 @@ struct ReminderDetailWindowView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 10))
                         .foregroundStyle(.green)
-                    Text("已完成于 \(formattedDate(completionDate))")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                    SelectableDetailText(
+                        text: "已完成于 \(formattedDate(completionDate))",
+                        font: .system(size: 11),
+                        foregroundColor: .secondary
+                    )
                 }
             }
         }
@@ -333,11 +340,11 @@ private struct ReminderDetailRow: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
-                Text(value)
-                    .font(.system(size: 12))
-                    .lineLimit(lineLimit)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .textSelection(.enabled)
+                SelectableDetailText(
+                    text: value,
+                    font: .system(size: 12),
+                    lineLimit: lineLimit
+                )
             }
 
             Spacer(minLength: 0)
@@ -376,16 +383,15 @@ private struct ReminderLinkDetailRow: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
-                Link(destination: url) {
-                    Text(url.absoluteString)
-                        .font(.system(size: 12))
-                        .foregroundColor(.accentColor)
-                        .underline()
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .buttonStyle(.plain)
-                .help(url.absoluteString)
+                SelectableDetailText(
+                    text: url.absoluteString,
+                    font: .system(size: 12),
+                    foregroundColor: .accentColor,
+                    lineLimit: 2,
+                    underline: true
+                )
+
+                OpenURLActionButton(title: "打开链接", url: url)
             }
 
             Spacer(minLength: 0)

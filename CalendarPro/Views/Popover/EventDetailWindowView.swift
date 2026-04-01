@@ -53,10 +53,11 @@ struct EventDetailWindowView: View {
                         .frame(width: 9, height: 9)
                         .padding(.top, 5)
 
-                    Text(event.title ?? "无标题")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
+                    SelectableDetailText(
+                        text: event.title ?? "无标题",
+                        font: .system(size: 16, weight: .semibold, design: .rounded),
+                        lineLimit: 2
+                    )
                 }
             }
 
@@ -79,12 +80,16 @@ struct EventDetailWindowView: View {
 
     private var summaryCard: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(dateRangeText)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+            SelectableDetailText(
+                text: dateRangeText,
+                font: .system(size: 14, weight: .semibold, design: .rounded)
+            )
 
-            Text(timeSummaryText)
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
+            SelectableDetailText(
+                text: timeSummaryText,
+                font: .system(size: 12),
+                foregroundColor: .secondary
+            )
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -269,16 +274,15 @@ private struct LinkDetailRow: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
-                Link(destination: url) {
-                    Text(url.absoluteString)
-                        .font(.system(size: 12))
-                        .foregroundColor(.accentColor)
-                        .underline()
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .buttonStyle(.plain)
-                .help(url.absoluteString)
+                SelectableDetailText(
+                    text: url.absoluteString,
+                    font: .system(size: 12),
+                    foregroundColor: .accentColor,
+                    lineLimit: 2,
+                    underline: true
+                )
+
+                OpenURLActionButton(title: "打开链接", url: url)
             }
 
             Spacer(minLength: 0)
@@ -360,9 +364,11 @@ private struct AttendeesDetailRow: View {
     private func attendeeRow(_ participant: EKParticipant) -> some View {
         HStack(spacing: 6) {
             statusIcon(for: participant.participantStatus)
-            Text(participantName(participant))
-                .font(.system(size: 12))
-                .lineLimit(1)
+            SelectableDetailText(
+                text: participantName(participant),
+                font: .system(size: 12),
+                lineLimit: 1
+            )
         }
     }
 
@@ -608,11 +614,11 @@ private struct EventDetailRow: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
-                Text(value)
-                    .font(.system(size: 12))
-                    .lineLimit(lineLimit)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .textSelection(.enabled)
+                SelectableDetailText(
+                    text: value,
+                    font: .system(size: 12),
+                    lineLimit: lineLimit
+                )
             }
 
             Spacer(minLength: 0)

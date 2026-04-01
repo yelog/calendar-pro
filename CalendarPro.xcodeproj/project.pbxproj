@@ -31,6 +31,7 @@
 		49952FE259A74F2767206B8E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 319EE278AC482512F5669A4E /* Cocoa.framework */; };
 		4A93A5227CCCD52F71E9FEF0 /* MenuBarPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BAAAE30D5DF8A07088E22C /* MenuBarPreferences.swift */; };
 		4DDD95089B89D0A7BDD97C06 /* CalendarPopoverViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 098AA41D3F60C77FA8E1BD65 /* CalendarPopoverViewModel.swift */; };
+		4E16A3C8B01F4F9E8D5B1A11 /* SelectableDetailText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E16A3C7B01F4F9E8D5B1A11 /* SelectableDetailText.swift */; };
 		53A5C6C5F777216371DBA6E0 /* HolidayProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 631F936891B2E01E31C115CF /* HolidayProvider.swift */; };
 		55637B4965378ECF702B3DA7 /* MeetingLinkDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5C1D70ADC19DA35CAE5B8D /* MeetingLinkDetector.swift */; };
 		5773025471B34F4B2EEBEC50 /* CalendarDayFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = C51C74429BEF1380D11B49CF /* CalendarDayFactory.swift */; };
@@ -126,6 +127,7 @@
 		3810E7D1F1D21D41712B8D12 /* LaunchAtLoginController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginController.swift; sourceTree = "<group>"; };
 		43CE89F1EC321328B62D63D8 /* SettingsRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
 		4C45C056C5037133AF4CBEFC /* PopoverSurfaceMetrics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PopoverSurfaceMetrics.swift; sourceTree = "<group>"; };
+		4E16A3C7B01F4F9E8D5B1A11 /* SelectableDetailText.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SelectableDetailText.swift; sourceTree = "<group>"; };
 		50D016B7ADCAC59EE49A0AD0 /* LunarServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LunarServiceTests.swift; sourceTree = "<group>"; };
 		540FD60F0BEF4849D07F904A /* CalendarProUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CalendarProUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		631F936891B2E01E31C115CF /* HolidayProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayProvider.swift; sourceTree = "<group>"; };
@@ -435,6 +437,7 @@
 				BAD89DC68A343D8B6EB84D13 /* MonthPickerView.swift */,
 				4C45C056C5037133AF4CBEFC /* PopoverSurfaceMetrics.swift */,
 				06C6393ACAC0D5D3D148EDA1 /* ReminderDetailWindowView.swift */,
+				4E16A3C7B01F4F9E8D5B1A11 /* SelectableDetailText.swift */,
 				928296E949690E49243EBF45 /* YearPickerView.swift */,
 			);
 			name = Popover;
@@ -777,6 +780,7 @@
 				DAD03E3C1D392CF3CCEB54F1 /* MonthPickerView.swift in Sources */,
 				DE730B4078006F9BCA2310AB /* PopoverSurfaceMetrics.swift in Sources */,
 				164C83D32A1CB2BFBB242418 /* ReminderDetailWindowView.swift in Sources */,
+				4E16A3C8B01F4F9E8D5B1A11 /* SelectableDetailText.swift in Sources */,
 				F3677BB2099290403449A08E /* YearPickerView.swift in Sources */,
 				5ED58AC217100B0596FF45A4 /* RootPopoverView.swift in Sources */,
 				A7C8DB758E5F195FB575680D /* AboutSettingsView.swift in Sources */,
