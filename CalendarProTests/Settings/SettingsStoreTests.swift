@@ -131,6 +131,23 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(reloaded.menuBarPreferences.tokens.first(where: { $0.token == .weekday })?.style, .chineseWeekday)
     }
 
+    func testSetWeekStart() {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        let store = makeStore(userDefaults: userDefaults)
+
+        XCTAssertEqual(store.menuBarPreferences.weekStart, .monday)
+
+        store.setWeekStart(.sunday)
+        XCTAssertEqual(store.menuBarPreferences.weekStart, .sunday)
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertEqual(reloaded.menuBarPreferences.weekStart, .sunday)
+
+        store.setWeekStart(.monday)
+        XCTAssertEqual(store.menuBarPreferences.weekStart, .monday)
+    }
+
     func testInitialLaunchAtLoginStatusReadsControllerState() {
         let controller = LaunchAtLoginControllerStub(status: .enabled)
         let store = makeStore(launchAtLoginController: controller)

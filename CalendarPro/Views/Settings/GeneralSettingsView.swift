@@ -69,6 +69,22 @@ struct GeneralSettingsView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
+
+                GroupBox("日历显示") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Picker("每周起始日", selection: weekStartBinding) {
+                            Text("周一在前").tag(WeekStart.monday)
+                            Text("周日在前").tag(WeekStart.sunday)
+                        }
+                        .pickerStyle(.segmented)
+
+                        Text("设置月历面板中星期的排列顺序，修改后立即生效。")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 30)
@@ -122,6 +138,13 @@ struct GeneralSettingsView: View {
         Binding(
             get: { store.launchAtLoginEnabled },
             set: { store.setLaunchAtLoginEnabled($0) }
+        )
+    }
+
+    private var weekStartBinding: Binding<WeekStart> {
+        Binding(
+            get: { store.menuBarPreferences.weekStart },
+            set: { store.setWeekStart($0) }
         )
     }
 

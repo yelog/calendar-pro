@@ -171,6 +171,13 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
+    func setWeekStart(_ weekStart: WeekStart) {
+        var prefs = menuBarPreferences
+        prefs.weekStart = weekStart
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
     func setReminderCalendarEnabled(_ enabled: Bool, calendarID: String, allCalendarIDs: [String] = []) {
         let hasAllCalendarIDs = !allCalendarIDs.isEmpty
         var ids = menuBarPreferences.enabledReminderCalendarIDs
