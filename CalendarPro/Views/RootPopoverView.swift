@@ -71,8 +71,12 @@ struct RootPopoverView: View {
             onQuit: onQuit
         )
         .onAppear {
+            viewModel.checkAndResetIfNeeded()
             eventService.checkAuthorizationStatus()
             refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .PopoverDidCloseNotification)) { _ in
+            viewModel.popoverDidClose()
         }
         .onChange(of: eventService.isAuthorized) { _, isAuthorized in
             if isAuthorized {
