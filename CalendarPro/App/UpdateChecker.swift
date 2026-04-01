@@ -6,6 +6,8 @@ import Sparkle
 @MainActor
 final class UpdateChecker: NSObject, SPUUpdaterDelegate {
     static let shared = UpdateChecker()
+    static let stableFeedURLString = "https://raw.githubusercontent.com/yelog/calendar-pro/main/docs/appcast.xml"
+    static let betaFeedURLString = "https://raw.githubusercontent.com/yelog/calendar-pro/main/docs/appcast-beta.xml"
 
     private var updaterController: SPUStandardUpdaterController?
     private let checkInterval: TimeInterval = 24 * 60 * 60
@@ -62,17 +64,20 @@ final class UpdateChecker: NSObject, SPUUpdaterDelegate {
         }
     }
 
+    static func appcastFeedURLString(forVersion version: String) -> String {
+        let normalizedVersion = version.lowercased()
+        let useBetaChannel = normalizedVersion.contains("beta")
+            || normalizedVersion.contains("alpha")
+            || normalizedVersion.contains("rc")
+
+        return useBetaChannel ? betaFeedURLString : stableFeedURLString
+    }
+
     // MARK: - SPUUpdaterDelegate
 
     func feedURLString(for updater: SPUUpdater) -> String? {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
-        let useBetaChannel = version.contains("beta") || version.contains("alpha") || version.contains("rc")
-
-        if useBetaChannel {
-            return "https://yelog.github.io/calendar-pro/appcast-beta.xml"
-        } else {
-            return "https://yelog.github.io/calendar-pro/appcast.xml"
-        }
+        return Self.appcastFeedURLString(forVersion: version)
     }
 
     func updater(_ updater: SPUUpdater, didAbortWithError error: Error) {
