@@ -108,6 +108,7 @@ bash scripts/build/package-app.sh
 - `APPLE_APP_PASSWORD`
 
 仓库还包含 GitHub Actions 发布流程，在推送 `v*` 标签后会自动构建、签名、更新 appcast 并发布。
+Sparkle appcast 默认通过 `raw.githubusercontent.com` 读取 [docs/appcast.xml](./docs/appcast.xml) 与 [docs/appcast-beta.xml](./docs/appcast-beta.xml)，避免 GitHub Pages 或自定义域名重定向导致更新检查失败。
 
 ## 权限与运行时行为
 

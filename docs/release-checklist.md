@@ -8,3 +8,5 @@
 - 在时区切换后检查菜单栏文案和“今天”高亮是否同步刷新。
 - 断网状态下执行一次远程节假日刷新，确认会回退到缓存或内置数据。
 - 检查设置页中的地区勾选和节假日集合勾选在重启后仍然生效。
+- 发布后验证 `https://raw.githubusercontent.com/yelog/calendar-pro/main/docs/appcast.xml` 与 `https://raw.githubusercontent.com/yelog/calendar-pro/main/docs/appcast-beta.xml` 可访问，且包含当前版本条目。
+- 如果历史版本使用过其他 Sparkle feed 地址，发布后确认旧地址不会返回 `404`；否则需要明确安排一次手动下载安装迁移。
