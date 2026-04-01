@@ -12,6 +12,7 @@ final class CalendarPopoverViewModel: ObservableObject {
     @Published private(set) var selectedDate: Date?
     @Published private(set) var selectedEventIdentifier: String?
     @Published private(set) var selectionMode: SelectionMode = .calendar
+    @Published internal(set) var lastClosedTime: Date?
 
     init(displayedMonth: Date = .now) {
         self.displayedMonth = displayedMonth
@@ -103,6 +104,20 @@ final class CalendarPopoverViewModel: ObservableObject {
 
     func resetToToday() {
         displayedMonth = .now
+    }
+
+    func popoverDidClose() {
+        lastClosedTime = Date()
+    }
+
+    func checkAndResetIfNeeded() {
+        guard let closedTime = lastClosedTime else { return }
+        let interval = Date().timeIntervalSince(closedTime)
+        if interval > 300 {
+            resetToToday()
+            selectDate(Date())
+            lastClosedTime = nil
+        }
     }
 
     func weekdaySymbols(using calendar: Calendar) -> [String] {

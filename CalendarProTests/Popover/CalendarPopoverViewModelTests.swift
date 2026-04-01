@@ -177,6 +177,54 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.currentMonthNumber, expectedMonth)
     }
 
+    func testPopoverDidCloseRecordsTime() {
+        let viewModel = CalendarPopoverViewModel()
+        XCTAssertNil(viewModel.lastClosedTime)
+        viewModel.popoverDidClose()
+        XCTAssertNotNil(viewModel.lastClosedTime)
+    }
+
+    func testCheckAndResetDoesNothingWhenNotClosed() {
+        let viewModel = CalendarPopoverViewModel()
+        for _ in 0..<2 {
+            viewModel.showPreviousMonth(using: Calendar.current)
+        }
+        viewModel.checkAndResetIfNeeded()
+        XCTAssertNotNil(viewModel.displayedMonth)
+        let nowMonth = Calendar.current.component(.month, from: Date())
+        let displayedMonth = Calendar.current.component(.month, from: viewModel.displayedMonth)
+        XCTAssertNotEqual(nowMonth, displayedMonth)
+    }
+
+    func testCheckAndResetDoesNothingWithin5Minutes() {
+        let viewModel = CalendarPopoverViewModel()
+        for _ in 0..<2 {
+            viewModel.showPreviousMonth(using: Calendar.current)
+        }
+        viewModel.popoverDidClose()
+        viewModel.lastClosedTime = Date().addingTimeInterval(-299)
+        viewModel.checkAndResetIfNeeded()
+        let nowMonth = Calendar.current.component(.month, from: Date())
+        let displayedMonth = Calendar.current.component(.month, from: viewModel.displayedMonth)
+        XCTAssertNotEqual(nowMonth, displayedMonth)
+    }
+
+    func testCheckAndResetAfter5Minutes() {
+        let viewModel = CalendarPopoverViewModel()
+        for _ in 0..<2 {
+            viewModel.showPreviousMonth(using: Calendar.current)
+        }
+        viewModel.popoverDidClose()
+        viewModel.lastClosedTime = Date().addingTimeInterval(-301)
+        viewModel.checkAndResetIfNeeded()
+        let nowMonth = Calendar.current.component(.month, from: Date())
+        let displayedMonth = Calendar.current.component(.month, from: viewModel.displayedMonth)
+        XCTAssertEqual(nowMonth, displayedMonth)
+        XCTAssertNotNil(viewModel.selectedDate)
+        XCTAssertTrue(Calendar.current.isDate(viewModel.selectedDate!, inSameDayAs: Date()))
+        XCTAssertNil(viewModel.lastClosedTime)
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         DateComponents(
             calendar: Calendar.gregorianMondayFirst,
