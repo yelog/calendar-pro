@@ -45,6 +45,7 @@ struct MenuBarPreferences: Codable, Equatable {
     var enabledCalendarIDs: [String]
     var showReminders: Bool
     var enabledReminderCalendarIDs: [String]
+    var showAlmanac: Bool
 
     var requiresSecondRefresh: Bool {
         tokens.contains { $0.token == .time && $0.isEnabled && $0.style == .full }
@@ -90,7 +91,8 @@ struct MenuBarPreferences: Codable, Equatable {
         showCalendarEvents: true,
         enabledCalendarIDs: [],
         showReminders: true,
-        enabledReminderCalendarIDs: []
+        enabledReminderCalendarIDs: [],
+        showAlmanac: false
     )
 
     static let previewShort = MenuBarPreferences(
@@ -109,7 +111,8 @@ struct MenuBarPreferences: Codable, Equatable {
         showCalendarEvents: true,
         enabledCalendarIDs: [],
         showReminders: true,
-        enabledReminderCalendarIDs: []
+        enabledReminderCalendarIDs: [],
+        showAlmanac: false
     )
 }
 
@@ -127,6 +130,7 @@ extension MenuBarPreferences {
         case enabledCalendarIDs
         case showReminders
         case enabledReminderCalendarIDs
+        case showAlmanac
     }
 
     init(from decoder: Decoder) throws {
@@ -145,7 +149,8 @@ extension MenuBarPreferences {
             showCalendarEvents: try container.decodeIfPresent(Bool.self, forKey: .showCalendarEvents) ?? showEvents,
             enabledCalendarIDs: try container.decode([String].self, forKey: .enabledCalendarIDs),
             showReminders: try container.decode(Bool.self, forKey: .showReminders),
-            enabledReminderCalendarIDs: try container.decode([String].self, forKey: .enabledReminderCalendarIDs)
+            enabledReminderCalendarIDs: try container.decode([String].self, forKey: .enabledReminderCalendarIDs),
+            showAlmanac: try container.decodeIfPresent(Bool.self, forKey: .showAlmanac) ?? false
         )
     }
 
@@ -163,5 +168,6 @@ extension MenuBarPreferences {
         try container.encode(enabledCalendarIDs, forKey: .enabledCalendarIDs)
         try container.encode(showReminders, forKey: .showReminders)
         try container.encode(enabledReminderCalendarIDs, forKey: .enabledReminderCalendarIDs)
+        try container.encode(showAlmanac, forKey: .showAlmanac)
     }
 }

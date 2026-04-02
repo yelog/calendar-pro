@@ -27,6 +27,8 @@ struct CalendarPopoverView: View {
     let items: [CalendarItem]
     let selectedEventIdentifier: String?
     let isLoadingEvents: Bool
+    let almanac: AlmanacDescriptor?
+    let showAlmanac: Bool
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
     let onSelectYear: () -> Void
@@ -91,6 +93,8 @@ struct CalendarPopoverView: View {
                 highlightWeekends: highlightWeekends,
                 onSelectDate: onSelectDate
             )
+
+            infoStripsSection
 
             eventsSection
 
@@ -168,6 +172,21 @@ struct CalendarPopoverView: View {
                 )
                 .frame(maxHeight: 200)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var infoStripsSection: some View {
+        if showAlmanac {
+            Divider()
+                .padding(.horizontal, -PopoverSurfaceMetrics.outerPadding)
+
+            VStack(spacing: 6) {
+                if showAlmanac, let almanac {
+                    AlmanacStripView(almanac: almanac)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

@@ -94,6 +94,18 @@ struct GeneralSettingsView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
+
+                GroupBox("面板信息") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Toggle("显示黄历宜忌", isOn: showAlmanacBinding)
+
+                        Text("开启后，在日历面板中显示当日宜忌。基于传统历法本地计算，无需网络。")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 30)
@@ -161,6 +173,13 @@ struct GeneralSettingsView: View {
         Binding(
             get: { store.menuBarPreferences.highlightWeekends },
             set: { store.setHighlightWeekends($0) }
+        )
+    }
+
+    private var showAlmanacBinding: Binding<Bool> {
+        Binding(
+            get: { store.menuBarPreferences.showAlmanac },
+            set: { store.setShowAlmanac($0) }
         )
     }
 

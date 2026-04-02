@@ -12,6 +12,9 @@ struct RootPopoverView: View {
 
     @State private var itemsForSelectedDate: [CalendarItem] = []
     @State private var isLoadingEvents: Bool = false
+    @State private var almanacDescriptor: AlmanacDescriptor?
+
+    private let almanacService = AlmanacService()
 
     var body: some View {
         CalendarPopoverView(
@@ -30,6 +33,8 @@ struct RootPopoverView: View {
             items: itemsForSelectedDate,
             selectedEventIdentifier: viewModel.selectedEventIdentifier,
             isLoadingEvents: isLoadingEvents,
+            almanac: almanacDescriptor,
+            showAlmanac: settingsStore.menuBarPreferences.showAlmanac,
             onPreviousMonth: {
                 viewModel.showPreviousMonth(using: displayCalendar)
             },
@@ -76,6 +81,7 @@ struct RootPopoverView: View {
             viewModel.checkAndResetIfNeeded()
             eventService.checkAuthorizationStatus()
             refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+            refreshInfoStrips()
         }
         .onReceive(NotificationCenter.default.publisher(for: .PopoverDidCloseNotification)) { _ in
             viewModel.popoverDidClose()
@@ -110,10 +116,25 @@ struct RootPopoverView: View {
         .onChange(of: viewModel.selectedDate) { _, newDate in
             if let date = newDate {
                 loadEvents(for: date)
+                refreshInfoStrips()
             } else {
                 clearLoadedEvents()
             }
         }
+        .onChange(of: settingsStore.menuBarPreferences.showAlmanac) { _, _ in
+            refreshInfoStrips()
+        }
+    }
+
+    private func refreshInfoStrips() {
+        let date = viewModel.selectedDate ?? Date()
+
+        if settingsStore.menuBarPreferences.showAlmanac {
+            almanacDescriptor = almanacService.describe(date: date)
+        } else {
+            almanacDescriptor = nil
+        }
+
     }
 
     private func loadEvents(for date: Date) {
