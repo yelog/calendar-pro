@@ -20,6 +20,7 @@ struct CalendarPopoverView: View {
     let selectionMode: CalendarPopoverViewModel.SelectionMode
     let weekdaySymbols: [String]
     let monthDays: [CalendarDay]
+    let highlightWeekends: Bool
     let showEvents: Bool
     let emptyStateText: String
     let selectedDate: Date?
@@ -87,6 +88,7 @@ struct CalendarPopoverView: View {
             CalendarGridView(
                 weekdaySymbols: weekdaySymbols,
                 monthDays: monthDays,
+                highlightWeekends: highlightWeekends,
                 onSelectDate: onSelectDate
             )
 

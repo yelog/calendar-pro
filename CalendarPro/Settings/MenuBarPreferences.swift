@@ -39,6 +39,7 @@ struct MenuBarPreferences: Codable, Equatable {
     var activeRegionIDs: [String]
     var enabledHolidayIDs: [String]
     var weekStart: WeekStart
+    var highlightWeekends: Bool
     var showEvents: Bool
     var showCalendarEvents: Bool
     var enabledCalendarIDs: [String]
@@ -84,6 +85,7 @@ struct MenuBarPreferences: Codable, Equatable {
         activeRegionIDs: ["mainland-cn"],
         enabledHolidayIDs: [],
         weekStart: .monday,
+        highlightWeekends: true,
         showEvents: true,
         showCalendarEvents: true,
         enabledCalendarIDs: [],
@@ -102,6 +104,7 @@ struct MenuBarPreferences: Codable, Equatable {
         activeRegionIDs: ["mainland-cn"],
         enabledHolidayIDs: [],
         weekStart: .monday,
+        highlightWeekends: true,
         showEvents: true,
         showCalendarEvents: true,
         enabledCalendarIDs: [],
@@ -118,6 +121,7 @@ extension MenuBarPreferences {
         case activeRegionIDs
         case enabledHolidayIDs
         case weekStart
+        case highlightWeekends
         case showEvents
         case showCalendarEvents
         case enabledCalendarIDs
@@ -136,6 +140,7 @@ extension MenuBarPreferences {
             activeRegionIDs: try container.decode([String].self, forKey: .activeRegionIDs),
             enabledHolidayIDs: try container.decode([String].self, forKey: .enabledHolidayIDs),
             weekStart: try container.decode(WeekStart.self, forKey: .weekStart),
+            highlightWeekends: try container.decodeIfPresent(Bool.self, forKey: .highlightWeekends) ?? true,
             showEvents: showEvents,
             showCalendarEvents: try container.decodeIfPresent(Bool.self, forKey: .showCalendarEvents) ?? showEvents,
             enabledCalendarIDs: try container.decode([String].self, forKey: .enabledCalendarIDs),
@@ -152,6 +157,7 @@ extension MenuBarPreferences {
         try container.encode(activeRegionIDs, forKey: .activeRegionIDs)
         try container.encode(enabledHolidayIDs, forKey: .enabledHolidayIDs)
         try container.encode(weekStart, forKey: .weekStart)
+        try container.encode(highlightWeekends, forKey: .highlightWeekends)
         try container.encode(showEvents, forKey: .showEvents)
         try container.encode(showCalendarEvents, forKey: .showCalendarEvents)
         try container.encode(enabledCalendarIDs, forKey: .enabledCalendarIDs)

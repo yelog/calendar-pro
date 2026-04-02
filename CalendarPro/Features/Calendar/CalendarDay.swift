@@ -22,6 +22,7 @@ struct CalendarDay: Equatable, Identifiable {
     let isInDisplayedMonth: Bool
     let isToday: Bool
     let isSelected: Bool
+    let isWeekend: Bool
     let solarText: String
     let lunarText: String?
     let lunarTextSemantic: LunarTextSemantic

@@ -23,6 +23,7 @@ struct RootPopoverView: View {
             selectionMode: viewModel.selectionMode,
             weekdaySymbols: viewModel.weekdaySymbols(using: displayCalendar),
             monthDays: monthDays,
+            highlightWeekends: settingsStore.menuBarPreferences.highlightWeekends,
             showEvents: settingsStore.menuBarPreferences.showEvents,
             emptyStateText: settingsStore.menuBarPreferences.eventListEmptyStateText,
             selectedDate: viewModel.selectedDate,

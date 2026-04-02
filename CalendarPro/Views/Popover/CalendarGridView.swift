@@ -3,28 +3,41 @@ import SwiftUI
 struct CalendarGridView: View {
     let weekdaySymbols: [String]
     let monthDays: [CalendarDay]
+    let highlightWeekends: Bool
     let onSelectDate: (Date) -> Void
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 6) {
             LazyVGrid(columns: gridColumns, spacing: 6) {
                 ForEach(weekdaySymbols, id: \.self) { symbol in
                     Text(symbol)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(weekdayHeaderColor(for: symbol))
                         .frame(maxWidth: .infinity)
                 }
             }
 
             LazyVGrid(columns: gridColumns, spacing: 6) {
                 ForEach(monthDays) { day in
-                    CalendarDayCellView(day: day)
+                    CalendarDayCellView(day: day, highlightWeekends: highlightWeekends)
                         .onTapGesture {
                             onSelectDate(day.date)
                         }
                 }
             }
         }
+    }
+
+    private func weekdayHeaderColor(for symbol: String) -> Color {
+        guard highlightWeekends else { return .secondary }
+        let weekendSymbols = ["周日", "周六"]
+        if weekendSymbols.contains(symbol) {
+            return colorScheme == .dark
+                ? Color(red: 0.92, green: 0.45, blue: 0.45)
+                : Color(red: 0.85, green: 0.35, blue: 0.35)
+        }
+        return .secondary
     }
 
     private var gridColumns: [GridItem] {
@@ -36,6 +49,7 @@ private struct CalendarDayCellView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     let day: CalendarDay
+    let highlightWeekends: Bool
 
     var body: some View {
         VStack(spacing: 2) {
@@ -184,8 +198,20 @@ private struct CalendarDayCellView: View {
     }
 
     private var solarTextColor: Color {
+        if highlightWeekends && day.isWeekend && day.isInDisplayedMonth {
+            return colorScheme == .dark
+                ? Color(red: 0.92, green: 0.45, blue: 0.45)
+                : Color(red: 0.85, green: 0.35, blue: 0.35)
+        }
+
         if day.isInDisplayedMonth {
             return .primary
+        }
+
+        if highlightWeekends && day.isWeekend {
+            return colorScheme == .dark
+                ? Color(red: 0.92, green: 0.45, blue: 0.45).opacity(0.5)
+                : Color(red: 0.85, green: 0.35, blue: 0.35).opacity(0.4)
         }
 
         if semanticStyle != nil {

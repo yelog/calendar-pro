@@ -82,6 +82,15 @@ struct GeneralSettingsView: View {
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
+
+                        Divider()
+
+                        Toggle("周末高亮显示", isOn: highlightWeekendsBinding)
+
+                        Text("开启后，周六、周日的日期数字及标题显示为红色，便于区分休息日。")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -145,6 +154,13 @@ struct GeneralSettingsView: View {
         Binding(
             get: { store.menuBarPreferences.weekStart },
             set: { store.setWeekStart($0) }
+        )
+    }
+
+    private var highlightWeekendsBinding: Binding<Bool> {
+        Binding(
+            get: { store.menuBarPreferences.highlightWeekends },
+            set: { store.setHighlightWeekends($0) }
         )
     }
 

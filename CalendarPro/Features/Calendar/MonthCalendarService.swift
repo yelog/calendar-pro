@@ -24,6 +24,7 @@ struct MonthCalendarService {
                 isInDisplayedMonth: calendar.isDate(date, equalTo: monthStart, toGranularity: .month),
                 isToday: calendar.isDate(date, inSameDayAs: now()),
                 isSelected: false,
+                isWeekend: calendar.isDateInWeekend(date),
                 solarText: String(calendar.component(.day, from: date)),
                 lunarText: nil,
                 lunarTextSemantic: .regular,
