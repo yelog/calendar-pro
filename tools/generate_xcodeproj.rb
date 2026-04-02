@@ -43,6 +43,11 @@ app_target.build_configurations.each do |config|
   config.build_settings['CURRENT_PROJECT_VERSION'] = '1'
 end
 
+project.root_object.attributes['TargetAttributes'] ||= {}
+project.root_object.attributes['TargetAttributes'][app_target.uuid] = {
+  'ProvisioningStyle' => 'Automatic'
+}
+
 # ─── Sparkle SPM dependency ───
 sparkle_pkg = project.new(Xcodeproj::Project::Object::XCRemoteSwiftPackageReference)
 sparkle_pkg.repositoryURL = 'https://github.com/sparkle-project/Sparkle'

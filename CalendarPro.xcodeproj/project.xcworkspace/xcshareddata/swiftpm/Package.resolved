@@ -1,5 +1,5 @@
 {
-  "originHash" : "e721da7f9826abdffcb6185e886155efa2514bd6234475f1afa893e29eb258d6",
+  "originHash" : "4aa7c854a8f2455a44b0c73971b436d2afb3020d32b76101deb3f35f71dbd06e",
   "pins" : [
     {
       "identity" : "sparkle",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "066e75a8b3e99962685d6a90cdd5293ebffd9261",
         "version" : "2.9.1"
+      }
+    },
+    {
+      "identity" : "tyme4swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/xuanyunhui/tyme4swift",
+      "state" : {
+        "revision" : "9f86c1269c2bf72f52a1358d86a2fc514468c557",
+        "version" : "1.4.3"
       }
     }
   ],
