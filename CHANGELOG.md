@@ -5,6 +5,48 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1-beta.0] - 2026-04-02
+
+### Added
+
+- add Chinese almanac (宜忌) display in popover
+- add weekend highlight with settings toggle
+- use Chinese weekday symbols in calendar grid
+- add week start day picker UI
+- support solar terms in calendar
+- support selecting detail text
+- unify events visibility controls
+- add dynamic height adjustment for event detail window
+- add current-time event timeline
+- enhance today cell styling with golden badge and background
+- add PopoverDidClose notification listener and check on appear
+- send PopoverDidClose notification when popover closes
+- add lastClosedTime tracking and auto-reset logic to ViewModel
+- add PopoverDidClose notification name
+
+### Changed
+
+- add design plans for removing weather feature
+- add tyme dependency and update Xcode project settings
+- add unified events settings design
+- update appcast URLs to use raw.githubusercontent.com
+- extract appcast feed URL logic for testability
+- add project README
+- add implementation plan for auto-reset-to-today
+- add auto-reset-to-today feature design
+- add 0.1.0 release entry [skip ci]
+
+### Fixed
+
+- prevent status item disappearance on display changes
+- redesign current time marker layout
+- simplify selected-day header summary
+- place now marker by displayed time
+- center resizable window on active screen
+- position settings window near popover instead of screen center
+- make entire button area clickable in footer buttons
+- rebalance settings window layout
+
 ## [0.1.0] - 2026-03-31
 
 ### Added
