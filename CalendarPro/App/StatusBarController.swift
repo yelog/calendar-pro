@@ -1,6 +1,8 @@
 import AppKit
 import Combine
 
+private let statusItemAutosaveName = "CalendarProStatusBarItem"
+
 @MainActor
 final class StatusBarController {
     private var statusItems: [NSStatusItem] = []
@@ -10,7 +12,7 @@ final class StatusBarController {
     private let eventService: EventService
 
     private var cancellables = Set<AnyCancellable>()
-
+    
     init(settingsStore: SettingsStore, eventService: EventService) {
         self.settingsStore = settingsStore
         self.eventService = eventService
@@ -26,27 +28,21 @@ final class StatusBarController {
             await eventService.requestReminderAccess()
         }
         
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(screenParametersDidChange),
-            name: NSApplication.didChangeScreenParametersNotification,
-            object: nil
-        )
+        // NOTE: 不监听屏幕变化通知。macOS 会自动处理菜单栏布局，
+        // autosaveName 会确保位置持久化。重建 StatusItem 会丢失 window ID
+        // 导致 Ice 等菜单栏管理器无法识别同一个 item。
     }
     
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-    
-    @objc private func screenParametersDidChange() {
-        configureStatusItems()
+    nonisolated deinit {
+        // StatusBarController 生命周期与应用相同，由 AppDelegate 持有
+        // 应用退出时所有 status items 会自动移除
     }
 
     private func configureStatusItems() {
-        statusItems.forEach { NSStatusBar.system.removeStatusItem($0) }
-        statusItems.removeAll()
-
+        guard statusItems.isEmpty else { return }
+        
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem.autosaveName = statusItemAutosaveName
         configureStatusButton(statusItem.button)
         statusItems.append(statusItem)
     }
