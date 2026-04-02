@@ -14,7 +14,7 @@ extension EKEvent {
         }
 
         return [
-            calendar.calendarIdentifier,
+            calendar?.calendarIdentifier ?? "unknown-calendar",
             title ?? "untitled",
             String(startDate.timeIntervalSinceReferenceDate),
             String(endDate.timeIntervalSinceReferenceDate)

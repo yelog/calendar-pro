@@ -135,8 +135,59 @@ final class CalendarItemTests: XCTestCase {
             calendar: .gregorianMondayFirst
         )
 
-        XCTAssertEqual(snapshot.marker, EventTimelineMarker(groupID: "12:00", position: .withinGroup))
+        guard let marker = snapshot.marker else {
+            return XCTFail("Expected marker for ongoing event")
+        }
+
+        XCTAssertEqual(marker.groupID, "12:00")
+        switch marker.position {
+        case .withinItem(let selectionIdentifier, let progress):
+            XCTAssertEqual(selectionIdentifier, ongoingEvent.selectionIdentifier)
+            XCTAssertEqual(progress, 0.5, accuracy: 0.001)
+        default:
+            XCTFail("Expected withinItem marker")
+        }
         XCTAssertEqual(snapshot.scrollTargetGroupID, "12:00")
+    }
+
+    func testTimelineProgressReturnsElapsedRatioForOngoingEvent() {
+        let item = CalendarItem.event(makeEvent(
+            title: "评审会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 11, minute: 0)
+        ))
+
+        let progress = item.timelineProgress(
+            at: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 18),
+            calendar: .gregorianMondayFirst
+        )
+
+        guard let progress else {
+            return XCTFail("Expected progress for ongoing event")
+        }
+
+        XCTAssertEqual(progress, 0.3, accuracy: 0.001)
+    }
+
+    func testTimelineProgressReturnsCenteredValueForCurrentMinuteReminder() {
+        let item = CalendarItem.reminder(makeReminder(
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 17,
+            minute: 15
+        ))
+
+        let progress = item.timelineProgress(
+            at: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 15),
+            calendar: .gregorianMondayFirst
+        )
+
+        guard let progress else {
+            return XCTFail("Expected progress for current-minute reminder")
+        }
+
+        XCTAssertEqual(progress, 0.5, accuracy: 0.001)
     }
 
     func testTimelineSnapshotFallsBackToNextDisplayedTimeGroup() {
@@ -219,10 +270,14 @@ final class CalendarItemTests: XCTestCase {
     }
 
     private func makeEvent(title: String = "会议", start: Date, end: Date) -> EKEvent {
-        let event = EKEvent(eventStore: EKEventStore())
+        let store = EKEventStore()
+        let event = EKEvent(eventStore: store)
         event.title = title
         event.startDate = start
         event.endDate = end
+        if let calendar = store.defaultCalendarForNewEvents {
+            event.calendar = calendar
+        }
         return event
     }
 

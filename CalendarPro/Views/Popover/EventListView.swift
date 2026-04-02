@@ -3,7 +3,7 @@ import EventKit
 
 enum EventTimelineMarkerPosition: Equatable {
     case beforeGroup
-    case withinGroup
+    case withinItem(selectionIdentifier: String, progress: Double)
     case afterGroup
 }
 
@@ -20,6 +20,14 @@ struct EventTimelineGroup: Identifiable {
     let containsOngoingItem: Bool
     let isPast: Bool
     let isFuture: Bool
+}
+
+private struct EventTimelineItemBoundsPreferenceKey: PreferenceKey {
+    static let defaultValue: [String: Anchor<CGRect>] = [:]
+
+    static func reduce(value: inout [String: Anchor<CGRect>], nextValue: () -> [String: Anchor<CGRect>]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
 }
 
 struct EventTimelineSnapshot {
@@ -63,11 +71,23 @@ struct EventTimelineSnapshot {
 
         if let ongoingGroup = timedGroups.first(where: \.containsOngoingItem) {
             let shouldAnchorBottom = timedGroups.last?.id == ongoingGroup.id
+            let markerPosition: EventTimelineMarkerPosition
+
+            if let ongoingItem = ongoingGroup.items.first(where: { $0.timelineProgress(at: now, calendar: calendar) != nil }) {
+                let progress = ongoingItem.timelineProgress(at: now, calendar: calendar) ?? 0.5
+                markerPosition = .withinItem(
+                    selectionIdentifier: ongoingItem.selectionIdentifier,
+                    progress: progress
+                )
+            } else {
+                markerPosition = .beforeGroup
+            }
+
             return EventTimelineSnapshot(
                 timedGroups: timedGroups,
                 allDayItems: allDayItems,
                 untimedItems: untimedItems,
-                marker: EventTimelineMarker(groupID: ongoingGroup.id, position: .withinGroup),
+                marker: EventTimelineMarker(groupID: ongoingGroup.id, position: markerPosition),
                 scrollTargetGroupID: ongoingGroup.id,
                 shouldAnchorBottom: shouldAnchorBottom
             )
@@ -158,6 +178,28 @@ struct EventTimelineSnapshot {
 }
 
 struct EventListView: View {
+    private struct WithinItemMarkerPlacement {
+        let frame: CGRect
+        let y: CGFloat
+    }
+
+    private enum Metrics {
+        static let timeLaneWidth: CGFloat = 52
+        static let railLaneWidth: CGFloat = 12
+        static let laneSpacing: CGFloat = 6
+        static let contentSpacing: CGFloat = 8
+        static let timelineColumnWidth: CGFloat = timeLaneWidth + laneSpacing + railLaneWidth
+        static let markerDotSize: CGFloat = 8
+        static let markerChipHeight: CGFloat = 18
+        static let markerChipHorizontalPadding: CGFloat = 6
+        static let markerMinimumInset: CGFloat = 12
+        static let markerChipCornerRadius: CGFloat = 6
+        static let markerConnectorHeight: CGFloat = 1
+        static let markerEntryWidth: CGFloat = 10
+        static let markerEntryHeight: CGFloat = 2
+        static let markerEntryOutsideOffset: CGFloat = 4
+    }
+
     let items: [CalendarItem]
     let isLoading: Bool
     let emptyStateText: String
@@ -188,25 +230,7 @@ struct EventListView: View {
         } else {
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 10) {
-                        ForEach(Array(timelineSnapshot.timedGroups.enumerated()), id: \.element.id) { index, group in
-                            timedGroupView(
-                                group,
-                                isFirst: index == timelineSnapshot.timedGroups.startIndex,
-                                isLast: index == timelineSnapshot.timedGroups.index(before: timelineSnapshot.timedGroups.endIndex),
-                                markerPosition: markerPosition(for: group.id)
-                            )
-                            .id(group.id)
-                        }
-
-                        if !timelineSnapshot.allDayItems.isEmpty {
-                            auxiliarySection(title: "全天", items: timelineSnapshot.allDayItems)
-                        }
-
-                        if !timelineSnapshot.untimedItems.isEmpty {
-                            auxiliarySection(title: "未指定时间", items: timelineSnapshot.untimedItems)
-                        }
-                    }
+                    timelineContent
                 }
                 .onAppear {
                     currentTime = Date()
@@ -215,11 +239,40 @@ struct EventListView: View {
                 .onChange(of: selectedDate) { _, _ in
                     scrollToActiveGroup(using: proxy)
                 }
-                .onChange(of: items.map(\.id)) { _, _ in
+                .onChange(of: items.map(\.selectionIdentifier)) { _, _ in
                     scrollToActiveGroup(using: proxy)
                 }
                 .onReceive(timer) { value in
                     currentTime = value
+                }
+            }
+        }
+    }
+
+    private var timelineContent: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(Array(timelineSnapshot.timedGroups.enumerated()), id: \.element.id) { index, group in
+                timedGroupView(
+                    group,
+                    isFirst: index == timelineSnapshot.timedGroups.startIndex,
+                    isLast: index == timelineSnapshot.timedGroups.index(before: timelineSnapshot.timedGroups.endIndex),
+                    markerPosition: markerPosition(for: group.id)
+                )
+                .id(group.id)
+            }
+
+            if !timelineSnapshot.allDayItems.isEmpty {
+                auxiliarySection(title: "全天", items: timelineSnapshot.allDayItems)
+            }
+
+            if !timelineSnapshot.untimedItems.isEmpty {
+                auxiliarySection(title: "未指定时间", items: timelineSnapshot.untimedItems)
+            }
+        }
+        .overlayPreferenceValue(EventTimelineItemBoundsPreferenceKey.self) { anchors in
+            GeometryReader { proxy in
+                if let placement = withinItemMarkerPlacement(using: anchors, in: proxy) {
+                    withinItemMarkerOverlay(placement: placement)
                 }
             }
         }
@@ -241,11 +294,11 @@ struct EventListView: View {
         markerPosition: EventTimelineMarkerPosition?
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            if markerPosition == .beforeGroup || markerPosition == .withinGroup {
+            if markerPosition == .beforeGroup {
                 nowMarkerView
             }
 
-            HStack(alignment: .top, spacing: 10) {
+            HStack(alignment: .top, spacing: Metrics.contentSpacing) {
                 timelineColumn(for: group, isFirst: isFirst)
 
                 VStack(alignment: .leading, spacing: 6) {
@@ -263,24 +316,35 @@ struct EventListView: View {
     }
 
     private func timelineColumn(for group: EventTimelineGroup, isFirst: Bool) -> some View {
-        VStack(alignment: .trailing, spacing: 6) {
-            Text(group.displayTime)
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(timeLabelColor(for: group))
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: Metrics.laneSpacing) {
+                Text(group.displayTime)
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(timeLabelColor(for: group))
+                    .frame(width: Metrics.timeLaneWidth, alignment: .trailing)
 
-            ZStack(alignment: .top) {
-                Rectangle()
-                    .fill(Color(nsColor: .separatorColor).opacity(0.25))
-                    .frame(width: 1)
-
-                timelineNode(for: group)
-                    .padding(.top, isFirst ? 0 : 2)
+                Color.clear
+                    .frame(width: Metrics.railLaneWidth, height: 1)
             }
-            .frame(width: 12)
-            .frame(maxHeight: .infinity)
+
+            HStack(alignment: .top, spacing: Metrics.laneSpacing) {
+                Color.clear
+                    .frame(width: Metrics.timeLaneWidth, height: 1)
+
+                ZStack(alignment: .top) {
+                    Rectangle()
+                        .fill(Color(nsColor: .separatorColor).opacity(0.25))
+                        .frame(width: 1)
+
+                    timelineNode(for: group)
+                        .padding(.top, isFirst ? 0 : 2)
+                }
+                .frame(width: Metrics.railLaneWidth)
+                .frame(maxHeight: .infinity)
+            }
         }
-        .frame(width: 42, alignment: .topTrailing)
+        .frame(width: Metrics.timelineColumnWidth, alignment: .topLeading)
     }
 
     @ViewBuilder
@@ -307,22 +371,21 @@ struct EventListView: View {
     }
 
     private var nowMarkerView: some View {
-        HStack(alignment: .center, spacing: 10) {
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(formattedCurrentTime)
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.red)
-                    .monospacedDigit()
+        HStack(alignment: .center, spacing: Metrics.contentSpacing) {
+            HStack(alignment: .center, spacing: Metrics.laneSpacing) {
+                markerTimeChip
+                    .frame(width: Metrics.timeLaneWidth, alignment: .trailing)
 
                 Circle()
                     .fill(Color.red)
-                    .frame(width: 6, height: 6)
+                    .frame(width: Metrics.markerDotSize, height: Metrics.markerDotSize)
+                    .frame(width: Metrics.railLaneWidth)
             }
-            .frame(width: 42, alignment: .trailing)
+            .frame(width: Metrics.timelineColumnWidth, alignment: .leading)
 
             Rectangle()
                 .fill(Color.red.opacity(0.7))
-                .frame(height: 1)
+                .frame(height: Metrics.markerConnectorHeight)
         }
         .padding(.vertical, 2)
     }
@@ -357,6 +420,9 @@ struct EventListView: View {
                 )
             }
             .buttonStyle(.plain)
+            .anchorPreference(key: EventTimelineItemBoundsPreferenceKey.self, value: .bounds) {
+                [item.selectionIdentifier: $0]
+            }
         case .reminder(let reminder):
             Button {
                 onOpenReminder(reminder)
@@ -370,6 +436,9 @@ struct EventListView: View {
                 )
             }
             .buttonStyle(.plain)
+            .anchorPreference(key: EventTimelineItemBoundsPreferenceKey.self, value: .bounds) {
+                [item.selectionIdentifier: $0]
+            }
         }
     }
 
@@ -395,6 +464,22 @@ struct EventListView: View {
         return marker.position
     }
 
+    private func withinItemMarkerPlacement(
+        using anchors: [String: Anchor<CGRect>],
+        in proxy: GeometryProxy
+    ) -> WithinItemMarkerPlacement? {
+        guard let marker = timelineSnapshot.marker else { return nil }
+        guard case let .withinItem(selectionIdentifier, progress) = marker.position else {
+            return nil
+        }
+        guard let anchor = anchors[selectionIdentifier] else {
+            return nil
+        }
+        let frame = proxy[anchor]
+        let y = markerY(for: frame, progress: progress)
+        return WithinItemMarkerPlacement(frame: frame, y: y)
+    }
+
     private func scrollToActiveGroup(using proxy: ScrollViewProxy) {
         guard let targetID = timelineSnapshot.scrollTargetGroupID else { return }
         let anchor: UnitPoint = timelineSnapshot.shouldAnchorBottom ? .bottom : .top
@@ -418,5 +503,65 @@ struct EventListView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: currentTime)
+    }
+
+    private func markerY(for frame: CGRect, progress: Double) -> CGFloat {
+        let clampedProgress = min(max(progress, 0), 1)
+        let inset = min(Metrics.markerMinimumInset, frame.height / 2)
+        let usableHeight = max(frame.height - inset * 2, 0)
+        return frame.minY + inset + usableHeight * clampedProgress
+    }
+
+    private func withinItemMarkerOverlay(placement: WithinItemMarkerPlacement) -> some View {
+        let railCenterX = Metrics.timeLaneWidth + Metrics.laneSpacing + (Metrics.railLaneWidth / 2)
+        let cardLeadingX = placement.frame.minX
+        let entryLeadingX = max(railCenterX, cardLeadingX - Metrics.markerEntryOutsideOffset)
+        let connectorWidth = max(0, entryLeadingX - railCenterX)
+
+        return ZStack(alignment: .topLeading) {
+            markerTimeChip
+                .frame(width: Metrics.timeLaneWidth, alignment: .trailing)
+                .offset(y: placement.y - (Metrics.markerChipHeight / 2))
+
+            Circle()
+                .fill(Color.red)
+                .frame(width: Metrics.markerDotSize, height: Metrics.markerDotSize)
+                .offset(
+                    x: railCenterX - (Metrics.markerDotSize / 2),
+                    y: placement.y - (Metrics.markerDotSize / 2)
+                )
+
+            if connectorWidth > 0 {
+                Rectangle()
+                    .fill(Color.red.opacity(0.7))
+                    .frame(width: connectorWidth, height: Metrics.markerConnectorHeight)
+                    .offset(
+                        x: railCenterX,
+                        y: placement.y
+                    )
+            }
+
+            Capsule()
+                .fill(Color.red.opacity(0.85))
+                .frame(width: Metrics.markerEntryWidth, height: Metrics.markerEntryHeight)
+                .offset(
+                    x: cardLeadingX - Metrics.markerEntryOutsideOffset,
+                    y: placement.y - (Metrics.markerEntryHeight / 2)
+                )
+        }
+        .allowsHitTesting(false)
+    }
+
+    private var markerTimeChip: some View {
+        Text(formattedCurrentTime)
+            .font(.system(size: 10, weight: .semibold, design: .rounded))
+            .foregroundStyle(.red)
+            .monospacedDigit()
+            .padding(.horizontal, Metrics.markerChipHorizontalPadding)
+            .frame(height: Metrics.markerChipHeight)
+            .background(
+                Color(nsColor: .windowBackgroundColor).opacity(0.94),
+                in: RoundedRectangle(cornerRadius: Metrics.markerChipCornerRadius, style: .continuous)
+            )
     }
 }

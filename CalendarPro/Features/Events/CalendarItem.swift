@@ -175,6 +175,29 @@ enum CalendarItem: Identifiable {
         }
     }
 
+    func timelineProgress(at now: Date, calendar: Calendar = .autoupdatingCurrent) -> Double? {
+        switch self {
+        case .event(let event):
+            guard !event.isAllDay,
+                  event.startDate <= now,
+                  now <= event.endDate else {
+                return nil
+            }
+
+            let duration = event.endDate.timeIntervalSince(event.startDate)
+            guard duration > 0 else { return 0.5 }
+
+            let progress = now.timeIntervalSince(event.startDate) / duration
+            return min(max(progress, 0), 1)
+        case .reminder:
+            guard let dueDate = timelineDate,
+                  Self.isSameMinute(dueDate, now, calendar: calendar) else {
+                return nil
+            }
+            return 0.5
+        }
+    }
+
     private static func isSameMinute(_ lhs: Date, _ rhs: Date, calendar: Calendar) -> Bool {
         let left = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: lhs)
         let right = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: rhs)
