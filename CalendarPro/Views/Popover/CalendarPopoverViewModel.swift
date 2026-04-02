@@ -122,10 +122,9 @@ final class CalendarPopoverViewModel: ObservableObject {
 
     func weekdaySymbols(using calendar: Calendar) -> [String] {
         let formatter = DateFormatter()
-        formatter.locale = calendar.locale ?? .autoupdatingCurrent
+        formatter.locale = Locale(identifier: "zh_CN")
         let symbols = formatter.shortStandaloneWeekdaySymbols
-            ?? formatter.shortWeekdaySymbols
-            ?? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            ?? ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
 
         let firstWeekdayIndex = max(0, calendar.firstWeekday - 1)
         return Array(symbols[firstWeekdayIndex...] + symbols[..<firstWeekdayIndex])

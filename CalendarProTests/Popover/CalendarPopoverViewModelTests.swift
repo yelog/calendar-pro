@@ -34,7 +34,7 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         let viewModel = CalendarPopoverViewModel(displayedMonth: makeDate(year: 2026, month: 3, day: 1))
         let symbols = viewModel.weekdaySymbols(using: sundayFirst)
 
-        XCTAssertEqual(symbols.first, "Sun")
+        XCTAssertEqual(symbols.first, "周日")
     }
 
     func testInitialSelectedDateIsNil() {
