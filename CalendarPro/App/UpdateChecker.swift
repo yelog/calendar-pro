@@ -120,7 +120,7 @@ final class UpdateChecker: NSObject, SPUUpdaterDelegate {
             return storedChannel
         }
 
-        return inferredUpdateChannel(forVersion: bundleVersion ?? "")
+        return .stable
     }
 
     // MARK: - SPUUpdaterDelegate

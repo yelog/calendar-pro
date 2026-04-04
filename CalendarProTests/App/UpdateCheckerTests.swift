@@ -12,12 +12,12 @@ final class UpdateCheckerTests: XCTestCase {
         )
     }
 
-    func testSelectedUpdateChannelDefaultsToBetaForBetaVersion() {
+    func testSelectedUpdateChannelDefaultsToStableForBetaVersion() {
         let userDefaults = makeIsolatedUserDefaults(name: #function)
 
         XCTAssertEqual(
             UpdateChecker.selectedUpdateChannel(userDefaults: userDefaults, bundleVersion: "0.1.1-beta.1"),
-            .beta
+            .stable
         )
     }
 
