@@ -3,6 +3,7 @@ import SwiftUI
 struct AboutSettingsView: View {
     @State private var isCheckingUpdate = false
     @State private var autoCheckUpdates = UserDefaults.standard.bool(forKey: "autoCheckUpdates")
+    @State private var updateChannel = UpdateChecker.shared.selectedUpdateChannel
 
     var body: some View {
         VStack(spacing: 0) {
@@ -148,6 +149,21 @@ struct AboutSettingsView: View {
                     .onChange(of: autoCheckUpdates) {
                         UpdateChecker.shared.automaticallyChecksForUpdates = autoCheckUpdates
                     }
+
+                Picker("更新通道", selection: $updateChannel) {
+                    ForEach(UpdateChannel.allCases, id: \.self) { channel in
+                        Text(channel.title).tag(channel)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .onChange(of: updateChannel) {
+                    UpdateChecker.shared.selectedUpdateChannel = updateChannel
+                }
+
+                Text("稳定版仅接收正式发布；切换到测试版后，会接收预发布更新。")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 12) {
                     HStack(spacing: 4) {

@@ -2,12 +2,27 @@ import AppKit
 import Foundation
 import Sparkle
 
+enum UpdateChannel: String, CaseIterable {
+    case stable
+    case beta
+
+    var title: String {
+        switch self {
+        case .stable:
+            "稳定版"
+        case .beta:
+            "测试版"
+        }
+    }
+}
+
 /// Sparkle 自动更新管理器
 @MainActor
 final class UpdateChecker: NSObject, SPUUpdaterDelegate {
     static let shared = UpdateChecker()
     static let stableFeedURLString = "https://raw.githubusercontent.com/yelog/calendar-pro/main/docs/appcast.xml"
     static let betaFeedURLString = "https://raw.githubusercontent.com/yelog/calendar-pro/main/docs/appcast-beta.xml"
+    static let updateChannelDefaultsKey = "updateChannel"
 
     private var updaterController: SPUStandardUpdaterController?
     private let checkInterval: TimeInterval = 24 * 60 * 60
@@ -64,20 +79,54 @@ final class UpdateChecker: NSObject, SPUUpdaterDelegate {
         }
     }
 
+    var selectedUpdateChannel: UpdateChannel {
+        get { Self.selectedUpdateChannel(userDefaults: .standard) }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: Self.updateChannelDefaultsKey)
+            updateFeedURL()
+        }
+    }
+
+    static func appcastFeedURLString(for channel: UpdateChannel) -> String {
+        switch channel {
+        case .stable:
+            stableFeedURLString
+        case .beta:
+            betaFeedURLString
+        }
+    }
+
     static func appcastFeedURLString(forVersion version: String) -> String {
+        appcastFeedURLString(for: inferredUpdateChannel(forVersion: version))
+    }
+
+    static func inferredUpdateChannel(forVersion version: String) -> UpdateChannel {
         let normalizedVersion = version.lowercased()
         let useBetaChannel = normalizedVersion.contains("beta")
             || normalizedVersion.contains("alpha")
             || normalizedVersion.contains("rc")
 
-        return useBetaChannel ? betaFeedURLString : stableFeedURLString
+        return useBetaChannel ? .beta : .stable
+    }
+
+    static func selectedUpdateChannel(
+        userDefaults: UserDefaults = .standard,
+        bundleVersion: String? = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+    ) -> UpdateChannel {
+        if
+            let rawValue = userDefaults.string(forKey: updateChannelDefaultsKey),
+            let storedChannel = UpdateChannel(rawValue: rawValue)
+        {
+            return storedChannel
+        }
+
+        return inferredUpdateChannel(forVersion: bundleVersion ?? "")
     }
 
     // MARK: - SPUUpdaterDelegate
 
     func feedURLString(for updater: SPUUpdater) -> String? {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
-        return Self.appcastFeedURLString(forVersion: version)
+        Self.appcastFeedURLString(for: selectedUpdateChannel)
     }
 
     func updater(_ updater: SPUUpdater, didAbortWithError error: Error) {
