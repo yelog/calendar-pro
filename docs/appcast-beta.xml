@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.1.1-beta.1</title>
+            <pubDate>Sat, 04 Apr 2026 06:22:54 +0000</pubDate>
+            <sparkle:version>01101</sparkle:version>
+            <sparkle:shortVersionString>0.1.1-beta.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.1.1-beta.1&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add stable and beta channel switching&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;deliver system notifications on the main queue&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.1.1-beta.1/CalendarPro-0.1.1-beta.1-universal.dmg" length="6203132" type="application/octet-stream" sparkle:edSignature="zkPwCqbB4StErccR8gTliBaRTtCMWbbg8BCvRRXUrGVty0DHN7gpYayZdZIO+/NArwf08IDPgTohJsIrcJZfDQ==" />
+        </item>
+        <item>
             <title>Version 0.1.0</title>
             <pubDate>Tue, 31 Mar 2026 14:45:56 +0000</pubDate>
             <sparkle:version>01099</sparkle:version>
