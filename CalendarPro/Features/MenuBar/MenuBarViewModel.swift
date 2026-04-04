@@ -56,10 +56,11 @@ final class MenuBarViewModel: ObservableObject {
         }
 
         systemEventCancellable = Publishers.Merge3(
-            notificationCenter.publisher(for: NSLocale.currentLocaleDidChangeNotification).map { _ in () },
-            notificationCenter.publisher(for: .NSSystemTimeZoneDidChange).map { _ in () },
-            notificationCenter.publisher(for: .NSCalendarDayChanged).map { _ in () }
+            notificationCenter.publisher(for: NSLocale.currentLocaleDidChangeNotification),
+            notificationCenter.publisher(for: .NSSystemTimeZoneDidChange),
+            notificationCenter.publisher(for: .NSCalendarDayChanged)
         )
+        .receive(on: DispatchQueue.main)
         .sink { [weak self] _ in
             guard let self else { return }
             self.renderNow()
