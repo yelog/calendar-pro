@@ -881,7 +881,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.1-beta.0;
+				MARKETING_VERSION = 0.1.1-beta.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarPro;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -913,7 +913,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.1-beta.0;
+				MARKETING_VERSION = 0.1.1-beta.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarPro;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
