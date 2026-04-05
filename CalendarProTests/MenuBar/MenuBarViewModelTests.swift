@@ -79,6 +79,48 @@ final class MenuBarViewModelTests: XCTestCase {
         cancellable?.cancel()
     }
 
+    func testSystemClockChangeNotificationRerendersDisplayText() async {
+        let store = makeStore(name: #function)
+        let notificationCenter = NotificationCenter()
+        let currentTime = MutableBox(Date(timeIntervalSince1970: 0))
+        let viewModel = MenuBarViewModel(
+            settingsStore: store,
+            registry: .default,
+            now: { currentTime.value },
+            localeProvider: { Locale(identifier: "en_US_POSIX") },
+            calendarProvider: { .gregorianMondayFirst },
+            timeZoneProvider: { TimeZone(secondsFromGMT: 0)! },
+            notificationCenter: notificationCenter
+        )
+
+        let initialText = viewModel.displayText
+        currentTime.value = Date(timeIntervalSince1970: 60)
+        notificationCenter.post(name: .NSSystemClockDidChange, object: nil)
+        await Task.yield()
+
+        XCTAssertNotEqual(viewModel.displayText, initialText)
+    }
+
+    func testDelayUntilNextMinuteBoundaryUsesRemainingSecondsInCurrentMinute() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let date = calendar.date(from: DateComponents(year: 2026, month: 4, day: 5, hour: 11, minute: 28, second: 31))!
+
+        let delay = MenuBarViewModel.delayUntilNextMinuteBoundary(from: date, calendar: calendar)
+
+        XCTAssertEqual(delay, 29, accuracy: 0.001)
+    }
+
+    func testDelayUntilNextMinuteBoundaryAdvancesFullMinuteWhenAlreadyAligned() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let date = calendar.date(from: DateComponents(year: 2026, month: 4, day: 5, hour: 11, minute: 28, second: 0))!
+
+        let delay = MenuBarViewModel.delayUntilNextMinuteBoundary(from: date, calendar: calendar)
+
+        XCTAssertEqual(delay, 60, accuracy: 0.001)
+    }
+
     private func makeStore(name: String) -> SettingsStore {
         let userDefaults = UserDefaults(suiteName: name)!
         userDefaults.removePersistentDomain(forName: name)

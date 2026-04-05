@@ -154,7 +154,7 @@ struct MenuBarSettingsView: View {
     private func styleOptions(for token: DisplayTokenKind) -> [DisplayTokenStyle] {
         switch token {
         case .date:
-            [.numeric, .short, .full, .chineseMonthDay]
+            [.numeric, .short, .full, .chineseMonthDay, .chineseFull]
         case .weekday:
             [.short, .full, .chineseWeekday]
         case .time:

@@ -83,4 +83,76 @@ final class ClockRenderServiceTests: XCTestCase {
 
         XCTAssertEqual(text, "03月30日 周一")
     }
+
+    func testRendererNumericFormatUsesDayFirst() {
+        let renderer = ClockRenderService()
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let now = calendar.date(from: DateComponents(year: 2026, month: 4, day: 5, hour: 10, minute: 0))!
+
+        let preferences = MenuBarPreferences(
+            tokens: [
+                DisplayTokenPreference(token: .date, isEnabled: true, order: 0, style: .numeric)
+            ],
+            separator: " ",
+            showLunarInMenuBar: false,
+            activeRegionIDs: ["mainland-cn"],
+            enabledHolidayIDs: [],
+            weekStart: .monday,
+            highlightWeekends: true,
+            showEvents: true,
+            showCalendarEvents: true,
+            enabledCalendarIDs: [],
+            showReminders: true,
+            enabledReminderCalendarIDs: [],
+            showAlmanac: false
+        )
+
+        let text = renderer.render(
+            now: now,
+            preferences: preferences,
+            locale: Locale(identifier: "en_US_POSIX"),
+            calendar: calendar,
+            timeZone: timeZone
+        )
+
+        XCTAssertEqual(text, "05/04")
+    }
+
+    func testRendererChineseFullFormat() {
+        let renderer = ClockRenderService()
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let now = calendar.date(from: DateComponents(year: 2026, month: 4, day: 5, hour: 10, minute: 0))!
+
+        let preferences = MenuBarPreferences(
+            tokens: [
+                DisplayTokenPreference(token: .date, isEnabled: true, order: 0, style: .chineseFull)
+            ],
+            separator: " ",
+            showLunarInMenuBar: false,
+            activeRegionIDs: ["mainland-cn"],
+            enabledHolidayIDs: [],
+            weekStart: .monday,
+            highlightWeekends: true,
+            showEvents: true,
+            showCalendarEvents: true,
+            enabledCalendarIDs: [],
+            showReminders: true,
+            enabledReminderCalendarIDs: [],
+            showAlmanac: false
+        )
+
+        let text = renderer.render(
+            now: now,
+            preferences: preferences,
+            locale: Locale(identifier: "en_US_POSIX"),
+            calendar: calendar,
+            timeZone: timeZone
+        )
+
+        XCTAssertEqual(text, "2026年04月05日")
+    }
 }

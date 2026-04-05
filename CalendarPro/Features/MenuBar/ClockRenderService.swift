@@ -76,7 +76,7 @@ struct ClockRenderService {
 
         switch style {
         case .numeric:
-            formatter.dateFormat = "MM/dd"
+            formatter.dateFormat = "dd/MM"
         case .short:
             formatter.dateFormat = "MM/dd"
         case .full:
@@ -84,6 +84,9 @@ struct ClockRenderService {
         case .chineseMonthDay:
             formatter.locale = Locale(identifier: "zh_CN")
             formatter.dateFormat = "MM月dd日"
+        case .chineseFull:
+            formatter.locale = Locale(identifier: "zh_CN")
+            formatter.dateFormat = "yyyy年MM月dd日"
         case .chineseWeekday:
             formatter.dateFormat = "MM/dd"
         }

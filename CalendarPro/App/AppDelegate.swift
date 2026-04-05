@@ -3,18 +3,12 @@ import SwiftUI
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private enum SettingsWindowConfiguration {
-        static let defaultSize = NSSize(width: 840, height: 560)
-        static let minimumSize = NSSize(width: 760, height: 520)
-        static let autosaveName = "CalendarProSettingsWindowFrame"
-    }
 
     let settingsStore = SettingsStore()
     let eventService = EventService()
 
     private var statusBarController: StatusBarController?
     private var uiTestWindow: NSWindow?
-    private var settingsWindow: NSWindow?
     private let uiTestEventDetailWindowController = EventDetailWindowController()
 
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -35,83 +29,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             await refreshHolidayFeedIfNeeded()
         }
     }
-    
+
     @objc func openSettings() {
-        if let window = settingsWindow {
-            centerSettingsWindowOnCurrentScreen(window)
-            window.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
-            return
-        }
-        
-        let hostingController = NSHostingController(
-            rootView: SettingsRootView(store: settingsStore, eventService: eventService)
-        )
-        let window = NSWindow(
-            contentRect: NSRect(origin: .zero, size: SettingsWindowConfiguration.defaultSize),
-            styleMask: [.titled, .closable, .resizable],
-            backing: .buffered,
-            defer: false
-        )
-        window.contentViewController = hostingController
-        window.title = "设置"
-        window.minSize = SettingsWindowConfiguration.minimumSize
-        window.setFrameAutosaveName(SettingsWindowConfiguration.autosaveName)
-        window.setFrameUsingName(SettingsWindowConfiguration.autosaveName, force: false)
-        centerSettingsWindowOnCurrentScreen(window)
-        
-        window.makeKeyAndOrderFront(nil)
+        // 触发 SwiftUI Settings 场景打开设置窗口
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
         NSApp.activate(ignoringOtherApps: true)
-        settingsWindow = window
-
-        NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification,
-            object: window,
-            queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated {
-                self?.settingsWindow = nil
-            }
-        }
-    }
-
-    private func centerSettingsWindowOnCurrentScreen(_ settingsWindow: NSWindow) {
-        let targetScreen = settingsTargetScreen()
-            ?? NSScreen.main
-            ?? NSScreen.screens.first
-
-        guard let targetScreen else { return }
-
-        let visibleFrame = targetScreen.visibleFrame
-        let windowSize = settingsWindow.frame.size
-        let centeredOrigin = NSPoint(
-            x: visibleFrame.midX - windowSize.width / 2,
-            y: visibleFrame.midY - windowSize.height / 2
-        )
-
-        let clampedOrigin = NSPoint(
-            x: max(visibleFrame.minX, min(centeredOrigin.x, visibleFrame.maxX - windowSize.width)),
-            y: max(visibleFrame.minY, min(centeredOrigin.y, visibleFrame.maxY - windowSize.height))
-        )
-
-        settingsWindow.setFrameOrigin(clampedOrigin)
-    }
-
-    private func settingsTargetScreen() -> NSScreen? {
-        if let popoverScreen = statusBarController?.popoverContentWindow()?.screen {
-            return popoverScreen
-        }
-
-        if let keyWindowScreen = NSApp.keyWindow?.screen {
-            return keyWindowScreen
-        }
-
-        let mouseLocation = NSEvent.mouseLocation
-        if let mouseScreen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }) {
-            return mouseScreen
-        }
-
-        return nil
     }
 
     private var isUITestPopoverMode: Bool {

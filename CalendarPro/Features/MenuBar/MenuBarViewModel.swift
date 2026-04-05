@@ -22,7 +22,10 @@ final class MenuBarViewModel: ObservableObject {
 
     private var settingsCancellable: AnyCancellable?
     private var timerCancellable: AnyCancellable?
-    private var systemEventCancellable: AnyCancellable?
+    private var localeEventCancellable: AnyCancellable?
+    private var significantTimeEventCancellable: AnyCancellable?
+    private var alignedRefreshWorkItem: DispatchWorkItem?
+    private var isRunning = false
 
     init(
         settingsStore: SettingsStore,
@@ -50,21 +53,33 @@ final class MenuBarViewModel: ObservableObject {
         .receive(on: DispatchQueue.main)
         .sink { [weak self] preferences, _ in
             guard let self else { return }
-            self.refreshGranularity = preferences.requiresSecondRefresh ? .second : .minute
+            let updatedGranularity: RefreshGranularity = preferences.requiresSecondRefresh ? .second : .minute
+            let needsReschedule = self.refreshGranularity != updatedGranularity
+            self.refreshGranularity = updatedGranularity
             self.renderNow(with: preferences)
-            self.scheduleTimer()
+            if self.isRunning, needsReschedule {
+                self.scheduleTimer()
+            }
         }
 
-        systemEventCancellable = Publishers.Merge3(
-            notificationCenter.publisher(for: NSLocale.currentLocaleDidChangeNotification),
+        localeEventCancellable = notificationCenter.publisher(for: NSLocale.currentLocaleDidChangeNotification)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.renderNow()
+            }
+
+        significantTimeEventCancellable = Publishers.Merge3(
             notificationCenter.publisher(for: .NSSystemTimeZoneDidChange),
-            notificationCenter.publisher(for: .NSCalendarDayChanged)
+            notificationCenter.publisher(for: .NSCalendarDayChanged),
+            notificationCenter.publisher(for: .NSSystemClockDidChange)
         )
         .receive(on: DispatchQueue.main)
         .sink { [weak self] _ in
             guard let self else { return }
             self.renderNow()
-            self.scheduleTimer()
+            if self.isRunning {
+                self.scheduleTimer()
+            }
         }
 
         refreshGranularity = settingsStore.menuBarPreferences.requiresSecondRefresh ? .second : .minute
@@ -72,23 +87,67 @@ final class MenuBarViewModel: ObservableObject {
     }
 
     func start() {
+        guard !isRunning else { return }
+        isRunning = true
         scheduleTimer()
     }
 
     func stop() {
-        timerCancellable?.cancel()
-        timerCancellable = nil
+        isRunning = false
+        cancelScheduledRefresh()
     }
 
     private func scheduleTimer() {
-        timerCancellable?.cancel()
+        cancelScheduledRefresh()
 
-        let interval = refreshGranularity == .second ? 1.0 : 60.0
+        switch refreshGranularity {
+        case .second:
+            scheduleRepeatingTimer(every: 1.0)
+        case .minute:
+            scheduleAlignedMinuteTimer()
+        }
+    }
+
+    private func cancelScheduledRefresh() {
+        timerCancellable?.cancel()
+        timerCancellable = nil
+        alignedRefreshWorkItem?.cancel()
+        alignedRefreshWorkItem = nil
+    }
+
+    private func scheduleRepeatingTimer(every interval: TimeInterval) {
         timerCancellable = Timer.publish(every: interval, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 self?.renderNow()
             }
+    }
+
+    private func scheduleAlignedMinuteTimer() {
+        let delay = Self.delayUntilNextMinuteBoundary(from: now(), calendar: calendarProvider())
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self, self.isRunning else { return }
+            self.renderNow()
+            self.scheduleRepeatingTimer(every: 60.0)
+            self.alignedRefreshWorkItem = nil
+        }
+
+        alignedRefreshWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+    }
+
+    static func delayUntilNextMinuteBoundary(from date: Date, calendar: Calendar) -> TimeInterval {
+        guard let nextMinute = calendar.nextDate(
+            after: date,
+            matching: DateComponents(second: 0),
+            matchingPolicy: .nextTime,
+            repeatedTimePolicy: .first,
+            direction: .forward
+        ) else {
+            return 60
+        }
+
+        return max(nextMinute.timeIntervalSince(date), 0)
     }
 
     private func renderNow(with preferences: MenuBarPreferences? = nil) {
