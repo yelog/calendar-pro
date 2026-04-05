@@ -682,10 +682,7 @@ private struct FooterActions: View {
 
     var body: some View {
         Button {
-            let timestamp = event.startDate.timeIntervalSinceReferenceDate
-            if let calURL = URL(string: "calshow:\(timestamp)") {
-                NSWorkspace.shared.open(calURL)
-            }
+            openInCalendar()
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "calendar")
@@ -706,6 +703,15 @@ private struct FooterActions: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    private func openInCalendar() {
+        let workspace = NSWorkspace.shared
+        if let appURL = workspace.urlForApplication(
+            withBundleIdentifier: "com.apple.iCal"
+        ) {
+            try? workspace.openApplication(at: appURL, configuration: .init())
+        }
     }
 }
 
