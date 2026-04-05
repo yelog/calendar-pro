@@ -157,15 +157,27 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertNil(store.launchAtLoginStatusMessage)
     }
 
-    func testSetLaunchAtLoginEnabledUpdatesStateOnSuccess() {
+    func testLaunchAtLoginDefaultsToEnabledWhenInitiallyDisabled() {
         let controller = LaunchAtLoginControllerStub(status: .disabled)
         let store = makeStore(launchAtLoginController: controller)
-
-        store.setLaunchAtLoginEnabled(true)
 
         XCTAssertEqual(controller.recordedRequests, [true])
         XCTAssertTrue(store.launchAtLoginEnabled)
         XCTAssertEqual(store.launchAtLoginStatus, .enabled)
+    }
+
+    func testSetLaunchAtLoginEnabledUpdatesStateOnSuccess() {
+        let controller = LaunchAtLoginControllerStub(status: .enabled)
+        let store = makeStore(launchAtLoginController: controller)
+
+        XCTAssertTrue(store.launchAtLoginEnabled)
+        XCTAssertEqual(store.launchAtLoginStatus, .enabled)
+
+        store.setLaunchAtLoginEnabled(false)
+
+        XCTAssertEqual(controller.recordedRequests, [false])
+        XCTAssertFalse(store.launchAtLoginEnabled)
+        XCTAssertEqual(store.launchAtLoginStatus, .disabled)
         XCTAssertNil(store.launchAtLoginStatusMessage)
     }
 
@@ -182,17 +194,17 @@ final class SettingsStoreTests: XCTestCase {
     }
 
     func testSetLaunchAtLoginEnabledRollsBackAndShowsErrorOnFailure() {
-        let controller = LaunchAtLoginControllerStub(status: .disabled)
+        let controller = LaunchAtLoginControllerStub(status: .enabled)
         controller.nextError = StubError.operationFailed
         let store = makeStore(launchAtLoginController: controller)
 
-        store.setLaunchAtLoginEnabled(true)
+        store.setLaunchAtLoginEnabled(false)
 
-        XCTAssertFalse(store.launchAtLoginEnabled)
-        XCTAssertEqual(store.launchAtLoginStatus, .disabled)
+        XCTAssertTrue(store.launchAtLoginEnabled)
+        XCTAssertEqual(store.launchAtLoginStatus, .enabled)
         XCTAssertEqual(
             store.launchAtLoginStatusMessage,
-            "无法开启开机启动：stub operation failed"
+            "无法关闭开机启动：stub operation failed"
         )
     }
 

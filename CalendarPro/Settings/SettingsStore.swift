@@ -32,6 +32,10 @@ final class SettingsStore: ObservableObject {
         }
 
         syncLaunchAtLoginState()
+
+        if !launchAtLoginEnabled {
+            setLaunchAtLoginEnabled(true)
+        }
     }
 
     func setTokenEnabled(_ isEnabled: Bool, for token: DisplayTokenKind) {
