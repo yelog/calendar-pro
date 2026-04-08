@@ -70,6 +70,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - make entire button area clickable in footer buttons
 - rebalance settings window layout
 
+## [0.1.1] - 2026-04-08
+
+### Added
+
+- default launch-at-login to enabled on first launch
+- add stable and beta channel switching
+- add Chinese almanac (宜忌) display in popover
+- add weekend highlight with settings toggle
+- use Chinese weekday symbols in calendar grid
+- add week start day picker UI
+- support solar terms in calendar
+- support selecting detail text
+- unify events visibility controls
+- add dynamic height adjustment for event detail window
+- add current-time event timeline
+- enhance today cell styling with golden badge and background
+- add PopoverDidClose notification listener and check on appear
+- send PopoverDidClose notification when popover closes
+- add lastClosedTime tracking and auto-reset logic to ViewModel
+- add PopoverDidClose notification name
+
+### Changed
+
+- reduce event timeline spacing for compact layout
+- add design plans for removing weather feature
+- add unified events settings design
+- update appcast URLs to use raw.githubusercontent.com
+- extract appcast feed URL logic for testability
+- add project README
+- add implementation plan for auto-reset-to-today
+- add auto-reset-to-today feature design
+
+### Fixed
+
+- open Calendar.app via bundle identifier instead of calshow: URL scheme
+- restore manual settings window for menu bar app
+- align minute refresh to wall-clock boundary, add clock-change resync, and add chineseFull date format
+- default update channel to stable
+- deliver system notifications on the main queue
+- use Xcode 26.3 for Swift 6.2 support
+- use Xcode 16.4 for Swift 6.2 support
+- prevent status item disappearance on display changes
+- redesign current time marker layout
+- simplify selected-day header summary
+- place now marker by displayed time
+- center resizable window on active screen
+- position settings window near popover instead of screen center
+- make entire button area clickable in footer buttons
+- rebalance settings window layout
+
 ## [0.1.0] - 2026-03-31
 
 ### Added

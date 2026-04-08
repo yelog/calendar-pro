@@ -184,7 +184,7 @@ struct EventListView: View {
     }
 
     private enum Metrics {
-        static let timeLaneWidth: CGFloat = 42
+        static let timeLaneWidth: CGFloat = 46
         static let railLaneWidth: CGFloat = 12
         static let laneSpacing: CGFloat = 6
         static let contentSpacing: CGFloat = 6
