@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     enum SettingsWindowConfiguration {
         static let defaultSize = NSSize(width: 840, height: 560)
         static let minimumSize = NSSize(width: 760, height: 520)
@@ -16,6 +16,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var uiTestWindow: NSWindow?
     private var settingsWindow: NSWindow?
     private let uiTestEventDetailWindowController = EventDetailWindowController()
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(isUITestPopoverMode ? .regular : .accessory)
@@ -56,20 +60,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.contentViewController = hostingController
         window.title = "设置"
         window.minSize = SettingsWindowConfiguration.minimumSize
+        window.isReleasedWhenClosed = false
         window.setFrameAutosaveName(SettingsWindowConfiguration.autosaveName)
         window.setFrameUsingName(SettingsWindowConfiguration.autosaveName, force: false)
+        window.delegate = self
         centerSettingsWindowOnCurrentScreen(window)
 
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow = window
+    }
 
-        NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification,
-            object: window,
-            queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated {
+    func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+
+        if window === settingsWindow {
+            DispatchQueue.main.async { [weak self] in
                 self?.settingsWindow = nil
             }
         }
