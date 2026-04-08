@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.1.2-beta.0</title>
+            <pubDate>Wed, 08 Apr 2026 06:50:10 +0000</pubDate>
+            <sparkle:version>01200</sparkle:version>
+            <sparkle:shortVersionString>0.1.2-beta.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.1.2-beta.0&lt;/h2&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;prevent app exit and crash when closing settings&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.1.2-beta.0/CalendarPro-0.1.2-beta.0-universal.dmg" length="6208759" type="application/octet-stream" sparkle:edSignature="2XSPS9y3MwCIs5aL1OeRkg2bGg8MIWpkzDJLwKm89r3NsbnblQanDRZf4XHNS7NTL9BnrqCBDcXV9tkpiktJBQ==" />
+        </item>
+        <item>
             <title>Version 0.1.1</title>
             <pubDate>Wed, 08 Apr 2026 03:13:29 +0000</pubDate>
             <sparkle:version>01199</sparkle:version>
