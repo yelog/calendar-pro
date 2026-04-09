@@ -25,6 +25,14 @@
       <img width="386" height="693" alt="Xnip2026-04-09_09-19-55" src="https://github.com/user-attachments/assets/2bfd23c0-dd3b-4a51-8920-228f0d07bbd7" />
     </td>
   </tr>
+  <tr>
+    <th colspan="2">日程详情页</th>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <img width="752" height="965" alt="image" src="https://github.com/user-attachments/assets/4dcdaa18-8b01-4370-87b5-8cf1a0546c5b" />
+    </td>
+  </tr>
 </table>
 
 ## 概览
