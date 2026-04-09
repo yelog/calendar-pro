@@ -14,8 +14,8 @@
 
 <table>
   <tr>
-    <th>Light Theme</th>
-    <th>Dark Theme</th>
+    <th>亮色主题</th>
+    <th>暗色主题</th>
   </tr>
   <tr>
     <td>
