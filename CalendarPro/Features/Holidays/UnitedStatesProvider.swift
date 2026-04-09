@@ -10,13 +10,13 @@ struct UnitedStatesProvider: HolidayProvider {
     var descriptor: HolidayProviderDescriptor {
         HolidayProviderDescriptor(
             id: "us",
-            displayName: String(localized: "United States"),
+            displayName: L("United States"),
             supportsOfflineData: true,
             supportsRemoteRefresh: false,
             availableHolidaySets: [
                 HolidaySet(
                     id: "federal-holidays",
-                    displayName: String(localized: "Federal Holidays"),
+                    displayName: L("Federal Holidays"),
                     supportedKinds: [.publicHoliday]
                 )
             ]

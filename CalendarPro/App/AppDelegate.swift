@@ -58,7 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             defer: false
         )
         window.contentViewController = hostingController
-        window.title = String(localized: "Settings")
+        window.title = L("Settings")
         window.minSize = SettingsWindowConfiguration.minimumSize
         window.isReleasedWhenClosed = false
         window.setFrameAutosaveName(SettingsWindowConfiguration.autosaveName)

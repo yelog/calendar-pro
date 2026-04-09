@@ -4,10 +4,10 @@ import EventKit
 enum CalendarPopoverEventCountFormatter {
     static func text(isLoadingEvents: Bool, itemCount: Int) -> String {
         if isLoadingEvents {
-            return String(localized: "Loading")
+            return L("Loading")
         }
 
-        return String(localized: "%d items", defaultValue: "\(itemCount) 项")
+        return LF("%d items", itemCount)
     }
 }
 
@@ -112,7 +112,7 @@ struct CalendarPopoverView: View {
             Button {
                 NSApp.sendAction(#selector(AppDelegate.openSettings), to: nil, from: nil)
             } label: {
-                Label(String(localized: "Settings"), systemImage: "gearshape")
+                Label(L("Settings"), systemImage: "gearshape")
                     .font(.system(size: 12))
                     .contentShape(Rectangle())
             }
@@ -122,7 +122,7 @@ struct CalendarPopoverView: View {
             Spacer()
 
             Button(action: onResetToToday) {
-                Label(String(localized: "Today Nav"), systemImage: "calendar")
+                Label(L("Today Nav"), systemImage: "calendar")
                     .font(.system(size: 12))
                     .contentShape(Rectangle())
             }
@@ -132,7 +132,7 @@ struct CalendarPopoverView: View {
             Spacer()
 
             Button(action: onQuit) {
-                Label(String(localized: "Quit"), systemImage: "power")
+                Label(L("Quit"), systemImage: "power")
                     .font(.system(size: 12))
                     .contentShape(Rectangle())
             }
@@ -201,7 +201,7 @@ struct CalendarPopoverView: View {
 
     private func formattedSelectedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.locale = .autoupdatingCurrent
+        formatter.locale = AppLocalization.locale
         formatter.setLocalizedDateFormatFromTemplate("MMMdEEEE")
         return formatter.string(from: date)
     }

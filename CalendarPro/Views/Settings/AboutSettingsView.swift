@@ -35,7 +35,7 @@ struct AboutSettingsView: View {
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
 
-            Text(String(localized: "macOS Menu Bar Calendar"))
+            Text(L("macOS Menu Bar Calendar"))
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(.secondary)
 
@@ -65,7 +65,7 @@ struct AboutSettingsView: View {
 
     private var connectSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(String(localized: "Links"))
+            Text(L("Links"))
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary.opacity(0.8))
                 .tracking(0.5)
@@ -82,12 +82,12 @@ struct AboutSettingsView: View {
                             .font(.system(size: 16))
                             .foregroundStyle(.yellow)
 
-                        Text(String(localized: "Star on GitHub"))
+                        Text(L("Star on GitHub"))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.primary)
                     }
 
-                    Text(String(localized: "Star Support Message"))
+                    Text(L("Star Support Message"))
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -138,19 +138,19 @@ struct AboutSettingsView: View {
 
     private var updateSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(String(localized: "Updates"))
+            Text(L("Updates"))
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary.opacity(0.8))
                 .tracking(0.5)
 
             VStack(alignment: .leading, spacing: 10) {
-                Toggle(String(localized: "Check Automatically for Updates"), isOn: $autoCheckUpdates)
+                Toggle(L("Check Automatically for Updates"), isOn: $autoCheckUpdates)
                     .font(.system(size: 13))
                     .onChange(of: autoCheckUpdates) {
                         UpdateChecker.shared.automaticallyChecksForUpdates = autoCheckUpdates
                     }
 
-                Picker(String(localized: "Update Channel"), selection: $updateChannel) {
+                Picker(L("Update Channel"), selection: $updateChannel) {
                     ForEach(UpdateChannel.allCases, id: \.self) { channel in
                         Text(channel.title).tag(channel)
                     }
@@ -160,7 +160,7 @@ struct AboutSettingsView: View {
                     UpdateChecker.shared.selectedUpdateChannel = updateChannel
                 }
 
-                Text(String(localized: "Update Channel Description"))
+                Text(L("Update Channel Description"))
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -193,7 +193,7 @@ struct AboutSettingsView: View {
                                 Image(systemName: "arrow.clockwise")
                                     .font(.system(size: 10))
                             }
-                            Text(String(localized: "Check for Updates"))
+                            Text(L("Check for Updates"))
                         }
                         .font(.system(size: 11))
                     }

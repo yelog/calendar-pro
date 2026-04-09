@@ -9,14 +9,14 @@ struct MonthHeaderView: View {
 
     private var yearText: String {
         let formatter = DateFormatter()
-        formatter.locale = Locale.autoupdatingCurrent
+        formatter.locale = AppLocalization.locale
         formatter.setLocalizedDateFormatFromTemplate("y")
         return formatter.string(from: displayedMonth)
     }
 
     private var monthText: String {
         let formatter = DateFormatter()
-        formatter.locale = Locale.autoupdatingCurrent
+        formatter.locale = AppLocalization.locale
         formatter.setLocalizedDateFormatFromTemplate("MMMM")
         return formatter.string(from: displayedMonth)
     }
@@ -25,7 +25,7 @@ struct MonthHeaderView: View {
         HStack(spacing: 12) {
             navigationButton(
                 systemImage: "chevron.left",
-                label: String(localized: "Previous Month"),
+                label: L("Previous Month"),
                 identifier: "previous-month-button",
                 action: onPreviousMonth
             )
@@ -52,7 +52,7 @@ struct MonthHeaderView: View {
 
             navigationButton(
                 systemImage: "chevron.right",
-                label: String(localized: "Next Month"),
+                label: L("Next Month"),
                 identifier: "next-month-button",
                 action: onNextMonth
             )

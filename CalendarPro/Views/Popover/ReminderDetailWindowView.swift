@@ -27,7 +27,7 @@ struct ReminderDetailWindowView: View {
     private var header: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(String(localized: "Reminder Details"))
+                Text(L("Reminder Details"))
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
 
@@ -43,7 +43,7 @@ struct ReminderDetailWindowView: View {
                     .padding(.top, 2)
 
                     SelectableDetailText(
-                        text: reminder.title ?? String(localized: "Untitled"),
+                        text: reminder.title ?? L("Untitled"),
                         font: .system(size: 16, weight: .semibold, design: .rounded),
                         lineLimit: 2,
                         strikethrough: reminder.isCompleted
@@ -78,7 +78,7 @@ struct ReminderDetailWindowView: View {
                     font: .system(size: 14, weight: .semibold, design: .rounded)
                 )
             } else {
-                Text(String(localized: "No Due Date"))
+                Text(L("No Due Date"))
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
             }
@@ -97,7 +97,7 @@ struct ReminderDetailWindowView: View {
                         .font(.system(size: 10))
                         .foregroundStyle(.green)
                     SelectableDetailText(
-                        text: String(format: String(localized: "Completed on %@"), formattedDate(completionDate)),
+                        text: LF("Completed on %@", formattedDate(completionDate)),
                         font: .system(size: 11),
                         foregroundColor: .secondary
                     )
@@ -114,18 +114,18 @@ struct ReminderDetailWindowView: View {
     private var detailScrollView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
-                ReminderDetailRow(icon: "list.bullet", title: String(localized: "List"), value: reminder.calendar.title)
+                ReminderDetailRow(icon: "list.bullet", title: L("List"), value: reminder.calendar.title)
 
                 if let recurrenceText {
-                    ReminderDetailRow(icon: "repeat", title: String(localized: "Repeat"), value: recurrenceText)
+                    ReminderDetailRow(icon: "repeat", title: L("Repeat"), value: recurrenceText)
                 }
 
                 if priorityText != nil {
-                    ReminderDetailRow(icon: "flag.fill", title: String(localized: "Priority"), value: priorityText!)
+                    ReminderDetailRow(icon: "flag.fill", title: L("Priority"), value: priorityText!)
                 }
 
                 if let alarmText {
-                    ReminderDetailRow(icon: "bell.fill", title: String(localized: "Alert"), value: alarmText)
+                    ReminderDetailRow(icon: "bell.fill", title: L("Alert"), value: alarmText)
                 }
 
                 if let url = reminder.url {
@@ -154,7 +154,7 @@ struct ReminderDetailWindowView: View {
             return nil
         }
         let formatter = DateFormatter()
-        formatter.locale = .autoupdatingCurrent
+        formatter.locale = AppLocalization.locale
         formatter.setLocalizedDateFormatFromTemplate("MMMdEEEE")
         return formatter.string(from: date)
     }
@@ -168,7 +168,7 @@ struct ReminderDetailWindowView: View {
             return nil
         }
         let formatter = DateFormatter()
-        formatter.locale = .autoupdatingCurrent
+        formatter.locale = AppLocalization.locale
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         return formatter.string(from: date)
@@ -185,9 +185,9 @@ struct ReminderDetailWindowView: View {
     private var priorityText: String? {
         switch reminder.priority {
         case 0: return nil
-        case 1...4: return String(localized: "High")
-        case 5: return String(localized: "Medium")
-        case 6...9: return String(localized: "Low")
+        case 1...4: return L("High")
+        case 5: return L("Medium")
+        case 6...9: return L("Low")
         default: return nil
         }
     }
@@ -199,25 +199,25 @@ struct ReminderDetailWindowView: View {
         let descriptions = alarms.compactMap { alarm -> String? in
             if let absoluteDate = alarm.absoluteDate {
                 let formatter = DateFormatter()
-                formatter.locale = .autoupdatingCurrent
+                formatter.locale = AppLocalization.locale
                 formatter.dateStyle = .short
                 formatter.timeStyle = .short
                 return formatter.string(from: absoluteDate)
             }
             let offset = alarm.relativeOffset
             if offset == 0 {
-                return String(localized: "At Due Time")
+                return L("At Due Time")
             }
             let minutes = Int(abs(offset) / 60)
             if minutes < 60 {
-                return String(format: String(localized: "%d minutes before"), minutes)
+                return LF("%d minutes before", minutes)
             }
             let hours = minutes / 60
             if hours < 24 {
-                return String(format: String(localized: "%d hours before"), hours)
+                return LF("%d hours before", hours)
             }
             let days = hours / 24
-            return String(format: String(localized: "%d days before"), days)
+            return LF("%d days before", days)
         }
         return descriptions.joined(separator: ", ")
     }
@@ -240,7 +240,7 @@ struct ReminderDetailWindowView: View {
 
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.locale = .autoupdatingCurrent
+        formatter.locale = AppLocalization.locale
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter.string(from: date)
@@ -250,22 +250,22 @@ struct ReminderDetailWindowView: View {
         let interval = rule.interval
         switch rule.frequency {
         case .daily:
-            return interval == 1 ? String(localized: "Daily") : String(format: String(localized: "Every %d Days"), interval)
+            return interval == 1 ? L("Daily") : LF("Every %d Days", interval)
         case .weekly:
             if interval == 1 {
                 if let days = rule.daysOfTheWeek, !days.isEmpty {
                     let dayNames = days.map { weekdayName($0.dayOfTheWeek) }
-                    return String(format: String(localized: "Weekly %@"), dayNames.joined(separator: ", "))
+                    return LF("Weekly %@", dayNames.joined(separator: ", "))
                 }
-                return String(localized: "Weekly")
+                return L("Weekly")
             }
-            return String(format: String(localized: "Every %d Weeks"), interval)
+            return LF("Every %d Weeks", interval)
         case .monthly:
-            return interval == 1 ? String(localized: "Monthly") : String(format: String(localized: "Every %d Months"), interval)
+            return interval == 1 ? L("Monthly") : LF("Every %d Months", interval)
         case .yearly:
-            return interval == 1 ? String(localized: "Yearly") : String(format: String(localized: "Every %d Years"), interval)
+            return interval == 1 ? L("Yearly") : LF("Every %d Years", interval)
         @unknown default:
-            return String(localized: "Custom Repeat")
+            return L("Custom Repeat")
         }
     }
 
@@ -381,7 +381,7 @@ private struct ReminderLinkDetailRow: View {
                 )
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(String(localized: "Link"))
+                Text(L("Link"))
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
@@ -393,7 +393,7 @@ private struct ReminderLinkDetailRow: View {
                     underline: true
                 )
 
-                OpenURLActionButton(title: String(localized: "Open Link"), url: url)
+                OpenURLActionButton(title: L("Open Link"), url: url)
             }
 
             Spacer(minLength: 0)
@@ -432,7 +432,7 @@ private struct ReminderNotesDetailRow: View {
                 )
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(String(localized: "Notes"))
+                Text(L("Notes"))
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
@@ -470,7 +470,7 @@ private struct ReminderNotesDetailRow: View {
                             isExpanded.toggle()
                         }
                     } label: {
-                        Text(isExpanded ? String(localized: "Collapse") : String(localized: "Expand"))
+                        Text(isExpanded ? L("Collapse") : L("Expand"))
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.accentColor)
                     }
@@ -501,7 +501,7 @@ private struct ReminderNotesDetailRow: View {
 
 private struct ReminderEmptyDetailState: View {
     var body: some View {
-        Text(String(localized: "No More Details"))
+        Text(L("No More Details"))
             .font(.system(size: 12))
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -532,7 +532,7 @@ private struct FooterActions: View {
             HStack(spacing: 6) {
                 Image(systemName: "list.bullet.rectangle.portrait")
                     .font(.system(size: 11, weight: .semibold))
-                Text(String(localized: "Open in Reminders"))
+                Text(L("Open in Reminders"))
                     .font(.system(size: 12, weight: .medium))
             }
             .foregroundColor(.secondary)

@@ -2,7 +2,7 @@ import Foundation
 
 enum LocaleFeatureAvailability {
     static var isChineseLocale: Bool {
-        Locale.current.language.languageCode?.identifier == "zh"
+        AppLocalization.languageCode == "zh"
     }
 
     static var showLunarFeatures: Bool { isChineseLocale }

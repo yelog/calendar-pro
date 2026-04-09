@@ -167,6 +167,7 @@ struct EventTimelineSnapshot {
 
     private static func format(minutes: Int) -> String {
         let formatter = DateFormatter()
+        formatter.locale = AppLocalization.locale
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         var components = DateComponents()
@@ -267,11 +268,11 @@ struct EventListView: View {
             }
 
             if !timelineSnapshot.allDayItems.isEmpty {
-                auxiliarySection(title: String(localized: "All Day"), items: timelineSnapshot.allDayItems)
+                auxiliarySection(title: L("All Day"), items: timelineSnapshot.allDayItems)
             }
 
             if !timelineSnapshot.untimedItems.isEmpty {
-                auxiliarySection(title: String(localized: "No Time"), items: timelineSnapshot.untimedItems)
+                auxiliarySection(title: L("No Time"), items: timelineSnapshot.untimedItems)
             }
         }
         .overlayPreferenceValue(EventTimelineItemBoundsPreferenceKey.self) { anchors in
@@ -506,6 +507,7 @@ struct EventListView: View {
 
     private var formattedCurrentTime: String {
         let formatter = DateFormatter()
+        formatter.locale = AppLocalization.locale
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         return formatter.string(from: currentTime)

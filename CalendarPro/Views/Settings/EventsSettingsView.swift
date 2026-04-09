@@ -24,12 +24,12 @@ struct EventsSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                GroupBox(String(localized: "Events")) {
+                GroupBox(L("Events")) {
                     VStack(alignment: .leading, spacing: 14) {
-                        Toggle(String(localized: "Show Events in Panel"), isOn: showEventsBinding)
+                        Toggle(L("Show Events in Panel"), isOn: showEventsBinding)
                             .toggleStyle(.checkbox)
 
-                        Text(String(localized: "Show Events Description"))
+                        Text(L("Show Events Description"))
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -37,7 +37,7 @@ struct EventsSettingsView: View {
                         if store.menuBarPreferences.showEvents {
                             Divider()
 
-                            Text(String(localized: "Data Sources"))
+                            Text(L("Data Sources"))
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.secondary)
 
@@ -111,32 +111,32 @@ struct EventsSettingsView: View {
 
     private var calendarEventsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle(String(localized: "Include Calendar Events"), isOn: showCalendarEventsBinding)
+            Toggle(L("Include Calendar Events"), isOn: showCalendarEventsBinding)
                 .toggleStyle(.checkbox)
 
             if !eventService.isAuthorized {
                 permissionRow(
-                    title: String(localized: "Calendar Access Required"),
-                    buttonTitle: String(localized: "Request Access")
+                    title: L("Calendar Access Required"),
+                    buttonTitle: L("Request Access")
                 ) {
                     Task {
                         await eventService.requestAccess()
                     }
                 }
             } else if store.menuBarPreferences.showCalendarEvents {
-                Text(String(localized: "Choose Calendars"))
+                Text(L("Choose Calendars"))
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
 
                 if eventService.calendars.isEmpty {
-                    Text(String(localized: "No Calendars Available"))
+                    Text(L("No Calendars Available"))
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 } else {
                     VStack(spacing: 12) {
                         ForEach(calendarGroups, id: \.source?.title) { group in
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(group.source?.title ?? String(localized: "Unknown"))
+                                Text(group.source?.title ?? L("Unknown"))
                                     .font(.system(size: 11, weight: .semibold))
                                     .foregroundStyle(.tertiary)
 
@@ -164,25 +164,25 @@ struct EventsSettingsView: View {
 
     private var remindersSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle(String(localized: "Include Reminders"), isOn: showRemindersBinding)
+            Toggle(L("Include Reminders"), isOn: showRemindersBinding)
                 .toggleStyle(.checkbox)
 
             if !eventService.remindersAuthorized {
                 permissionRow(
-                    title: String(localized: "Reminders Access Required"),
-                    buttonTitle: String(localized: "Request Access")
+                    title: L("Reminders Access Required"),
+                    buttonTitle: L("Request Access")
                 ) {
                     Task {
                         await eventService.requestReminderAccess()
                     }
                 }
             } else if store.menuBarPreferences.showReminders {
-                Text(String(localized: "Choose Reminder Lists"))
+                Text(L("Choose Reminder Lists"))
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
 
                 if eventService.reminderCalendars.isEmpty {
-                    Text(String(localized: "No Reminder Lists Available"))
+                    Text(L("No Reminder Lists Available"))
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 } else {

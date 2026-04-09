@@ -10,7 +10,7 @@ struct MonthPickerView: View {
 
     private let months: [String] = {
         let formatter = DateFormatter()
-        formatter.locale = Locale.autoupdatingCurrent
+        formatter.locale = AppLocalization.locale
         return formatter.monthSymbols
     }()
 
@@ -60,7 +60,7 @@ struct MonthPickerView: View {
 
     private var yearDisplayText: String {
         let formatter = DateFormatter()
-        formatter.locale = Locale.autoupdatingCurrent
+        formatter.locale = AppLocalization.locale
         formatter.setLocalizedDateFormatFromTemplate("y")
         var components = DateComponents()
         components.year = displayedYear

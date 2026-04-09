@@ -14,26 +14,26 @@ enum LaunchAtLoginStatus: Equatable {
     var summaryText: String {
         switch self {
         case .enabled:
-            String(localized: "Launch Enabled")
+            L("Launch Enabled")
         case .disabled:
-            String(localized: "Launch Disabled")
+            L("Launch Disabled")
         case .requiresApproval:
-            String(localized: "Launch Pending Approval")
+            L("Launch Pending Approval")
         case .unavailable:
-            String(localized: "Unavailable")
+            L("Unavailable")
         }
     }
 
     var detailText: String? {
         switch self {
         case .enabled:
-            String(localized: "Launch enabled detail")
+            L("Launch enabled detail")
         case .disabled:
-            String(localized: "Launch disabled detail")
+            L("Launch disabled detail")
         case .requiresApproval:
-            String(localized: "Launch approval detail")
+            L("Launch approval detail")
         case .unavailable:
-            String(localized: "Launch unavailable detail")
+            L("Launch unavailable detail")
         }
     }
 }

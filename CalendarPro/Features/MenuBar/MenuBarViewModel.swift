@@ -32,7 +32,7 @@ final class MenuBarViewModel: ObservableObject {
         renderer: ClockRenderService = ClockRenderService(),
         registry: HolidayProviderRegistry = .live,
         now: @escaping () -> Date = Date.init,
-        localeProvider: @escaping () -> Locale = { .autoupdatingCurrent },
+        localeProvider: @escaping () -> Locale = { AppLocalization.locale },
         calendarProvider: @escaping () -> Calendar = { .autoupdatingCurrent },
         timeZoneProvider: @escaping () -> TimeZone = { .autoupdatingCurrent },
         notificationCenter: NotificationCenter = .default
@@ -46,12 +46,13 @@ final class MenuBarViewModel: ObservableObject {
         self.timeZoneProvider = timeZoneProvider
         self.notificationCenter = notificationCenter
 
-        settingsCancellable = Publishers.CombineLatest(
+        settingsCancellable = Publishers.CombineLatest3(
             settingsStore.$menuBarPreferences,
-            settingsStore.$holidayDataRevision
+            settingsStore.$holidayDataRevision,
+            settingsStore.$appLanguage
         )
         .receive(on: DispatchQueue.main)
-        .sink { [weak self] preferences, _ in
+        .sink { [weak self] preferences, _, _ in
             guard let self else { return }
             let updatedGranularity: RefreshGranularity = preferences.requiresSecondRefresh ? .second : .minute
             let needsReschedule = self.refreshGranularity != updatedGranularity

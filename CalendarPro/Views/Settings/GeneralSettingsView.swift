@@ -6,10 +6,25 @@ struct GeneralSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                GeneralSettingsSection(String(localized: "Launch")) {
+                GeneralSettingsSection(L("Launch")) {
                     GeneralSettingsRow(
-                        title: String(localized: "Launch at Login"),
-                        description: String(localized: "Launch at Login Description")
+                        title: L("App Language"),
+                        description: L("App Language Description")
+                    ) {
+                        Picker("", selection: appLanguageBinding) {
+                            Text(L("Follow System")).tag(AppLanguage.followSystem)
+                            Text(L("Simplified Chinese")).tag(AppLanguage.simplifiedChinese)
+                            Text(L("English")).tag(AppLanguage.english)
+                        }
+                        .labelsHidden()
+                        .frame(width: 210)
+                    }
+
+                    Divider()
+
+                    GeneralSettingsRow(
+                        title: L("Launch at Login"),
+                        description: L("Launch at Login Description")
                     ) {
                         Toggle("", isOn: launchAtLoginBinding)
                             .labelsHidden()
@@ -30,14 +45,14 @@ struct GeneralSettingsView: View {
                     }
                 }
 
-                GeneralSettingsSection(String(localized: "Calendar Display")) {
+                GeneralSettingsSection(L("Calendar Display")) {
                     GeneralSettingsRow(
-                        title: String(localized: "Week Starts On"),
-                        description: String(localized: "Week Starts On Description")
+                        title: L("Week Starts On"),
+                        description: L("Week Starts On Description")
                     ) {
                         Picker("", selection: weekStartBinding) {
-                            Text(String(localized: "Monday First")).tag(WeekStart.monday)
-                            Text(String(localized: "Sunday First")).tag(WeekStart.sunday)
+                            Text(L("Monday First")).tag(WeekStart.monday)
+                            Text(L("Sunday First")).tag(WeekStart.sunday)
                         }
                         .labelsHidden()
                         .pickerStyle(.segmented)
@@ -47,8 +62,8 @@ struct GeneralSettingsView: View {
                     Divider()
 
                     GeneralSettingsRow(
-                        title: String(localized: "Highlight Weekends"),
-                        description: String(localized: "Highlight Weekends Description")
+                        title: L("Highlight Weekends"),
+                        description: L("Highlight Weekends Description")
                     ) {
                         Toggle("", isOn: highlightWeekendsBinding)
                             .labelsHidden()
@@ -56,10 +71,10 @@ struct GeneralSettingsView: View {
                 }
 
                 if LocaleFeatureAvailability.showAlmanacFeatures {
-                    GeneralSettingsSection(String(localized: "Panel Info")) {
+                    GeneralSettingsSection(L("Panel Info")) {
                         GeneralSettingsRow(
-                            title: String(localized: "Show Almanac"),
-                            description: String(localized: "Show Almanac Description")
+                            title: L("Show Almanac"),
+                            description: L("Show Almanac Description")
                         ) {
                             Toggle("", isOn: showAlmanacBinding)
                                 .labelsHidden()
@@ -77,6 +92,13 @@ struct GeneralSettingsView: View {
         Binding(
             get: { store.launchAtLoginEnabled },
             set: { store.setLaunchAtLoginEnabled($0) }
+        )
+    }
+
+    private var appLanguageBinding: Binding<AppLanguage> {
+        Binding(
+            get: { store.appLanguage },
+            set: { store.setAppLanguage($0) }
         )
     }
 

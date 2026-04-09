@@ -1,1014 +1,2792 @@
 {
-  "sourceLanguage": "zh-Hans",
-  "strings": {
-    "Today": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Today" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "今" } }
-      }
-    },
-    "OFF": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "OFF" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "休" } }
-      }
-    },
-    "WRK": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "WRK" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "班" } }
-      }
-    },
-    "Settings": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Settings" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "设置" } }
-      }
-    },
-    "Today Nav": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Today" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "今日" } }
-      }
-    },
-    "Quit": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Quit" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "退出" } }
-      }
-    },
-    "Loading": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Loading" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "加载中" } }
-      }
-    },
-    "%d items": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "%d items" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "%d 项" } }
-      }
-    },
-    "All Day": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "All Day" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "全天" } }
-      }
-    },
-    "No Time": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No Time" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未指定时间" } }
-      }
-    },
-    "Events off": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Events off" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日程已关闭" } }
-      }
-    },
-    "No event sources enabled": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No event sources enabled" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未启用任何日程来源" } }
-      }
-    },
-    "Cal on": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Cal on" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日历开" } }
-      }
-    },
-    "Cal off": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Cal off" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日历关" } }
-      }
-    },
-    "Rem on": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Rem on" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提醒开" } }
-      }
-    },
-    "Rem off": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Rem off" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提醒关" } }
-      }
-    },
-    "No events today": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No events today" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当天无日程" } }
-      }
-    },
-    "Mainland China": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Mainland China" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "中国大陆" } }
-      }
-    },
-    "Hong Kong": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Hong Kong" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "中国香港" } }
-      }
-    },
-    "United States": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "United States" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "美国" } }
-      }
-    },
-    "United Kingdom": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "United Kingdom" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "英国" } }
-      }
-    },
-    "Statutory Holidays": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Statutory Holidays" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "法定节假日" } }
-      }
-    },
-    "Adjustment Workdays": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Adjustment Workdays" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "调休上班" } }
-      }
-    },
-    "Public Holidays": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Public Holidays" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "公众假期" } }
-      }
-    },
-    "Federal Holidays": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Federal Holidays" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "联邦假日" } }
-      }
-    },
-    "Bank Holidays": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Bank Holidays" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "银行假日" } }
-      }
-    },
-    "Holiday Data": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Holiday Data" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "节假日数据" } }
-      }
-    },
-    "Manual Refresh": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Manual Refresh" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "手动刷新" } }
-      }
-    },
-    "Cache fallback": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Falls back to cached data when remote update fails." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "远程更新失败时会回退到缓存。" } }
-      }
-    },
-    "No remote configured": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Configure a remote manifest URL to enable manual refresh." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "需要配置远程 manifest 地址后才可手动刷新。" } }
-      }
-    },
-    "Enable %@": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Enable %@" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "启用 %@" } }
-      }
-    },
-    "Cache in use": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Using cached holiday data…" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前使用缓存节假日数据…" } }
-      }
-    },
-    "Remote refresh failed": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Remote refresh failed, using cached data." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "远程更新失败，使用缓存数据。" } }
-      }
-    },
-    "Remote refreshed": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Holiday data refreshed from remote." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已刷新远程节假日数据。" } }
-      }
-    },
-    "Previous Month": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Previous Month" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "上一月" } }
-      }
-    },
-    "Next Month": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Next Month" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "下一月" } }
-      }
-    },
-    "Select Year": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Select Year" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "选择年份" } }
-      }
-    },
-    "Menu Bar Preview": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Menu Bar Preview" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "菜单栏预览" } }
-      }
-    },
-    "Basic Settings": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Basic Settings" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "基础设置" } }
-      }
-    },
-    "Separator": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Separator" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "分隔符" } }
-      }
-    },
-    "Space": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Space" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "空格" } }
-      }
-    },
-    "Display Items": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Display Items" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "显示项" } }
-      }
-    },
-    "Style": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Style" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "样式" } }
-      }
-    },
-    "Date": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Date" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日期" } }
-      }
-    },
-    "Time": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Time" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "时间" } }
-      }
-    },
-    "Weekday": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Weekday" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "星期" } }
-      }
-    },
-    "Lunar": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Lunar" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "农历" } }
-      }
-    },
-    "Holiday": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Holiday" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "节假日" } }
-      }
-    },
-    "Launch": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Launch" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "启动" } }
-      }
-    },
-    "Launch at Login": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Launch at Login" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "开机自动启动" } }
-      }
-    },
-    "Launch at Login Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Start Calendar Pro automatically after the current user signs in." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "登录当前用户后自动启动 Calendar Pro，修改后立即生效。" } }
-      }
-    },
-    "Calendar Display": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Calendar Display" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日历显示" } }
-      }
-    },
-    "Week Starts On": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Week Starts On" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "每周起始日" } }
-      }
-    },
-    "Week Starts On Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Choose the weekday order used in the calendar popover." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "设置月历面板中星期的排列顺序。" } }
-      }
-    },
-    "Monday First": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Monday First" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "周一在前" } }
-      }
-    },
-    "Sunday First": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Sunday First" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "周日在前" } }
-      }
-    },
-    "Highlight Weekends": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Highlight Weekends" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "周末高亮显示" } }
-      }
-    },
-    "Highlight Weekends Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Show weekend dates and headers in red for quicker scanning." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "将周六、周日的日期数字及标题显示为红色，便于快速区分休息日。" } }
-      }
-    },
-    "Panel Info": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Panel Info" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "面板信息" } }
-      }
-    },
-    "Show Almanac": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Show Almanac" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "显示黄历宜忌" } }
-      }
-    },
-    "Show Almanac Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Show daily almanac guidance in the calendar panel using local calendar calculations." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "在日历面板中显示当日宜忌，基于本地历法计算，无需网络。" } }
-      }
-    },
-    "Event Details": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Event Details" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日程详情" } }
-      }
-    },
-    "Reminder Details": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Reminder Details" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提醒事项详情" } }
-      }
-    },
-    "Untitled": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Untitled" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "无标题" } }
-      }
-    },
-    "Calendar": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Calendar" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "所属日历" } }
-      }
-    },
-    "Location": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Location" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "地点" } }
-      }
-    },
-    "Open Link": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Open Link" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "打开链接" } }
-      }
-    },
-    "Link": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Link" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "链接" } }
-      }
-    },
-    "Attendees": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Attendees" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "参会人" } }
-      }
-    },
-    "Collapse": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Collapse" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "收起" } }
-      }
-    },
-    "Expand": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Expand" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "展开" } }
-      }
-    },
-    "%d more attendees": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "%d more attendees..." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "还有 %d 人..." } }
-      }
-    },
-    "Unknown Attendee": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Unknown Attendee" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未知参会人" } }
-      }
-    },
-    "Notes": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Notes" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "备注" } }
-      }
-    },
-    "No More Details": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No more details" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂无更多详情" } }
-      }
-    },
-    "Join %@ Meeting": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Join %@ Meeting" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "加入%@会议" } }
-      }
-    },
-    "Open in Calendar": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Open in Calendar" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "在日历中打开" } }
-      }
-    },
-    "No Due Date": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No Due Date" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "无截止日期" } }
-      }
-    },
-    "Completed on %@": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Completed on %@" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已完成于 %@" } }
-      }
-    },
-    "List": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "List" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "所属列表" } }
-      }
-    },
-    "Repeat": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Repeat" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重复" } }
-      }
-    },
-    "Priority": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Priority" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "优先级" } }
-      }
-    },
-    "Alert": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Alert" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提醒" } }
-      }
-    },
-    "High": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "High" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "高" } }
-      }
-    },
-    "Medium": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Medium" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "中" } }
-      }
-    },
-    "Low": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Low" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "低" } }
-      }
-    },
-    "At Due Time": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "At Due Time" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "到期时" } }
-      }
-    },
-    "%d minutes before": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "%d minutes before" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提前 %d 分钟" } }
-      }
-    },
-    "%d hours before": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "%d hours before" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提前 %d 小时" } }
-      }
-    },
-    "%d days before": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "%d days before" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提前 %d 天" } }
-      }
-    },
-    "Daily": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Daily" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "每天" } }
-      }
-    },
-    "Every %d Days": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Every %d Days" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "每 %d 天" } }
-      }
-    },
-    "Weekly": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Weekly" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "每周" } }
-      }
-    },
-    "Weekly %@": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Weekly %@" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "每周%@" } }
-      }
-    },
-    "Every %d Weeks": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Every %d Weeks" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "每 %d 周" } }
-      }
-    },
-    "Monthly": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Monthly" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "每月" } }
-      }
-    },
-    "Every %d Months": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Every %d Months" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "每 %d 个月" } }
-      }
-    },
-    "Yearly": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Yearly" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "每年" } }
-      }
-    },
-    "Every %d Years": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Every %d Years" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "每 %d 年" } }
-      }
-    },
-    "Custom Repeat": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Custom Repeat" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "自定义重复" } }
-      }
-    },
-    "Open in Reminders": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Open in Reminders" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "在提醒事项中打开" } }
-      }
-    },
-    "Launch approval required": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "System approval is required to finish enabling launch at login. Open System Settings > General > Login Items to continue." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "系统需要批准后才能完成开机启动，请前往“系统设置 > 通用 > 登录项”继续操作。" } }
-      }
-    },
-    "Launch unavailable": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Launch at login is currently unavailable. Open Calendar Pro from the installed app bundle and try again." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前无法配置开机启动，请从已安装的应用包启动 Calendar Pro 后重试。" } }
-      }
-    },
-    "Enable": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Enable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "开启" } }
-      }
-    },
-    "Disable": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Disable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "关闭" } }
-      }
-    },
-    "Unable to %@ launch at login: %@": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Unable to %@ launch at login: %@" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "无法%@开机启动：%@" } }
-      }
-    },
-    "General": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "General" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "通用" } }
-      }
-    },
-    "Menu Bar": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Menu Bar" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "菜单栏" } }
-      }
-    },
-    "Events": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Events" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日程" } }
-      }
-    },
-    "Regions and Holidays": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Regions & Holidays" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "地区与节假日" } }
-      }
-    },
-    "About": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "About" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "关于" } }
-      }
-    },
-    "View Current Summary": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "View current summary" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "查看当前配置摘要" } }
-      }
-    },
-    "Adjust Menu Bar Text": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Adjust menu bar text and order" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "调整菜单栏文本与顺序" } }
-      }
-    },
-    "Manage Calendar Sources": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Manage calendar and reminder sources" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "管理日历与提醒事项来源" } }
-      }
-    },
-    "Configure Holiday Data": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Configure holiday data" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "配置地区与节假日数据" } }
-      }
-    },
-    "Version and Updates": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Version info and updates" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "版本信息与检查更新" } }
-      }
-    },
-    "General Detail Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Review the current configuration and confirm which menu bar, event, and regional features are enabled." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "集中查看当前设置概览，确认菜单栏、日程和地区能力的启用状态。" } }
-      }
-    },
-    "Menu Bar Detail Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Adjust menu bar items, separators, ordering, and styles with a live preview." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "调整菜单栏显示项、分隔符、排序与样式，实时预览最终显示效果。" } }
-      }
-    },
-    "Events Detail Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Manage Calendar and Reminders permissions, and choose the sources shown in the popover." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "管理日历与提醒事项访问权限，并选择要在面板中显示的数据来源。" } }
-      }
-    },
-    "Regions Detail Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Choose regional holiday datasets and manually refresh the remote holiday feed when needed." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "选择节假日地区数据集，必要时手动刷新远程节假日清单。" } }
-      }
-    },
-    "About Detail Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "View app version information, author details, and check for software updates." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "查看应用版本、作者信息，以及检查软件更新。" } }
-      }
-    },
-    "Native macOS menu bar calendar": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Native macOS menu bar calendar, events, and regional holiday settings." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "原生 macOS 菜单栏日历、日程与地区化节假日配置。" } }
-      }
-    },
-    "Settings autosave": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Settings are saved automatically and take effect immediately." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "设置会自动保存，修改后立即生效。" } }
-      }
-    },
-    "Show Events in Panel": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Show events in panel" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "在面板中显示日程" } }
-      }
-    },
-    "Show Events Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "When disabled, calendar events and reminders are hidden, but your source selections are preserved." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "关闭后不会显示日历日程和提醒事项，已选来源会被保留。" } }
-      }
-    },
-    "Data Sources": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Data Sources" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "数据来源" } }
-      }
-    },
-    "Include Calendar Events": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Include calendar events" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "包含日历日程" } }
-      }
-    },
-    "Calendar Access Required": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Calendar access required" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "需要日历访问权限" } }
-      }
-    },
-    "Request Access": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Request Access" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请求权限" } }
-      }
-    },
-    "Choose Calendars": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Choose Calendars" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "选择日历" } }
-      }
-    },
-    "No Calendars Available": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No calendars available" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂无可用日历" } }
-      }
-    },
-    "Unknown": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Unknown" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未知" } }
-      }
-    },
-    "Include Reminders": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Include reminders" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "包含提醒事项" } }
-      }
-    },
-    "Reminders Access Required": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Reminders access required" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "需要提醒事项访问权限" } }
-      }
-    },
-    "Choose Reminder Lists": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Choose Reminder Lists" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "选择提醒事项列表" } }
-      }
-    },
-    "No Reminder Lists Available": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No reminder lists available" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂无可用提醒事项列表" } }
-      }
-    },
-    "macOS Menu Bar Calendar": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "macOS Menu Bar Calendar" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "macOS 菜单栏日历" } }
-      }
-    },
-    "Links": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Links" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "链接" } }
-      }
-    },
-    "Star on GitHub": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Star on GitHub" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "在 GitHub 上 Star" } }
-      }
-    },
-    "Star Support Message": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "If Calendar Pro is useful to you, a GitHub star would help a lot." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "如果觉得有用，请给个 Star 支持一下" } }
-      }
-    },
-    "Updates": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Updates" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "更新" } }
-      }
-    },
-    "Check Automatically for Updates": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Check automatically for updates" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "自动检查更新" } }
-      }
-    },
-    "Update Channel": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Update Channel" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "更新通道" } }
-      }
-    },
-    "Update Channel Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Stable only receives official releases. Beta also receives prerelease updates." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "稳定版仅接收正式发布；切换到测试版后，会接收预发布更新。" } }
-      }
-    },
-    "Check for Updates": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Check for Updates" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "检查更新" } }
-      }
-    },
-    "Stable": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Stable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "稳定版" } }
-      }
-    },
-    "Beta": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Beta" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "测试版" } }
-      }
-    },
-    "Using cached holiday data v%@": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Using cached holiday data v%@" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前使用缓存节假日数据 v%@" } }
-      }
-    },
-    "Using cached holiday data v%@, remote refresh failed": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Using cached holiday data v%@, remote refresh failed" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前使用缓存节假日数据 v%@，远程更新失败" } }
-      }
-    },
-    "Remote refresh failed, using bundled holiday data": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Remote refresh failed, using bundled holiday data" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "远程更新失败，当前回退到内置节假日数据" } }
-      }
-    },
-    "No remote holiday source configured": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No remote holiday data source configured, using bundled data" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未配置远程节假日数据源，当前使用内置数据" } }
-      }
-    },
-    "Using bundled holiday data": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Using bundled holiday data" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前使用内置节假日数据" } }
-      }
-    },
-    "Refreshed remote holiday data v%@": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Refreshed remote holiday data v%@" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已刷新远程节假日数据 v%@" } }
-      }
-    },
-    "Remote holiday data unchanged v%@": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Remote holiday data unchanged, using cached v%@" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "远程数据未更新，继续使用缓存 v%@" } }
-      }
-    },
-    "Launch Enabled": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Enabled" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已开启" } }
-      }
-    },
-    "Launch Disabled": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Disabled" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未开启" } }
-      }
-    },
-    "Launch Pending Approval": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Pending Approval" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "等待批准" } }
-      }
-    },
-    "Unavailable": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Unavailable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "不可用" } }
-      }
-    },
-    "Launch enabled detail": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Calendar Pro launches automatically after login." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "开机后 Calendar Pro 会自动启动。" } }
-      }
-    },
-    "Launch disabled detail": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Calendar Pro is not currently listed as a login item. You can enable it at any time." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前未加入系统登录项，需要时可以随时开启。" } }
-      }
-    },
-    "Launch approval detail": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Approve Calendar Pro in System Settings > General > Login Items." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "系统需要你在“系统设置 > 通用 > 登录项”中批准 Calendar Pro。" } }
-      }
-    },
-    "Launch unavailable detail": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "No registrable app instance was found. Launch Calendar Pro from the installed app bundle and try again." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "系统当前未找到可注册的应用实例，请从已安装的应用包启动后重试。" } }
-      }
-    },
-    "Recommended": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Recommended" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "宜" } }
-      }
-    },
-    "Avoid": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Avoid" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "忌" } }
-      }
-    },
-    "Update Check Failed": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Update Check Failed" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "检查更新失败" } }
-      }
-    },
-    "Update Check Failed Description": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Automatic updates are unavailable. Download the latest version from GitHub." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "自动更新不可用，请前往 GitHub 下载最新版本。" } }
-      }
-    },
-    "Go to GitHub": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Go to GitHub" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "前往 GitHub" } }
-      }
-    },
-    "Cancel": {
-      "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Cancel" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "取消" } }
+  "sourceLanguage" : "zh-Hans",
+  "strings" : {
+    "" : {
+
+    },
+    "·" : {
+
+    },
+    "%d days before" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d days before"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提前 %d 天"
+          }
+        }
+      }
+    },
+    "%d hours before" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d hours before"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提前 %d 小时"
+          }
+        }
+      }
+    },
+    "%d items" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d items"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 项"
+          }
+        }
+      }
+    },
+    "%d minutes before" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d minutes before"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提前 %d 分钟"
+          }
+        }
+      }
+    },
+    "%d more attendees" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d more attendees..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还有 %d 人..."
+          }
+        }
+      }
+    },
+    "About" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关于"
+          }
+        }
+      }
+    },
+    "About Detail Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View app version information, author details, and check for software updates."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看应用版本、作者信息，以及检查软件更新。"
+          }
+        }
+      }
+    },
+    "Adjust Menu Bar Text" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjust menu bar text and order"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调整菜单栏文本与顺序"
+          }
+        }
+      }
+    },
+    "Adjustment Workdays" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjustment Workdays"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调休上班"
+          }
+        }
+      }
+    },
+    "Alert" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alert"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒"
+          }
+        }
+      }
+    },
+    "App Language" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Language"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用语言"
+          }
+        }
+      }
+    },
+    "App Language Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose whether Calendar Pro follows the system language or uses a fixed app language."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择跟随系统语言，或为 Calendar Pro 单独指定语言。"
+          }
+        }
+      }
+    },
+    "All Day" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Day"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全天"
+          }
+        }
+      }
+    },
+    "At Due Time" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At Due Time"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "到期时"
+          }
+        }
+      }
+    },
+    "Attendees" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attendees"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "参会人"
+          }
+        }
+      }
+    },
+    "Avoid" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avoid"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "忌"
+          }
+        }
+      }
+    },
+    "Bank Holidays" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bank Holidays"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "银行假日"
+          }
+        }
+      }
+    },
+    "Basic Settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basic Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基础设置"
+          }
+        }
+      }
+    },
+    "Beta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "测试版"
+          }
+        }
+      }
+    },
+    "by Yelog" : {
+
+    },
+    "Cache fallback" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falls back to cached data when remote update fails."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "远程更新失败时会回退到缓存。"
+          }
+        }
+      }
+    },
+    "Cache in use" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using cached holiday data…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前使用缓存节假日数据…"
+          }
+        }
+      }
+    },
+    "Cal off" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cal off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日历关"
+          }
+        }
+      }
+    },
+    "Cal on" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cal on"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日历开"
+          }
+        }
+      }
+    },
+    "Calendar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所属日历"
+          }
+        }
+      }
+    },
+    "Calendar Access Required" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar access required"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要日历访问权限"
+          }
+        }
+      }
+    },
+    "Calendar Display" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar Display"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日历显示"
+          }
+        }
+      }
+    },
+    "Calendar Pro" : {
+
+    },
+    "Cancel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "Check Automatically for Updates" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check automatically for updates"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动检查更新"
+          }
+        }
+      }
+    },
+    "Check for Updates" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for Updates"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查更新"
+          }
+        }
+      }
+    },
+    "Choose Calendars" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Calendars"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择日历"
+          }
+        }
+      }
+    },
+    "Choose Reminder Lists" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Reminder Lists"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择提醒事项列表"
+          }
+        }
+      }
+    },
+    "Collapse" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collapse"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收起"
+          }
+        }
+      }
+    },
+    "Completed on %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed on %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已完成于 %@"
+          }
+        }
+      }
+    },
+    "Configure Holiday Data" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configure holiday data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "配置地区与节假日数据"
+          }
+        }
+      }
+    },
+    "Custom Repeat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom Repeat"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义重复"
+          }
+        }
+      }
+    },
+    "Daily" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每天"
+          }
+        }
+      }
+    },
+    "Data Sources" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data Sources"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据来源"
+          }
+        }
+      }
+    },
+    "Date" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日期"
+          }
+        }
+      }
+    },
+    "Disable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
+    },
+    "Display Items" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display Items"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示项"
+          }
+        }
+      }
+    },
+    "Enable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启"
+          }
+        }
+      }
+    },
+    "English" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "英语"
+          }
+        }
+      }
+    },
+    "Enable %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用 %@"
+          }
+        }
+      }
+    },
+    "Event Details" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Event Details"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日程详情"
+          }
+        }
+      }
+    },
+    "Events" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Events"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日程"
+          }
+        }
+      }
+    },
+    "Events Detail Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage Calendar and Reminders permissions, and choose the sources shown in the popover."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理日历与提醒事项访问权限，并选择要在面板中显示的数据来源。"
+          }
+        }
+      }
+    },
+    "Events off" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Events off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日程已关闭"
+          }
+        }
+      }
+    },
+    "Every %d Days" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every %d Days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每 %d 天"
+          }
+        }
+      }
+    },
+    "Every %d Months" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every %d Months"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每 %d 个月"
+          }
+        }
+      }
+    },
+    "Every %d Weeks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every %d Weeks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每 %d 周"
+          }
+        }
+      }
+    },
+    "Every %d Years" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every %d Years"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每 %d 年"
+          }
+        }
+      }
+    },
+    "Expand" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expand"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "展开"
+          }
+        }
+      }
+    },
+    "Federal Holidays" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Federal Holidays"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "联邦假日"
+          }
+        }
+      }
+    },
+    "Follow System" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow System"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟随系统"
+          }
+        }
+      }
+    },
+    "General" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通用"
+          }
+        }
+      }
+    },
+    "General Detail Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review the current configuration and confirm which menu bar, event, and regional features are enabled."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "集中查看当前设置概览，确认菜单栏、日程和地区能力的启用状态。"
+          }
+        }
+      }
+    },
+    "Go to GitHub" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to GitHub"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前往 GitHub"
+          }
+        }
+      }
+    },
+    "High" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "High"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高"
+          }
+        }
+      }
+    },
+    "Highlight Weekends" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Highlight Weekends"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周末高亮显示"
+          }
+        }
+      }
+    },
+    "Highlight Weekends Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show weekend dates and headers in red for quicker scanning."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将周六、周日的日期数字及标题显示为红色，便于快速区分休息日。"
+          }
+        }
+      }
+    },
+    "Holiday" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Holiday"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "节假日"
+          }
+        }
+      }
+    },
+    "Holiday Data" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Holiday Data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "节假日数据"
+          }
+        }
+      }
+    },
+    "Hong Kong" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hong Kong"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中国香港"
+          }
+        }
+      }
+    },
+    "Include Calendar Events" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include calendar events"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含日历日程"
+          }
+        }
+      }
+    },
+    "Include Reminders" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include reminders"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含提醒事项"
+          }
+        }
+      }
+    },
+    "Join %@ Meeting" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join %@ Meeting"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入%@会议"
+          }
+        }
+      }
+    },
+    "Launch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动"
+          }
+        }
+      }
+    },
+    "Launch approval detail" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approve Calendar Pro in System Settings > General > Login Items."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统需要你在“系统设置 > 通用 > 登录项”中批准 Calendar Pro。"
+          }
+        }
+      }
+    },
+    "Launch approval required" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System approval is required to finish enabling launch at login. Open System Settings > General > Login Items to continue."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统需要批准后才能完成开机启动，请前往“系统设置 > 通用 > 登录项”继续操作。"
+          }
+        }
+      }
+    },
+    "Launch at Login" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch at Login"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开机自动启动"
+          }
+        }
+      }
+    },
+    "Launch at Login Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Calendar Pro automatically after the current user signs in."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录当前用户后自动启动 Calendar Pro，修改后立即生效。"
+          }
+        }
+      }
+    },
+    "Launch Disabled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabled"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未开启"
+          }
+        }
+      }
+    },
+    "Launch disabled detail" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar Pro is not currently listed as a login item. You can enable it at any time."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前未加入系统登录项，需要时可以随时开启。"
+          }
+        }
+      }
+    },
+    "Launch Enabled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enabled"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已开启"
+          }
+        }
+      }
+    },
+    "Launch enabled detail" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar Pro launches automatically after login."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开机后 Calendar Pro 会自动启动。"
+          }
+        }
+      }
+    },
+    "Launch Pending Approval" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pending Approval"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待批准"
+          }
+        }
+      }
+    },
+    "Launch unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch at login is currently unavailable. Open Calendar Pro from the installed app bundle and try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前无法配置开机启动，请从已安装的应用包启动 Calendar Pro 后重试。"
+          }
+        }
+      }
+    },
+    "Launch unavailable detail" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No registrable app instance was found. Launch Calendar Pro from the installed app bundle and try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "系统当前未找到可注册的应用实例，请从已安装的应用包启动后重试。"
+          }
+        }
+      }
+    },
+    "Link" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "链接"
+          }
+        }
+      }
+    },
+    "Links" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "链接"
+          }
+        }
+      }
+    },
+    "List" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所属列表"
+          }
+        }
+      }
+    },
+    "Loading" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载中"
+          }
+        }
+      }
+    },
+    "Location" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地点"
+          }
+        }
+      }
+    },
+    "Low" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Low"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低"
+          }
+        }
+      }
+    },
+    "Lunar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "农历"
+          }
+        }
+      }
+    },
+    "macOS Menu Bar Calendar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS Menu Bar Calendar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 菜单栏日历"
+          }
+        }
+      }
+    },
+    "Mainland China" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mainland China"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中国大陆"
+          }
+        }
+      }
+    },
+    "Manage Calendar Sources" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage calendar and reminder sources"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理日历与提醒事项来源"
+          }
+        }
+      }
+    },
+    "Manual Refresh" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manual Refresh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手动刷新"
+          }
+        }
+      }
+    },
+    "Medium" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medium"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中"
+          }
+        }
+      }
+    },
+    "Menu Bar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menu Bar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "菜单栏"
+          }
+        }
+      }
+    },
+    "Menu Bar Detail Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjust menu bar items, separators, ordering, and styles with a live preview."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调整菜单栏显示项、分隔符、排序与样式，实时预览最终显示效果。"
+          }
+        }
+      }
+    },
+    "Menu Bar Preview" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menu Bar Preview"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "菜单栏预览"
+          }
+        }
+      }
+    },
+    "Monday First" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monday First"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周一在前"
+          }
+        }
+      }
+    },
+    "Monthly" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每月"
+          }
+        }
+      }
+    },
+    "Native macOS menu bar calendar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Native macOS menu bar calendar, events, and regional holiday settings."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原生 macOS 菜单栏日历、日程与地区化节假日配置。"
+          }
+        }
+      }
+    },
+    "Next Month" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next Month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一月"
+          }
+        }
+      }
+    },
+    "No Calendars Available" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No calendars available"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无可用日历"
+          }
+        }
+      }
+    },
+    "No Due Date" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Due Date"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无截止日期"
+          }
+        }
+      }
+    },
+    "No event sources enabled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No event sources enabled"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未启用任何日程来源"
+          }
+        }
+      }
+    },
+    "No events today" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No events today"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当天无日程"
+          }
+        }
+      }
+    },
+    "No More Details" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No more details"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无更多详情"
+          }
+        }
+      }
+    },
+    "No Reminder Lists Available" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No reminder lists available"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无可用提醒事项列表"
+          }
+        }
+      }
+    },
+    "No remote configured" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configure a remote manifest URL to enable manual refresh."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要配置远程 manifest 地址后才可手动刷新。"
+          }
+        }
+      }
+    },
+    "No remote holiday source configured" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No remote holiday data source configured, using bundled data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未配置远程节假日数据源，当前使用内置数据"
+          }
+        }
+      }
+    },
+    "No Time" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Time"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未指定时间"
+          }
+        }
+      }
+    },
+    "Notes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "备注"
+          }
+        }
+      }
+    },
+    "OFF" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OFF"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休"
+          }
+        }
+      }
+    },
+    "Open in Calendar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Calendar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在日历中打开"
+          }
+        }
+      }
+    },
+    "Open in Reminders" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Reminders"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在提醒事项中打开"
+          }
+        }
+      }
+    },
+    "Open Link" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Link"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开链接"
+          }
+        }
+      }
+    },
+    "Panel Info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Panel Info"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "面板信息"
+          }
+        }
+      }
+    },
+    "Previous Month" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous Month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一月"
+          }
+        }
+      }
+    },
+    "Priority" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Priority"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "优先级"
+          }
+        }
+      }
+    },
+    "Public Holidays" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Public Holidays"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "公众假期"
+          }
+        }
+      }
+    },
+    "Quit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出"
+          }
+        }
+      }
+    },
+    "Recommended" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "宜"
+          }
+        }
+      }
+    },
+    "Refreshed remote holiday data v%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refreshed remote holiday data v%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已刷新远程节假日数据 v%@"
+          }
+        }
+      }
+    },
+    "Regions and Holidays" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regions & Holidays"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地区与节假日"
+          }
+        }
+      }
+    },
+    "Regions Detail Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose regional holiday datasets and manually refresh the remote holiday feed when needed."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择节假日地区数据集，必要时手动刷新远程节假日清单。"
+          }
+        }
+      }
+    },
+    "Rem off" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rem off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒关"
+          }
+        }
+      }
+    },
+    "Rem on" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rem on"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒开"
+          }
+        }
+      }
+    },
+    "Reminder Details" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminder Details"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒事项详情"
+          }
+        }
+      }
+    },
+    "Reminders Access Required" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminders access required"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要提醒事项访问权限"
+          }
+        }
+      }
+    },
+    "Remote holiday data unchanged v%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remote holiday data unchanged, using cached v%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "远程数据未更新，继续使用缓存 v%@"
+          }
+        }
+      }
+    },
+    "Remote refresh failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remote refresh failed, using cached data."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "远程更新失败，使用缓存数据。"
+          }
+        }
+      }
+    },
+    "Remote refresh failed, using bundled holiday data" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remote refresh failed, using bundled holiday data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "远程更新失败，当前回退到内置节假日数据"
+          }
+        }
+      }
+    },
+    "Remote refreshed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Holiday data refreshed from remote."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已刷新远程节假日数据。"
+          }
+        }
+      }
+    },
+    "Repeat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重复"
+          }
+        }
+      }
+    },
+    "Request Access" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request Access"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请求权限"
+          }
+        }
+      }
+    },
+    "Select Year" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select Year"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择年份"
+          }
+        }
+      }
+    },
+    "Separator" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Separator"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分隔符"
+          }
+        }
+      }
+    },
+    "Settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置"
+          }
+        }
+      }
+    },
+    "Simplified Chinese" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simplified Chinese"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "简体中文"
+          }
+        }
+      }
+    },
+    "Settings autosave" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings are saved automatically and take effect immediately."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置会自动保存，修改后立即生效。"
+          }
+        }
+      }
+    },
+    "Show Almanac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Almanac"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示黄历宜忌"
+          }
+        }
+      }
+    },
+    "Show Almanac Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show daily almanac guidance in the calendar panel using local calendar calculations."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在日历面板中显示当日宜忌，基于本地历法计算，无需网络。"
+          }
+        }
+      }
+    },
+    "Show Events Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When disabled, calendar events and reminders are hidden, but your source selections are preserved."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭后不会显示日历日程和提醒事项，已选来源会被保留。"
+          }
+        }
+      }
+    },
+    "Show Events in Panel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show events in panel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在面板中显示日程"
+          }
+        }
+      }
+    },
+    "Space" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Space"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空格"
+          }
+        }
+      }
+    },
+    "Stable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稳定版"
+          }
+        }
+      }
+    },
+    "Star on GitHub" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Star on GitHub"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 GitHub 上 Star"
+          }
+        }
+      }
+    },
+    "Star Support Message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If Calendar Pro is useful to you, a GitHub star would help a lot."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如果觉得有用，请给个 Star 支持一下"
+          }
+        }
+      }
+    },
+    "Statutory Holidays" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Statutory Holidays"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "法定节假日"
+          }
+        }
+      }
+    },
+    "Style" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Style"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "样式"
+          }
+        }
+      }
+    },
+    "Sunday First" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunday First"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周日在前"
+          }
+        }
+      }
+    },
+    "Time" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时间"
+          }
+        }
+      }
+    },
+    "Today" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今"
+          }
+        }
+      }
+    },
+    "Today Nav" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日"
+          }
+        }
+      }
+    },
+    "Unable to %@ launch at login: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to %@ launch at login: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法%@开机启动：%@"
+          }
+        }
+      }
+    },
+    "Unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unavailable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不可用"
+          }
+        }
+      }
+    },
+    "United Kingdom" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "United Kingdom"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "英国"
+          }
+        }
+      }
+    },
+    "United States" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "United States"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "美国"
+          }
+        }
+      }
+    },
+    "Unknown" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知"
+          }
+        }
+      }
+    },
+    "Unknown Attendee" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown Attendee"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知参会人"
+          }
+        }
+      }
+    },
+    "Untitled" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untitled"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无标题"
+          }
+        }
+      }
+    },
+    "Update Channel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update Channel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新通道"
+          }
+        }
+      }
+    },
+    "Update Channel Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stable only receives official releases. Beta also receives prerelease updates."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稳定版仅接收正式发布；切换到测试版后，会接收预发布更新。"
+          }
+        }
+      }
+    },
+    "Update Check Failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update Check Failed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查更新失败"
+          }
+        }
+      }
+    },
+    "Update Check Failed Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic updates are unavailable. Download the latest version from GitHub."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动更新不可用，请前往 GitHub 下载最新版本。"
+          }
+        }
+      }
+    },
+    "Updates" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新"
+          }
+        }
+      }
+    },
+    "Using bundled holiday data" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using bundled holiday data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前使用内置节假日数据"
+          }
+        }
+      }
+    },
+    "Using cached holiday data v%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using cached holiday data v%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前使用缓存节假日数据 v%@"
+          }
+        }
+      }
+    },
+    "Using cached holiday data v%@, remote refresh failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Using cached holiday data v%@, remote refresh failed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前使用缓存节假日数据 v%@，远程更新失败"
+          }
+        }
+      }
+    },
+    "v%@" : {
+
+    },
+    "Version and Updates" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version info and updates"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本信息与检查更新"
+          }
+        }
+      }
+    },
+    "View Current Summary" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View current summary"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看当前配置摘要"
+          }
+        }
+      }
+    },
+    "Week Starts On" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week Starts On"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每周起始日"
+          }
+        }
+      }
+    },
+    "Week Starts On Description" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the weekday order used in the calendar popover."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置月历面板中星期的排列顺序。"
+          }
+        }
+      }
+    },
+    "Weekday" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekday"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "星期"
+          }
+        }
+      }
+    },
+    "Weekly" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每周"
+          }
+        }
+      }
+    },
+    "Weekly %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每周%@"
+          }
+        }
+      }
+    },
+    "WRK" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WRK"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "班"
+          }
+        }
+      }
+    },
+    "Yearly" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yearly"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每年"
+          }
+        }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

@@ -58,26 +58,26 @@ struct MenuBarPreferences: Codable, Equatable {
 
     var eventsSummaryText: String {
         if !showEvents {
-            return String(localized: "Events off")
+            return L("Events off")
         }
 
         if !hasEnabledEventSources {
-            return String(localized: "No event sources enabled")
+            return L("No event sources enabled")
         }
 
-        let calendarText = showCalendarEvents ? String(localized: "Cal on") : String(localized: "Cal off")
-        let reminderText = showReminders ? String(localized: "Rem on") : String(localized: "Rem off")
+        let calendarText = showCalendarEvents ? L("Cal on") : L("Cal off")
+        let reminderText = showReminders ? L("Rem on") : L("Rem off")
         return "\(calendarText) / \(reminderText)"
     }
 
     var eventListEmptyStateText: String {
-        hasEnabledEventSources ? String(localized: "No events today") : String(localized: "No event sources enabled")
+        hasEnabledEventSources ? L("No events today") : L("No event sources enabled")
     }
 
     static let `default` = defaultsForCurrentLocale()
 
     static func defaultsForCurrentLocale(
-        locale: Locale = .current
+        locale: Locale = AppLocalization.locale
     ) -> MenuBarPreferences {
         let languageCode = locale.language.languageCode?.identifier ?? "en"
         let regionID = locale.region?.identifier ?? ""

@@ -21,41 +21,41 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .general: return String(localized: "General")
-        case .menuBar: return String(localized: "Menu Bar")
-        case .events: return String(localized: "Events")
-        case .region: return String(localized: "Regions and Holidays")
-        case .about: return String(localized: "About")
+        case .general: return L("General")
+        case .menuBar: return L("Menu Bar")
+        case .events: return L("Events")
+        case .region: return L("Regions and Holidays")
+        case .about: return L("About")
         }
     }
 
     var sidebarDescription: String {
         switch self {
         case .general:
-            return String(localized: "View Current Summary")
+            return L("View Current Summary")
         case .menuBar:
-            return String(localized: "Adjust Menu Bar Text")
+            return L("Adjust Menu Bar Text")
         case .events:
-            return String(localized: "Manage Calendar Sources")
+            return L("Manage Calendar Sources")
         case .region:
-            return String(localized: "Configure Holiday Data")
+            return L("Configure Holiday Data")
         case .about:
-            return String(localized: "Version and Updates")
+            return L("Version and Updates")
         }
     }
 
     var detailDescription: String {
         switch self {
         case .general:
-            return String(localized: "General Detail Description")
+            return L("General Detail Description")
         case .menuBar:
-            return String(localized: "Menu Bar Detail Description")
+            return L("Menu Bar Detail Description")
         case .events:
-            return String(localized: "Events Detail Description")
+            return L("Events Detail Description")
         case .region:
-            return String(localized: "Regions Detail Description")
+            return L("Regions Detail Description")
         case .about:
-            return String(localized: "About Detail Description")
+            return L("About Detail Description")
         }
     }
 }
@@ -98,14 +98,14 @@ struct SettingsRootView: View {
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(String(localized: "Settings"))
+                Text(L("Settings"))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.secondary)
 
                 Text("Calendar Pro")
                     .font(.system(size: 24, weight: .semibold))
 
-                Text(String(localized: "Native macOS menu bar calendar"))
+                Text(L("Native macOS menu bar calendar"))
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -124,7 +124,7 @@ struct SettingsRootView: View {
 
             Spacer()
 
-            Text(String(localized: "Settings autosave"))
+            Text(L("Settings autosave"))
                 .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -9,9 +9,9 @@ enum UpdateChannel: String, CaseIterable {
     var title: String {
         switch self {
         case .stable:
-            String(localized: "Stable")
+            L("Stable")
         case .beta:
-            String(localized: "Beta")
+            L("Beta")
         }
     }
 }
@@ -147,11 +147,11 @@ final class UpdateChecker: NSObject, SPUUpdaterDelegate {
 
     private func showManualUpdateAlert() {
         let alert = NSAlert()
-        alert.messageText = String(localized: "Update Check Failed")
-        alert.informativeText = String(localized: "Update Check Failed Description")
+        alert.messageText = L("Update Check Failed")
+        alert.informativeText = L("Update Check Failed Description")
         alert.alertStyle = .informational
-        alert.addButton(withTitle: String(localized: "Go to GitHub"))
-        alert.addButton(withTitle: String(localized: "Cancel"))
+        alert.addButton(withTitle: L("Go to GitHub"))
+        alert.addButton(withTitle: L("Cancel"))
 
         NSApp.activate(ignoringOtherApps: true)
         let response = alert.runModal()

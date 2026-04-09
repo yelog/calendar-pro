@@ -115,7 +115,7 @@ private struct CalendarDayCellView: View {
     }
 
     private var todayBadgeView: some View {
-        Text(String(localized: "Today"))
+        Text(L("Today"))
             .font(.system(size: 8, weight: .semibold, design: .rounded))
             .foregroundStyle(.white.opacity(0.96))
             .padding(.horizontal, 4)
@@ -255,7 +255,7 @@ private struct CalendarDayCellView: View {
         switch badge.kind {
         case .publicHoliday, .statutoryHoliday:
             return BadgeIndicator(
-                text: String(localized: "OFF"),
+                text: L("OFF"),
                 fill: colorScheme == .dark ? Color(red: 0.86, green: 0.25, blue: 0.30) : Color.red.opacity(0.88),
                 shadow: Color.red.opacity(colorScheme == .dark ? 0.28 : 0)
             )
@@ -264,7 +264,7 @@ private struct CalendarDayCellView: View {
                 return nil
             }
             return BadgeIndicator(
-                text: String(localized: "WRK"),
+                text: L("WRK"),
                 fill: colorScheme == .dark ? Color(red: 0.17, green: 0.50, blue: 0.94) : Color.blue.opacity(0.88),
                 shadow: Color.blue.opacity(colorScheme == .dark ? 0.26 : 0)
             )

@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 final class SettingsStore: ObservableObject {
     @Published var menuBarPreferences: MenuBarPreferences
+    @Published var appLanguage: AppLanguage
     @Published private(set) var holidayDataRevision: Int = 0
     @Published private(set) var launchAtLoginStatus: LaunchAtLoginStatus = .disabled
     @Published private(set) var launchAtLoginEnabled: Bool = false
@@ -14,6 +15,7 @@ final class SettingsStore: ObservableObject {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private let menuBarPreferencesKey = "menuBarPreferences"
+    private let appLanguageKey = "appLanguage"
 
     init(
         userDefaults: UserDefaults = .standard,
@@ -21,6 +23,13 @@ final class SettingsStore: ObservableObject {
     ) {
         self.userDefaults = userDefaults
         self.launchAtLoginController = launchAtLoginController
+
+        if let rawValue = userDefaults.string(forKey: appLanguageKey),
+           let appLanguage = AppLanguage(rawValue: rawValue) {
+            self.appLanguage = appLanguage
+        } else {
+            self.appLanguage = .followSystem
+        }
 
         if
             let data = userDefaults.data(forKey: menuBarPreferencesKey),
@@ -36,6 +45,12 @@ final class SettingsStore: ObservableObject {
         if !launchAtLoginEnabled {
             setLaunchAtLoginEnabled(true)
         }
+    }
+
+    func setAppLanguage(_ appLanguage: AppLanguage) {
+        self.appLanguage = appLanguage
+        userDefaults.set(appLanguage.rawValue, forKey: appLanguageKey)
+        objectWillChange.send()
     }
 
     func setTokenEnabled(_ isEnabled: Bool, for token: DisplayTokenKind) {
@@ -258,12 +273,12 @@ final class SettingsStore: ObservableObject {
     ) -> String {
         switch currentStatus {
         case .requiresApproval:
-            return String(localized: "Launch approval required")
+            return L("Launch approval required")
         case .unavailable:
-            return String(localized: "Launch unavailable")
+            return L("Launch unavailable")
         case .enabled, .disabled:
-            let action = requestedState ? String(localized: "Enable") : String(localized: "Disable")
-            return String(format: String(localized: "Unable to %@ launch at login: %@"), action, error.localizedDescription)
+            let action = requestedState ? L("Enable") : L("Disable")
+            return LF("Unable to %@ launch at login: %@", action, error.localizedDescription)
         }
     }
 }

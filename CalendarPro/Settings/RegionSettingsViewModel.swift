@@ -107,28 +107,28 @@ final class RegionSettingsViewModel: ObservableObject {
     ) -> String {
         if let cachedManifest = try? cacheStore.cachedManifest() {
             if error == nil {
-                return String(format: String(localized: "Using cached holiday data v%@"), cachedManifest.version)
+                return LF("Using cached holiday data v%@", cachedManifest.version)
             }
-            return String(format: String(localized: "Using cached holiday data v%@, remote refresh failed"), cachedManifest.version)
+            return LF("Using cached holiday data v%@, remote refresh failed", cachedManifest.version)
         }
 
         if error != nil {
-            return String(localized: "Remote refresh failed, using bundled holiday data")
+            return L("Remote refresh failed, using bundled holiday data")
         }
 
         if feedClient == nil {
-            return String(localized: "No remote holiday source configured")
+            return L("No remote holiday source configured")
         }
 
-        return String(localized: "Using bundled holiday data")
+        return L("Using bundled holiday data")
     }
 
     private static func makeRefreshStatus(from result: HolidayFeedClient.RefreshResult) -> String {
         switch result.source {
         case .remote:
-            String(format: String(localized: "Refreshed remote holiday data v%@"), result.manifestVersion)
+            LF("Refreshed remote holiday data v%@", result.manifestVersion)
         case .cache:
-            String(format: String(localized: "Remote holiday data unchanged v%@"), result.manifestVersion)
+            LF("Remote holiday data unchanged v%@", result.manifestVersion)
         }
     }
 
