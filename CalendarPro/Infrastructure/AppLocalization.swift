@@ -6,7 +6,7 @@ enum AppLocalization {
     static var appLanguage: AppLanguage {
         guard let rawValue = UserDefaults.standard.string(forKey: appLanguageDefaultsKey),
               let appLanguage = AppLanguage(rawValue: rawValue) else {
-            return .followSystem
+            return .simplifiedChinese
         }
         return appLanguage
     }

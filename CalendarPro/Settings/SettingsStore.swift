@@ -28,7 +28,7 @@ final class SettingsStore: ObservableObject {
            let appLanguage = AppLanguage(rawValue: rawValue) {
             self.appLanguage = appLanguage
         } else {
-            self.appLanguage = .followSystem
+            self.appLanguage = .simplifiedChinese
         }
 
         if
