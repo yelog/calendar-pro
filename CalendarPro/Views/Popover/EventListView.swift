@@ -166,9 +166,14 @@ struct EventTimelineSnapshot {
     }
 
     private static func format(minutes: Int) -> String {
-        let hour = minutes / 60
-        let minute = minutes % 60
-        return String(format: "%02d:%02d", hour, minute)
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        var components = DateComponents()
+        components.hour = minutes / 60
+        components.minute = minutes % 60
+        let date = Calendar(identifier: .gregorian).date(from: components) ?? Date()
+        return formatter.string(from: date)
     }
 
     private static func minutes(for date: Date, calendar: Calendar) -> Int {
@@ -262,11 +267,11 @@ struct EventListView: View {
             }
 
             if !timelineSnapshot.allDayItems.isEmpty {
-                auxiliarySection(title: "全天", items: timelineSnapshot.allDayItems)
+                auxiliarySection(title: String(localized: "All Day"), items: timelineSnapshot.allDayItems)
             }
 
             if !timelineSnapshot.untimedItems.isEmpty {
-                auxiliarySection(title: "未指定时间", items: timelineSnapshot.untimedItems)
+                auxiliarySection(title: String(localized: "No Time"), items: timelineSnapshot.untimedItems)
             }
         }
         .overlayPreferenceValue(EventTimelineItemBoundsPreferenceKey.self) { anchors in
@@ -501,7 +506,8 @@ struct EventListView: View {
 
     private var formattedCurrentTime: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
         return formatter.string(from: currentTime)
     }
 

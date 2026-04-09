@@ -4,10 +4,10 @@ import EventKit
 enum CalendarPopoverEventCountFormatter {
     static func text(isLoadingEvents: Bool, itemCount: Int) -> String {
         if isLoadingEvents {
-            return "加载中"
+            return String(localized: "Loading")
         }
 
-        return "\(itemCount) 项"
+        return String(localized: "%d items", defaultValue: "\(itemCount) 项")
     }
 }
 
@@ -19,6 +19,7 @@ struct CalendarPopoverView: View {
     let currentMonthNumber: Int
     let selectionMode: CalendarPopoverViewModel.SelectionMode
     let weekdaySymbols: [String]
+    let weekendIndices: Set<Int>
     let monthDays: [CalendarDay]
     let highlightWeekends: Bool
     let showEvents: Bool
@@ -91,6 +92,7 @@ struct CalendarPopoverView: View {
                 weekdaySymbols: weekdaySymbols,
                 monthDays: monthDays,
                 highlightWeekends: highlightWeekends,
+                weekendIndices: weekendIndices,
                 onSelectDate: onSelectDate
             )
 
@@ -110,7 +112,7 @@ struct CalendarPopoverView: View {
             Button {
                 NSApp.sendAction(#selector(AppDelegate.openSettings), to: nil, from: nil)
             } label: {
-                Label("设置", systemImage: "gearshape")
+                Label(String(localized: "Settings"), systemImage: "gearshape")
                     .font(.system(size: 12))
                     .contentShape(Rectangle())
             }
@@ -120,7 +122,7 @@ struct CalendarPopoverView: View {
             Spacer()
 
             Button(action: onResetToToday) {
-                Label("今日", systemImage: "calendar")
+                Label(String(localized: "Today Nav"), systemImage: "calendar")
                     .font(.system(size: 12))
                     .contentShape(Rectangle())
             }
@@ -130,7 +132,7 @@ struct CalendarPopoverView: View {
             Spacer()
 
             Button(action: onQuit) {
-                Label("退出", systemImage: "power")
+                Label(String(localized: "Quit"), systemImage: "power")
                     .font(.system(size: 12))
                     .contentShape(Rectangle())
             }
@@ -200,7 +202,7 @@ struct CalendarPopoverView: View {
     private func formattedSelectedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = .autoupdatingCurrent
-        formatter.setLocalizedDateFormatFromTemplate("M月d日 EEEE")
+        formatter.setLocalizedDateFormatFromTemplate("MMMdEEEE")
         return formatter.string(from: date)
     }
 

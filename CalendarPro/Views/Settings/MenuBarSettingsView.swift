@@ -152,17 +152,22 @@ struct MenuBarSettingsView: View {
     }
 
     private func styleOptions(for token: DisplayTokenKind) -> [DisplayTokenStyle] {
+        let showChinese = LocaleFeatureAvailability.showChineseDateStyles
         switch token {
         case .date:
-            [.numeric, .short, .full, .chineseMonthDay, .chineseFull]
+            let base: [DisplayTokenStyle] = [.numeric, .short, .full]
+            return showChinese ? base + [.chineseMonthDay, .chineseFull] : base
         case .weekday:
-            [.short, .full, .chineseWeekday]
+            let base: [DisplayTokenStyle] = [.short, .full]
+            return showChinese ? base + [.chineseWeekday] : base
         case .time:
-            [.short, .full]
+            return [.short, .full] as [DisplayTokenStyle]
         case .lunar:
-            [.short, .chineseMonthDay, .full]
+            guard LocaleFeatureAvailability.showLunarFeatures else { return [] as [DisplayTokenStyle] }
+            let base: [DisplayTokenStyle] = [.short, .full]
+            return showChinese ? [.short, .chineseMonthDay, .full] : base
         case .holiday:
-            [.short]
+            return [.short] as [DisplayTokenStyle]
         }
     }
 

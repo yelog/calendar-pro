@@ -7,7 +7,9 @@ struct HolidayProviderRegistry {
         HolidayProviderRegistry(
             providers: [
                 MainlandCNProvider(),
-                HongKongProvider()
+                HongKongProvider(),
+                UnitedStatesProvider(),
+                UnitedKingdomProvider()
             ]
         )
     }
@@ -16,7 +18,9 @@ struct HolidayProviderRegistry {
         HolidayProviderRegistry(
             providers: [
                 MainlandCNProvider(cacheStore: .default),
-                HongKongProvider(cacheStore: .default)
+                HongKongProvider(cacheStore: .default),
+                UnitedStatesProvider(),
+                UnitedKingdomProvider()
             ]
         )
     }

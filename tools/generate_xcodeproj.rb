@@ -48,7 +48,7 @@ project.root_object.attributes['TargetAttributes'][app_target.uuid] = {
   'ProvisioningStyle' => 'Automatic'
 }
 
-# ─── Sparkle SPM dependency ───
+# ─── SwiftPM dependencies ───
 sparkle_pkg = project.new(Xcodeproj::Project::Object::XCRemoteSwiftPackageReference)
 sparkle_pkg.repositoryURL = 'https://github.com/sparkle-project/Sparkle'
 sparkle_pkg.requirement = { 'kind' => 'upToNextMajorVersion', 'minimumVersion' => '2.6.4' }
@@ -58,6 +58,16 @@ sparkle_dep = project.new(Xcodeproj::Project::Object::XCSwiftPackageProductDepen
 sparkle_dep.product_name = 'Sparkle'
 sparkle_dep.package = sparkle_pkg
 app_target.package_product_dependencies << sparkle_dep
+
+tyme_pkg = project.new(Xcodeproj::Project::Object::XCRemoteSwiftPackageReference)
+tyme_pkg.repositoryURL = 'https://github.com/xuanyunhui/tyme4swift'
+tyme_pkg.requirement = { 'kind' => 'upToNextMajorVersion', 'minimumVersion' => '1.4.3' }
+project.root_object.package_references << tyme_pkg
+
+tyme_dep = project.new(Xcodeproj::Project::Object::XCSwiftPackageProductDependency)
+tyme_dep.product_name = 'tyme'
+tyme_dep.package = tyme_pkg
+app_target.package_product_dependencies << tyme_dep
 
 test_target.build_configurations.each do |config|
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.yelog.CalendarProTests'
@@ -126,7 +136,7 @@ def add_project_files(group, app_target, test_target, ui_test_target, path, role
       target.source_build_phase.add_file_reference(file_ref)
     elsif role == :app && File.extname(entry) == '.entitlements'
       group.new_file(entry)
-    elsif role == :app && File.extname(entry) == '.json'
+    elsif role == :app && ['.json', '.xcstrings'].include?(File.extname(entry))
       file_ref = group.new_file(entry)
       app_target.resources_build_phase.add_file_reference(file_ref)
     end

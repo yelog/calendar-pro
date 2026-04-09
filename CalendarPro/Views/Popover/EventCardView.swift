@@ -102,15 +102,16 @@ struct EventCardView: View {
     
     private var timeRangeText: String {
         if item.isAllDay {
-            return "全天"
+            return String(localized: "All Day")
         }
 
         guard let startDate = item.timelineDate else {
-            return "未指定时间"
+            return String(localized: "No Time")
         }
 
         let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
 
         let start = formatter.string(from: startDate)
 

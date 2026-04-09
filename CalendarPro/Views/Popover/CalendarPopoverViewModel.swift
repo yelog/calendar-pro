@@ -12,7 +12,7 @@ final class CalendarPopoverViewModel: ObservableObject {
     @Published private(set) var selectedDate: Date?
     @Published private(set) var selectedEventIdentifier: String?
     @Published private(set) var selectionMode: SelectionMode = .calendar
-    @Published internal(set) var lastClosedTime: Date?
+    @Published var lastClosedTime: Date?
 
     init(displayedMonth: Date = .now) {
         self.displayedMonth = displayedMonth
@@ -122,11 +122,30 @@ final class CalendarPopoverViewModel: ObservableObject {
 
     func weekdaySymbols(using calendar: Calendar) -> [String] {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        let symbols = formatter.shortStandaloneWeekdaySymbols
-            ?? ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+        formatter.locale = Locale.autoupdatingCurrent
+        let symbols = formatter.shortStandaloneWeekdaySymbols ?? makeFallbackWeekdaySymbols()
 
         let firstWeekdayIndex = max(0, calendar.firstWeekday - 1)
         return Array(symbols[firstWeekdayIndex...] + symbols[..<firstWeekdayIndex])
+    }
+
+    private func makeFallbackWeekdaySymbols() -> [String] {
+        let calendar = Calendar(identifier: .gregorian)
+        let symbols = (1...7).map { weekday -> String in
+            let formatter = DateFormatter()
+            formatter.calendar = calendar
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            switch weekday {
+            case 1: return "Sun"
+            case 2: return "Mon"
+            case 3: return "Tue"
+            case 4: return "Wed"
+            case 5: return "Thu"
+            case 6: return "Fri"
+            case 7: return "Sat"
+            default: return ""
+            }
+        }
+        return symbols
     }
 }

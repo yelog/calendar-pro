@@ -1,0 +1,10 @@
+[
+  { "date": "2026-01-01", "name": "New Year's Day", "kind": "publicHoliday", "holidaySetID": "bank-holidays" },
+  { "date": "2026-04-03", "name": "Good Friday", "kind": "publicHoliday", "holidaySetID": "bank-holidays" },
+  { "date": "2026-04-06", "name": "Easter Monday", "kind": "publicHoliday", "holidaySetID": "bank-holidays" },
+  { "date": "2026-05-04", "name": "Early May Bank Holiday", "kind": "publicHoliday", "holidaySetID": "bank-holidays" },
+  { "date": "2026-05-25", "name": "Spring Bank Holiday", "kind": "publicHoliday", "holidaySetID": "bank-holidays" },
+  { "date": "2026-08-31", "name": "Summer Bank Holiday", "kind": "publicHoliday", "holidaySetID": "bank-holidays" },
+  { "date": "2026-12-25", "name": "Christmas Day", "kind": "publicHoliday", "holidaySetID": "bank-holidays" },
+  { "date": "2026-12-28", "name": "Boxing Day (Observed)", "kind": "publicHoliday", "holidaySetID": "bank-holidays", "isObserved": true }
+]

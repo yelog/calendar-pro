@@ -190,7 +190,7 @@ struct EventDetailWindowView: View {
     private var dateRangeText: String {
         let formatter = DateFormatter()
         formatter.locale = .autoupdatingCurrent
-        formatter.setLocalizedDateFormatFromTemplate("M月d日 EEEE")
+        formatter.setLocalizedDateFormatFromTemplate("MMMdEEEE")
 
         let endDate = visibleEndDate
         let calendar = Calendar.autoupdatingCurrent

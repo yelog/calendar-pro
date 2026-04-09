@@ -25,6 +25,7 @@ struct RootPopoverView: View {
             currentMonthNumber: viewModel.currentMonthNumber,
             selectionMode: viewModel.selectionMode,
             weekdaySymbols: viewModel.weekdaySymbols(using: displayCalendar),
+            weekendIndices: Self.weekendColumnIndices(for: displayCalendar),
             monthDays: monthDays,
             highlightWeekends: settingsStore.menuBarPreferences.highlightWeekends,
             showEvents: settingsStore.menuBarPreferences.showEvents,
@@ -266,6 +267,17 @@ struct RootPopoverView: View {
         var calendar = Calendar.autoupdatingCurrent
         calendar.firstWeekday = settingsStore.menuBarPreferences.weekStart == .monday ? 2 : 1
         return calendar
+    }
+
+    private static func weekendColumnIndices(for calendar: Calendar) -> Set<Int> {
+        let firstWeekday = calendar.firstWeekday
+        let weekendDays = [1, 7]
+        var indices = Set<Int>()
+        for weekday in weekendDays {
+            let adjustedIndex = (weekday - firstWeekday + 7) % 7
+            indices.insert(adjustedIndex)
+        }
+        return indices
     }
 
     private var monthService: MonthCalendarService {

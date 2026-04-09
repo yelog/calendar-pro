@@ -4,16 +4,17 @@ struct CalendarGridView: View {
     let weekdaySymbols: [String]
     let monthDays: [CalendarDay]
     let highlightWeekends: Bool
+    let weekendIndices: Set<Int>
     let onSelectDate: (Date) -> Void
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         VStack(spacing: 6) {
             LazyVGrid(columns: gridColumns, spacing: 6) {
-                ForEach(weekdaySymbols, id: \.self) { symbol in
+                ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { index, symbol in
                     Text(symbol)
                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(weekdayHeaderColor(for: symbol))
+                        .foregroundStyle(weekdayHeaderColor(isWeekend: weekendIndices.contains(index)))
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -29,15 +30,11 @@ struct CalendarGridView: View {
         }
     }
 
-    private func weekdayHeaderColor(for symbol: String) -> Color {
-        guard highlightWeekends else { return .secondary }
-        let weekendSymbols = ["周日", "周六"]
-        if weekendSymbols.contains(symbol) {
-            return colorScheme == .dark
-                ? Color(red: 0.92, green: 0.45, blue: 0.45)
-                : Color(red: 0.85, green: 0.35, blue: 0.35)
-        }
-        return .secondary
+    private func weekdayHeaderColor(isWeekend: Bool) -> Color {
+        guard highlightWeekends && isWeekend else { return .secondary }
+        return colorScheme == .dark
+            ? Color(red: 0.92, green: 0.45, blue: 0.45)
+            : Color(red: 0.85, green: 0.35, blue: 0.35)
     }
 
     private var gridColumns: [GridItem] {
@@ -86,11 +83,9 @@ private struct CalendarDayCellView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(alignment: .topTrailing) {
             HStack(spacing: 2) {
-                // 今天标签始终显示（如果是今天）
                 if day.isToday {
                     todayBadgeView
                 }
-                // 节日标签（休/班）
                 if let indicator = badgeIndicator {
                     badgeView(indicator)
                 }
@@ -120,7 +115,7 @@ private struct CalendarDayCellView: View {
     }
 
     private var todayBadgeView: some View {
-        Text("今")
+        Text(String(localized: "Today"))
             .font(.system(size: 8, weight: .semibold, design: .rounded))
             .foregroundStyle(.white.opacity(0.96))
             .padding(.horizontal, 4)
@@ -137,9 +132,7 @@ private struct CalendarDayCellView: View {
     }
 
     private var cellBackgroundColor: Color {
-        // 今天的样式优先级最高
         if day.isToday {
-            // 使用更醒目的金黄色背景
             return colorScheme == .dark ? Color(red: 0.45, green: 0.35, blue: 0.08) : Color(red: 1.0, green: 0.92, blue: 0.65)
         }
         
@@ -151,9 +144,7 @@ private struct CalendarDayCellView: View {
     }
 
     private var cellBorderColor: Color {
-        // 今天的边框优先级最高
         if day.isToday {
-            // 使用深金色边框
             return colorScheme == .dark ? Color(red: 0.9, green: 0.75, blue: 0.25).opacity(0.5) : Color(red: 0.85, green: 0.65, blue: 0.15).opacity(0.4)
         }
         
@@ -264,13 +255,16 @@ private struct CalendarDayCellView: View {
         switch badge.kind {
         case .publicHoliday, .statutoryHoliday:
             return BadgeIndicator(
-                text: "休",
+                text: String(localized: "OFF"),
                 fill: colorScheme == .dark ? Color(red: 0.86, green: 0.25, blue: 0.30) : Color.red.opacity(0.88),
                 shadow: Color.red.opacity(colorScheme == .dark ? 0.28 : 0)
             )
         case .workingAdjustmentDay:
+            guard LocaleFeatureAvailability.showWorkingAdjustmentDay else {
+                return nil
+            }
             return BadgeIndicator(
-                text: "班",
+                text: String(localized: "WRK"),
                 fill: colorScheme == .dark ? Color(red: 0.17, green: 0.50, blue: 0.94) : Color.blue.opacity(0.88),
                 shadow: Color.blue.opacity(colorScheme == .dark ? 0.26 : 0)
             )

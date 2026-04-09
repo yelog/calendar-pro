@@ -10,18 +10,18 @@ struct MainlandCNProvider: HolidayProvider {
     var descriptor: HolidayProviderDescriptor {
         HolidayProviderDescriptor(
             id: "mainland-cn",
-            displayName: "中国大陆",
+            displayName: String(localized: "Mainland China"),
             supportsOfflineData: true,
             supportsRemoteRefresh: true,
             availableHolidaySets: [
                 HolidaySet(
                     id: "statutory-holidays",
-                    displayName: "法定节假日",
+                    displayName: String(localized: "Statutory Holidays"),
                     supportedKinds: [.statutoryHoliday]
                 ),
                 HolidaySet(
                     id: "adjustment-workdays",
-                    displayName: "调休上班",
+                    displayName: String(localized: "Adjustment Workdays"),
                     supportedKinds: [.workingAdjustmentDay]
                 )
             ]

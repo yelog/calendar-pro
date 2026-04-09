@@ -62,6 +62,7 @@ struct ClockRenderService {
         case .weekday:
             return renderWeekday(now: now, style: tokenPreference.style, locale: locale, calendar: calendar, timeZone: timeZone)
         case .lunar:
+            guard LocaleFeatureAvailability.showLunarFeatures else { return nil }
             return supplementalText.lunarText
         case .holiday:
             return supplementalText.holidayText
@@ -76,19 +77,30 @@ struct ClockRenderService {
 
         switch style {
         case .numeric:
-            formatter.dateFormat = "dd/MM"
+            formatter.dateStyle = .short
+            formatter.timeStyle = .none
         case .short:
-            formatter.dateFormat = "MM/dd"
+            formatter.setLocalizedDateFormatFromTemplate("yMMdd")
         case .full:
-            formatter.dateFormat = "yyyy/MM/dd"
+            formatter.dateStyle = .long
+            formatter.timeStyle = .none
         case .chineseMonthDay:
+            guard LocaleFeatureAvailability.showChineseDateStyles else {
+                formatter.setLocalizedDateFormatFromTemplate("MMMMdd")
+                return formatter.string(from: now)
+            }
             formatter.locale = Locale(identifier: "zh_CN")
             formatter.dateFormat = "MM月dd日"
         case .chineseFull:
+            guard LocaleFeatureAvailability.showChineseDateStyles else {
+                formatter.dateStyle = .long
+                formatter.timeStyle = .none
+                return formatter.string(from: now)
+            }
             formatter.locale = Locale(identifier: "zh_CN")
             formatter.dateFormat = "yyyy年MM月dd日"
         case .chineseWeekday:
-            formatter.dateFormat = "MM/dd"
+            formatter.setLocalizedDateFormatFromTemplate("yMMdd")
         }
 
         return formatter.string(from: now)
@@ -99,7 +111,8 @@ struct ClockRenderService {
         formatter.locale = locale
         formatter.timeZone = timeZone
         formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.dateFormat = showSeconds ? "HH:mm:ss" : "HH:mm"
+        formatter.dateStyle = .none
+        formatter.timeStyle = showSeconds ? .medium : .short
         return formatter.string(from: now)
     }
 
@@ -110,7 +123,7 @@ struct ClockRenderService {
         calendar: Calendar,
         timeZone: TimeZone
     ) -> String {
-        if style == .chineseWeekday {
+        if style == .chineseWeekday && LocaleFeatureAvailability.showChineseDateStyles {
             var localizedCalendar = calendar
             localizedCalendar.timeZone = timeZone
             let weekday = localizedCalendar.component(.weekday, from: now)

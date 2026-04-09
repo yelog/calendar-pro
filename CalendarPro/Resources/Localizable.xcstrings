@@ -1,0 +1,228 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "Today": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Today" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "今" } }
+      }
+    },
+    "OFF": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "OFF" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "休" } }
+      }
+    },
+    "WRK": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "WRK" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "班" } }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Settings" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "设置" } }
+      }
+    },
+    "Today Nav": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Today" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "今日" } }
+      }
+    },
+    "Quit": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Quit" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "退出" } }
+      }
+    },
+    "Loading": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Loading" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "加载中" } }
+      }
+    },
+    "%d items": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "%d items" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "%d 项" } }
+      }
+    },
+    "All Day": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "All Day" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "全天" } }
+      }
+    },
+    "No Time": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No Time" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未指定时间" } }
+      }
+    },
+    "Events off": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Events off" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日程已关闭" } }
+      }
+    },
+    "No event sources enabled": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No event sources enabled" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未启用任何日程来源" } }
+      }
+    },
+    "Cal on": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Cal on" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日历开" } }
+      }
+    },
+    "Cal off": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Cal off" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "日历关" } }
+      }
+    },
+    "Rem on": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Rem on" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提醒开" } }
+      }
+    },
+    "Rem off": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Rem off" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "提醒关" } }
+      }
+    },
+    "No events today": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No events today" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当天无日程" } }
+      }
+    },
+    "Mainland China": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Mainland China" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "中国大陆" } }
+      }
+    },
+    "Hong Kong": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Hong Kong" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "中国香港" } }
+      }
+    },
+    "United States": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "United States" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "美国" } }
+      }
+    },
+    "United Kingdom": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "United Kingdom" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "英国" } }
+      }
+    },
+    "Statutory Holidays": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Statutory Holidays" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "法定节假日" } }
+      }
+    },
+    "Adjustment Workdays": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Adjustment Workdays" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "调休上班" } }
+      }
+    },
+    "Public Holidays": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Public Holidays" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "公众假期" } }
+      }
+    },
+    "Federal Holidays": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Federal Holidays" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "联邦假日" } }
+      }
+    },
+    "Bank Holidays": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Bank Holidays" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "银行假日" } }
+      }
+    },
+    "Holiday Data": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Holiday Data" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "节假日数据" } }
+      }
+    },
+    "Manual Refresh": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Manual Refresh" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "手动刷新" } }
+      }
+    },
+    "Cache fallback": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Falls back to cached data when remote update fails." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "远程更新失败时会回退到缓存。" } }
+      }
+    },
+    "No remote configured": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Configure a remote manifest URL to enable manual refresh." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "需要配置远程 manifest 地址后才可手动刷新。" } }
+      }
+    },
+    "Enable %@": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Enable %@" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "启用 %@" } }
+      }
+    },
+    "Cache in use": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Using cached holiday data…" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前使用缓存节假日数据…" } }
+      }
+    },
+    "Remote refresh failed": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Remote refresh failed, using cached data." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "远程更新失败，使用缓存数据。" } }
+      }
+    },
+    "Remote refreshed": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Holiday data refreshed from remote." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已刷新远程节假日数据。" } }
+      }
+    },
+    "Previous Month": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Previous Month" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "上一月" } }
+      }
+    },
+    "Next Month": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Next Month" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "下一月" } }
+      }
+    },
+    "Select Year": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Select Year" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "选择年份" } }
+      }
+    }
+  },
+  "version": "1.0"
+}

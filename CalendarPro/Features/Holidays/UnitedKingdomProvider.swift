@@ -1,6 +1,6 @@
 import Foundation
 
-struct HongKongProvider: HolidayProvider {
+struct UnitedKingdomProvider: HolidayProvider {
     private let loader: BundledHolidayDataLoader
 
     init(bundle: Bundle = .main, cacheStore: HolidayCacheStore? = nil) {
@@ -9,14 +9,14 @@ struct HongKongProvider: HolidayProvider {
 
     var descriptor: HolidayProviderDescriptor {
         HolidayProviderDescriptor(
-            id: "hong-kong",
-            displayName: String(localized: "Hong Kong"),
+            id: "uk",
+            displayName: String(localized: "United Kingdom"),
             supportsOfflineData: true,
-            supportsRemoteRefresh: true,
+            supportsRemoteRefresh: false,
             availableHolidaySets: [
                 HolidaySet(
-                    id: "public-holidays",
-                    displayName: String(localized: "Public Holidays"),
+                    id: "bank-holidays",
+                    displayName: String(localized: "Bank Holidays"),
                     supportedKinds: [.publicHoliday]
                 )
             ]

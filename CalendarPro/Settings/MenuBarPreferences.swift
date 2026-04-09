@@ -58,43 +58,70 @@ struct MenuBarPreferences: Codable, Equatable {
 
     var eventsSummaryText: String {
         if !showEvents {
-            return "日程已关闭"
+            return String(localized: "Events off")
         }
 
         if !hasEnabledEventSources {
-            return "未启用任何日程来源"
+            return String(localized: "No event sources enabled")
         }
 
-        let calendarText = showCalendarEvents ? "日历开" : "日历关"
-        let reminderText = showReminders ? "提醒开" : "提醒关"
+        let calendarText = showCalendarEvents ? String(localized: "Cal on") : String(localized: "Cal off")
+        let reminderText = showReminders ? String(localized: "Rem on") : String(localized: "Rem off")
         return "\(calendarText) / \(reminderText)"
     }
 
     var eventListEmptyStateText: String {
-        hasEnabledEventSources ? "当天无日程" : "未启用任何日程来源"
+        hasEnabledEventSources ? String(localized: "No events today") : String(localized: "No event sources enabled")
     }
 
-    static let `default` = MenuBarPreferences(
-        tokens: [
-            DisplayTokenPreference(token: .date, isEnabled: true, order: 0, style: .short),
-            DisplayTokenPreference(token: .time, isEnabled: true, order: 1, style: .short),
-            DisplayTokenPreference(token: .weekday, isEnabled: true, order: 2, style: .short),
-            DisplayTokenPreference(token: .lunar, isEnabled: false, order: 3, style: .short),
-            DisplayTokenPreference(token: .holiday, isEnabled: false, order: 4, style: .short)
-        ],
-        separator: " ",
-        showLunarInMenuBar: false,
-        activeRegionIDs: ["mainland-cn"],
-        enabledHolidayIDs: [],
-        weekStart: .monday,
-        highlightWeekends: true,
-        showEvents: true,
-        showCalendarEvents: true,
-        enabledCalendarIDs: [],
-        showReminders: true,
-        enabledReminderCalendarIDs: [],
-        showAlmanac: false
-    )
+    static let `default` = defaultsForCurrentLocale()
+
+    static func defaultsForCurrentLocale(
+        locale: Locale = .current
+    ) -> MenuBarPreferences {
+        let languageCode = locale.language.languageCode?.identifier ?? "en"
+        let regionID = locale.region?.identifier ?? ""
+
+        let (defaultRegions, defaultWeekStart): ([String], WeekStart)
+        switch (languageCode, regionID) {
+        case ("zh", _):
+            defaultRegions = ["mainland-cn"]
+            defaultWeekStart = .monday
+        case ("en", "US"), ("en", "PR"), ("en", "UM"):
+            defaultRegions = ["us"]
+            defaultWeekStart = .sunday
+        case ("en", "GB"), ("en", "UK"):
+            defaultRegions = ["uk"]
+            defaultWeekStart = .monday
+        default:
+            defaultRegions = []
+            defaultWeekStart = .monday
+        }
+
+        let showLunar = languageCode == "zh"
+
+        return MenuBarPreferences(
+            tokens: [
+                DisplayTokenPreference(token: .date, isEnabled: true, order: 0, style: .short),
+                DisplayTokenPreference(token: .time, isEnabled: true, order: 1, style: .short),
+                DisplayTokenPreference(token: .weekday, isEnabled: true, order: 2, style: .short),
+                DisplayTokenPreference(token: .lunar, isEnabled: false, order: 3, style: .short),
+                DisplayTokenPreference(token: .holiday, isEnabled: false, order: 4, style: .short)
+            ],
+            separator: " ",
+            showLunarInMenuBar: showLunar,
+            activeRegionIDs: defaultRegions,
+            enabledHolidayIDs: [],
+            weekStart: defaultWeekStart,
+            highlightWeekends: true,
+            showEvents: true,
+            showCalendarEvents: true,
+            enabledCalendarIDs: [],
+            showReminders: true,
+            enabledReminderCalendarIDs: [],
+            showAlmanac: false
+        )
+    }
 
     static let previewShort = MenuBarPreferences(
         tokens: [

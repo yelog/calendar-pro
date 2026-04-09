@@ -10,7 +10,7 @@ struct MonthPickerView: View {
 
     private let months: [String] = {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_Hans")
+        formatter.locale = Locale.autoupdatingCurrent
         return formatter.monthSymbols
     }()
 
@@ -38,7 +38,7 @@ struct MonthPickerView: View {
             Spacer()
 
             Button(action: onEnterYearSelection) {
-                Text("\(displayedYear, format: .number.grouping(.never))年")
+                Text(yearDisplayText)
                     .font(.system(.subheadline, design: .rounded).weight(.semibold))
             }
             .buttonStyle(.plain)
@@ -56,6 +56,18 @@ struct MonthPickerView: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    private var yearDisplayText: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.autoupdatingCurrent
+        formatter.setLocalizedDateFormatFromTemplate("y")
+        var components = DateComponents()
+        components.year = displayedYear
+        if let date = Calendar(identifier: .gregorian).date(from: components) {
+            return formatter.string(from: date)
+        }
+        return "\(displayedYear)"
     }
 
     private var monthGrid: some View {

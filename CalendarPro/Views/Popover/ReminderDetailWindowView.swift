@@ -155,7 +155,7 @@ struct ReminderDetailWindowView: View {
         }
         let formatter = DateFormatter()
         formatter.locale = .autoupdatingCurrent
-        formatter.setLocalizedDateFormatFromTemplate("M月d日 EEEE")
+        formatter.setLocalizedDateFormatFromTemplate("MMMdEEEE")
         return formatter.string(from: date)
     }
 
