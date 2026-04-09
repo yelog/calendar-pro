@@ -201,9 +201,7 @@ struct EventListView: View {
         static let markerMinimumInset: CGFloat = 12
         static let markerChipCornerRadius: CGFloat = 6
         static let markerConnectorHeight: CGFloat = 1
-        static let markerEntryWidth: CGFloat = 10
-        static let markerEntryHeight: CGFloat = 2
-        static let markerEntryOutsideOffset: CGFloat = 4
+        static let markerLineTrailingInset: CGFloat = 10
     }
 
     let items: [CalendarItem]
@@ -522,9 +520,8 @@ struct EventListView: View {
 
     private func withinItemMarkerOverlay(placement: WithinItemMarkerPlacement) -> some View {
         let railCenterX = Metrics.timeLaneWidth + Metrics.laneSpacing + (Metrics.railLaneWidth / 2)
-        let cardLeadingX = placement.frame.minX
-        let entryLeadingX = max(railCenterX, cardLeadingX - Metrics.markerEntryOutsideOffset)
-        let connectorWidth = max(0, entryLeadingX - railCenterX)
+        let lineEndX = max(railCenterX, placement.frame.maxX - Metrics.markerLineTrailingInset)
+        let connectorWidth = max(0, lineEndX - railCenterX)
 
         return ZStack(alignment: .topLeading) {
             markerTimeChip
@@ -548,14 +545,6 @@ struct EventListView: View {
                         y: placement.y
                     )
             }
-
-            Capsule()
-                .fill(Color.red.opacity(0.85))
-                .frame(width: Metrics.markerEntryWidth, height: Metrics.markerEntryHeight)
-                .offset(
-                    x: cardLeadingX - Metrics.markerEntryOutsideOffset,
-                    y: placement.y - (Metrics.markerEntryHeight / 2)
-                )
         }
         .allowsHitTesting(false)
     }
