@@ -43,7 +43,7 @@ struct EventDetailWindowView: View {
     private var header: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("日程详情")
+                Text(String(localized: "Event Details"))
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
 
@@ -54,7 +54,7 @@ struct EventDetailWindowView: View {
                         .padding(.top, 5)
 
                     SelectableDetailText(
-                        text: event.title ?? "无标题",
+                        text: event.title ?? String(localized: "Untitled"),
                         font: .system(size: 16, weight: .semibold, design: .rounded),
                         lineLimit: 2
                     )
@@ -111,10 +111,10 @@ struct EventDetailWindowView: View {
 
     private var detailContent: some View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
-            EventDetailRow(icon: "calendar", title: "所属日历", value: event.calendar.title)
+            EventDetailRow(icon: "calendar", title: String(localized: "Calendar"), value: event.calendar.title)
 
             if let locationText {
-                EventDetailRow(icon: "mappin.and.ellipse", title: "地点", value: locationText)
+                EventDetailRow(icon: "mappin.and.ellipse", title: String(localized: "Location"), value: locationText)
             }
 
             if let attendees = event.attendees, !attendees.isEmpty {
@@ -204,7 +204,7 @@ struct EventDetailWindowView: View {
 
     private var timeSummaryText: String {
         if event.isAllDay {
-            return "全天"
+            return String(localized: "All Day")
         }
 
         let intervalFormatter = DateIntervalFormatter()
@@ -270,7 +270,7 @@ private struct LinkDetailRow: View {
                 )
 
             VStack(alignment: .leading, spacing: 3) {
-                Text("链接")
+                Text(String(localized: "Link"))
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
@@ -282,7 +282,7 @@ private struct LinkDetailRow: View {
                     underline: true
                 )
 
-                OpenURLActionButton(title: "打开链接", url: url)
+                OpenURLActionButton(title: String(localized: "Open Link"), url: url)
             }
 
             Spacer(minLength: 0)
@@ -318,7 +318,7 @@ private struct AttendeesDetailRow: View {
                 )
 
             VStack(alignment: .leading, spacing: 3) {
-                Text("参会人")
+                Text(String(localized: "Attendees"))
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
@@ -332,7 +332,7 @@ private struct AttendeesDetailRow: View {
                             isExpanded.toggle()
                         }
                     } label: {
-                        Text(isExpanded ? "收起" : "还有 \(attendees.count - defaultVisibleCount) 人...")
+                        Text(isExpanded ? String(localized: "Collapse") : String(format: String(localized: "%d more attendees"), attendees.count - defaultVisibleCount))
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.accentColor)
                     }
@@ -397,7 +397,7 @@ private struct AttendeesDetailRow: View {
             return name
         }
         let email = (participant.url as NSURL).resourceSpecifier ?? ""
-        return email.isEmpty ? "未知参会人" : email
+        return email.isEmpty ? String(localized: "Unknown Attendee") : email
     }
 }
 
@@ -420,7 +420,7 @@ private struct NotesDetailRow: View {
                 )
 
             VStack(alignment: .leading, spacing: 3) {
-                Text("备注")
+                Text(String(localized: "Notes"))
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
@@ -493,7 +493,7 @@ private struct NotesDetailRow: View {
                 isExpanded.toggle()
             }
         } label: {
-            Text(isExpanded ? "收起" : "展开")
+            Text(isExpanded ? String(localized: "Collapse") : String(localized: "Expand"))
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.accentColor)
         }
@@ -638,7 +638,7 @@ private struct EventDetailRow: View {
 
 private struct EmptyDetailState: View {
     var body: some View {
-        Text("暂无更多详情")
+        Text(String(localized: "No More Details"))
             .font(.system(size: 12))
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -662,7 +662,7 @@ private struct JoinMeetingButton: View {
                 Image(systemName: meetingLink.iconName)
                     .font(.system(size: 13, weight: .semibold))
 
-                Text("加入\(meetingLink.platform)会议")
+                Text(String(format: String(localized: "Join %@ Meeting"), meetingLink.platform))
                     .font(.system(size: 13, weight: .semibold))
             }
             .frame(maxWidth: .infinity)
@@ -687,7 +687,7 @@ private struct FooterActions: View {
             HStack(spacing: 6) {
                 Image(systemName: "calendar")
                     .font(.system(size: 11, weight: .semibold))
-                Text("在日历中打开")
+                Text(String(localized: "Open in Calendar"))
                     .font(.system(size: 12, weight: .medium))
             }
             .foregroundColor(.secondary)

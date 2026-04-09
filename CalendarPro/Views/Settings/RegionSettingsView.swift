@@ -6,7 +6,7 @@ struct RegionSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                GroupBox("节假日数据") {
+                GroupBox(String(localized: "Holiday Data")) {
                     VStack(alignment: .leading, spacing: 12) {
                         Text(viewModel.refreshStatusMessage)
                             .foregroundStyle(.secondary)
@@ -21,12 +21,12 @@ struct RegionSettingsView: View {
                                     ProgressView()
                                         .controlSize(.small)
                                 } else {
-                                    Text("手动刷新")
+                                    Text(String(localized: "Manual Refresh"))
                                 }
                             }
                             .disabled(!viewModel.canRefreshRemoteFeed || viewModel.isRefreshingFeed)
 
-                            Text(viewModel.canRefreshRemoteFeed ? "远程更新失败时会回退到缓存。" : "需要配置远程 manifest 地址后才可手动刷新。")
+                            Text(viewModel.canRefreshRemoteFeed ? String(localized: "Cache fallback") : String(localized: "No remote configured"))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -38,7 +38,7 @@ struct RegionSettingsView: View {
                     GroupBox(region.displayName) {
                         VStack(alignment: .leading, spacing: 10) {
                             Toggle(
-                                "启用 \(region.displayName)",
+                                String(format: String(localized: "Enable %@"), region.displayName),
                                 isOn: Binding(
                                     get: { region.isEnabled },
                                     set: { viewModel.setRegionEnabled($0, regionID: region.id) }

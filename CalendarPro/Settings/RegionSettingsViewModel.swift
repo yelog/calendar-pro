@@ -106,27 +106,29 @@ final class RegionSettingsViewModel: ObservableObject {
         error: Error? = nil
     ) -> String {
         if let cachedManifest = try? cacheStore.cachedManifest() {
-            let suffix = error == nil ? "" : "，远程更新失败"
-            return "当前使用缓存节假日数据 v\(cachedManifest.version)\(suffix)"
+            if error == nil {
+                return String(format: String(localized: "Using cached holiday data v%@"), cachedManifest.version)
+            }
+            return String(format: String(localized: "Using cached holiday data v%@, remote refresh failed"), cachedManifest.version)
         }
 
         if error != nil {
-            return "远程更新失败，当前回退到内置节假日数据"
+            return String(localized: "Remote refresh failed, using bundled holiday data")
         }
 
         if feedClient == nil {
-            return "未配置远程节假日数据源，当前使用内置数据"
+            return String(localized: "No remote holiday source configured")
         }
 
-        return "当前使用内置节假日数据"
+        return String(localized: "Using bundled holiday data")
     }
 
     private static func makeRefreshStatus(from result: HolidayFeedClient.RefreshResult) -> String {
         switch result.source {
         case .remote:
-            "已刷新远程节假日数据 v\(result.manifestVersion)"
+            String(format: String(localized: "Refreshed remote holiday data v%@"), result.manifestVersion)
         case .cache:
-            "远程数据未更新，继续使用缓存 v\(result.manifestVersion)"
+            String(format: String(localized: "Remote holiday data unchanged v%@"), result.manifestVersion)
         }
     }
 

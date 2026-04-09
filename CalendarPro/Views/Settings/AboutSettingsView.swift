@@ -35,7 +35,7 @@ struct AboutSettingsView: View {
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
 
-            Text("macOS 菜单栏日历")
+            Text(String(localized: "macOS Menu Bar Calendar"))
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(.secondary)
 
@@ -65,7 +65,7 @@ struct AboutSettingsView: View {
 
     private var connectSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("链接")
+            Text(String(localized: "Links"))
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary.opacity(0.8))
                 .tracking(0.5)
@@ -82,12 +82,12 @@ struct AboutSettingsView: View {
                             .font(.system(size: 16))
                             .foregroundStyle(.yellow)
 
-                        Text("在 GitHub 上 Star")
+                        Text(String(localized: "Star on GitHub"))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.primary)
                     }
 
-                    Text("如果觉得有用，请给个 Star 支持一下")
+                    Text(String(localized: "Star Support Message"))
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -138,19 +138,19 @@ struct AboutSettingsView: View {
 
     private var updateSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("更新")
+            Text(String(localized: "Updates"))
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary.opacity(0.8))
                 .tracking(0.5)
 
             VStack(alignment: .leading, spacing: 10) {
-                Toggle("自动检查更新", isOn: $autoCheckUpdates)
+                Toggle(String(localized: "Check Automatically for Updates"), isOn: $autoCheckUpdates)
                     .font(.system(size: 13))
                     .onChange(of: autoCheckUpdates) {
                         UpdateChecker.shared.automaticallyChecksForUpdates = autoCheckUpdates
                     }
 
-                Picker("更新通道", selection: $updateChannel) {
+                Picker(String(localized: "Update Channel"), selection: $updateChannel) {
                     ForEach(UpdateChannel.allCases, id: \.self) { channel in
                         Text(channel.title).tag(channel)
                     }
@@ -160,7 +160,7 @@ struct AboutSettingsView: View {
                     UpdateChecker.shared.selectedUpdateChannel = updateChannel
                 }
 
-                Text("稳定版仅接收正式发布；切换到测试版后，会接收预发布更新。")
+                Text(String(localized: "Update Channel Description"))
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -193,7 +193,7 @@ struct AboutSettingsView: View {
                                 Image(systemName: "arrow.clockwise")
                                     .font(.system(size: 10))
                             }
-                            Text("检查更新")
+                            Text(String(localized: "Check for Updates"))
                         }
                         .font(.system(size: 11))
                     }

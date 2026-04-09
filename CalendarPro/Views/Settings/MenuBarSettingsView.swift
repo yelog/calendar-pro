@@ -9,25 +9,25 @@ struct MenuBarSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                GroupBox("菜单栏预览") {
+                GroupBox(String(localized: "Menu Bar Preview")) {
                     Text(previewText)
                         .font(.system(.body, design: .rounded))
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                GroupBox("基础设置") {
+                GroupBox(String(localized: "Basic Settings")) {
                     VStack(alignment: .leading, spacing: 12) {
                         if usesCompactLayout {
-                            Text("分隔符")
+                            Text(String(localized: "Separator"))
 
-                            TextField("空格", text: separatorBinding)
+                            TextField(String(localized: "Space"), text: separatorBinding)
                                 .textFieldStyle(.roundedBorder)
                                 .frame(maxWidth: 120, alignment: .leading)
                         } else {
                             HStack {
-                                Text("分隔符")
+                                Text(String(localized: "Separator"))
                                 Spacer()
-                                TextField("空格", text: separatorBinding)
+                                TextField(String(localized: "Space"), text: separatorBinding)
                                     .textFieldStyle(.roundedBorder)
                                     .frame(width: 80)
                             }
@@ -35,7 +35,7 @@ struct MenuBarSettingsView: View {
                     }
                 }
 
-                GroupBox("显示项") {
+                GroupBox(String(localized: "Display Items")) {
                     VStack(alignment: .leading, spacing: 12) {
                         ForEach(sortedTokens) { token in
                             if usesCompactLayout {
@@ -45,7 +45,7 @@ struct MenuBarSettingsView: View {
 
                                     HStack(alignment: .center, spacing: 12) {
                                         if styleOptions(for: token.token).count > 1 {
-                                            Picker("样式", selection: styleBinding(for: token.token)) {
+                                            Picker(String(localized: "Style"), selection: styleBinding(for: token.token)) {
                                                 ForEach(styleOptions(for: token.token), id: \.self) { style in
                                                     Text(stylePreviewText(style, for: token.token)).tag(style)
                                                 }
@@ -67,7 +67,7 @@ struct MenuBarSettingsView: View {
                                         .frame(width: 120, alignment: .leading)
 
                                     if styleOptions(for: token.token).count > 1 {
-                                        Picker("样式", selection: styleBinding(for: token.token)) {
+                                        Picker(String(localized: "Style"), selection: styleBinding(for: token.token)) {
                                             ForEach(styleOptions(for: token.token), id: \.self) { style in
                                                 Text(stylePreviewText(style, for: token.token)).tag(style)
                                             }
@@ -206,22 +206,22 @@ struct MenuBarSettingsView: View {
             }
             return lunarDescriptor.displayText(style: lunarStyle)
         case .holiday:
-            return day?.badges.first?.text ?? "节假日"
+            return day?.badges.first?.text ?? String(localized: "Holiday")
         }
     }
 
     private func tokenDisplayName(_ token: DisplayTokenKind) -> String {
         switch token {
         case .date:
-            "日期"
+            String(localized: "Date")
         case .time:
-            "时间"
+            String(localized: "Time")
         case .weekday:
-            "星期"
+            String(localized: "Weekday")
         case .lunar:
-            "农历"
+            String(localized: "Lunar")
         case .holiday:
-            "节假日"
+            String(localized: "Holiday")
         }
     }
 

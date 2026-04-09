@@ -27,7 +27,7 @@ struct ReminderDetailWindowView: View {
     private var header: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("提醒事项详情")
+                Text(String(localized: "Reminder Details"))
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
 
@@ -43,7 +43,7 @@ struct ReminderDetailWindowView: View {
                     .padding(.top, 2)
 
                     SelectableDetailText(
-                        text: reminder.title ?? "无标题",
+                        text: reminder.title ?? String(localized: "Untitled"),
                         font: .system(size: 16, weight: .semibold, design: .rounded),
                         lineLimit: 2,
                         strikethrough: reminder.isCompleted
@@ -78,7 +78,7 @@ struct ReminderDetailWindowView: View {
                     font: .system(size: 14, weight: .semibold, design: .rounded)
                 )
             } else {
-                Text("无截止日期")
+                Text(String(localized: "No Due Date"))
                     .font(.system(size: 14, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
             }
@@ -97,7 +97,7 @@ struct ReminderDetailWindowView: View {
                         .font(.system(size: 10))
                         .foregroundStyle(.green)
                     SelectableDetailText(
-                        text: "已完成于 \(formattedDate(completionDate))",
+                        text: String(format: String(localized: "Completed on %@"), formattedDate(completionDate)),
                         font: .system(size: 11),
                         foregroundColor: .secondary
                     )
@@ -114,18 +114,18 @@ struct ReminderDetailWindowView: View {
     private var detailScrollView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
-                ReminderDetailRow(icon: "list.bullet", title: "所属列表", value: reminder.calendar.title)
+                ReminderDetailRow(icon: "list.bullet", title: String(localized: "List"), value: reminder.calendar.title)
 
                 if let recurrenceText {
-                    ReminderDetailRow(icon: "repeat", title: "重复", value: recurrenceText)
+                    ReminderDetailRow(icon: "repeat", title: String(localized: "Repeat"), value: recurrenceText)
                 }
 
                 if priorityText != nil {
-                    ReminderDetailRow(icon: "flag.fill", title: "优先级", value: priorityText!)
+                    ReminderDetailRow(icon: "flag.fill", title: String(localized: "Priority"), value: priorityText!)
                 }
 
                 if let alarmText {
-                    ReminderDetailRow(icon: "bell.fill", title: "提醒", value: alarmText)
+                    ReminderDetailRow(icon: "bell.fill", title: String(localized: "Alert"), value: alarmText)
                 }
 
                 if let url = reminder.url {
@@ -185,9 +185,9 @@ struct ReminderDetailWindowView: View {
     private var priorityText: String? {
         switch reminder.priority {
         case 0: return nil
-        case 1...4: return "高"
-        case 5: return "中"
-        case 6...9: return "低"
+        case 1...4: return String(localized: "High")
+        case 5: return String(localized: "Medium")
+        case 6...9: return String(localized: "Low")
         default: return nil
         }
     }
@@ -206,20 +206,20 @@ struct ReminderDetailWindowView: View {
             }
             let offset = alarm.relativeOffset
             if offset == 0 {
-                return "到期时"
+                return String(localized: "At Due Time")
             }
             let minutes = Int(abs(offset) / 60)
             if minutes < 60 {
-                return "提前 \(minutes) 分钟"
+                return String(format: String(localized: "%d minutes before"), minutes)
             }
             let hours = minutes / 60
             if hours < 24 {
-                return "提前 \(hours) 小时"
+                return String(format: String(localized: "%d hours before"), hours)
             }
             let days = hours / 24
-            return "提前 \(days) 天"
+            return String(format: String(localized: "%d days before"), days)
         }
-        return descriptions.joined(separator: "、")
+        return descriptions.joined(separator: ", ")
     }
 
     private var notesText: String? {
@@ -250,34 +250,36 @@ struct ReminderDetailWindowView: View {
         let interval = rule.interval
         switch rule.frequency {
         case .daily:
-            return interval == 1 ? "每天" : "每 \(interval) 天"
+            return interval == 1 ? String(localized: "Daily") : String(format: String(localized: "Every %d Days"), interval)
         case .weekly:
             if interval == 1 {
                 if let days = rule.daysOfTheWeek, !days.isEmpty {
                     let dayNames = days.map { weekdayName($0.dayOfTheWeek) }
-                    return "每周\(dayNames.joined(separator: "、"))"
+                    return String(format: String(localized: "Weekly %@"), dayNames.joined(separator: ", "))
                 }
-                return "每周"
+                return String(localized: "Weekly")
             }
-            return "每 \(interval) 周"
+            return String(format: String(localized: "Every %d Weeks"), interval)
         case .monthly:
-            return interval == 1 ? "每月" : "每 \(interval) 个月"
+            return interval == 1 ? String(localized: "Monthly") : String(format: String(localized: "Every %d Months"), interval)
         case .yearly:
-            return interval == 1 ? "每年" : "每 \(interval) 年"
+            return interval == 1 ? String(localized: "Yearly") : String(format: String(localized: "Every %d Years"), interval)
         @unknown default:
-            return "自定义重复"
+            return String(localized: "Custom Repeat")
         }
     }
 
     private func weekdayName(_ weekday: EKWeekday) -> String {
+        let calendar = Calendar.autoupdatingCurrent
+        let symbols = DateFormatter().shortStandaloneWeekdaySymbols ?? calendar.shortWeekdaySymbols
         switch weekday {
-        case .monday: return "一"
-        case .tuesday: return "二"
-        case .wednesday: return "三"
-        case .thursday: return "四"
-        case .friday: return "五"
-        case .saturday: return "六"
-        case .sunday: return "日"
+        case .sunday: return symbols[0]
+        case .monday: return symbols[1]
+        case .tuesday: return symbols[2]
+        case .wednesday: return symbols[3]
+        case .thursday: return symbols[4]
+        case .friday: return symbols[5]
+        case .saturday: return symbols[6]
         @unknown default: return ""
         }
     }
@@ -379,7 +381,7 @@ private struct ReminderLinkDetailRow: View {
                 )
 
             VStack(alignment: .leading, spacing: 3) {
-                Text("链接")
+                Text(String(localized: "Link"))
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
@@ -391,7 +393,7 @@ private struct ReminderLinkDetailRow: View {
                     underline: true
                 )
 
-                OpenURLActionButton(title: "打开链接", url: url)
+                OpenURLActionButton(title: String(localized: "Open Link"), url: url)
             }
 
             Spacer(minLength: 0)
@@ -430,7 +432,7 @@ private struct ReminderNotesDetailRow: View {
                 )
 
             VStack(alignment: .leading, spacing: 3) {
-                Text("备注")
+                Text(String(localized: "Notes"))
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
@@ -468,7 +470,7 @@ private struct ReminderNotesDetailRow: View {
                             isExpanded.toggle()
                         }
                     } label: {
-                        Text(isExpanded ? "收起" : "展开")
+                        Text(isExpanded ? String(localized: "Collapse") : String(localized: "Expand"))
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.accentColor)
                     }
@@ -499,7 +501,7 @@ private struct ReminderNotesDetailRow: View {
 
 private struct ReminderEmptyDetailState: View {
     var body: some View {
-        Text("暂无更多详情")
+        Text(String(localized: "No More Details"))
             .font(.system(size: 12))
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -530,7 +532,7 @@ private struct FooterActions: View {
             HStack(spacing: 6) {
                 Image(systemName: "list.bullet.rectangle.portrait")
                     .font(.system(size: 11, weight: .semibold))
-                Text("在提醒事项中打开")
+                Text(String(localized: "Open in Reminders"))
                     .font(.system(size: 12, weight: .medium))
             }
             .foregroundColor(.secondary)

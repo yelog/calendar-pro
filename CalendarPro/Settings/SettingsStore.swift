@@ -258,12 +258,12 @@ final class SettingsStore: ObservableObject {
     ) -> String {
         switch currentStatus {
         case .requiresApproval:
-            return "系统需要批准后才能完成开机启动，请前往“系统设置 > 通用 > 登录项”继续操作。"
+            return String(localized: "Launch approval required")
         case .unavailable:
-            return "当前无法配置开机启动，请从已安装的应用包启动 Calendar Pro 后重试。"
+            return String(localized: "Launch unavailable")
         case .enabled, .disabled:
-            let action = requestedState ? "开启" : "关闭"
-            return "无法\(action)开机启动：\(error.localizedDescription)"
+            let action = requestedState ? String(localized: "Enable") : String(localized: "Disable")
+            return String(format: String(localized: "Unable to %@ launch at login: %@"), action, error.localizedDescription)
         }
     }
 }

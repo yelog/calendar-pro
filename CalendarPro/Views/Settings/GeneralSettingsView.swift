@@ -6,10 +6,10 @@ struct GeneralSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                GeneralSettingsSection("启动") {
+                GeneralSettingsSection(String(localized: "Launch")) {
                     GeneralSettingsRow(
-                        title: "开机自动启动",
-                        description: "登录当前用户后自动启动 Calendar Pro，修改后立即生效。"
+                        title: String(localized: "Launch at Login"),
+                        description: String(localized: "Launch at Login Description")
                     ) {
                         Toggle("", isOn: launchAtLoginBinding)
                             .labelsHidden()
@@ -30,14 +30,14 @@ struct GeneralSettingsView: View {
                     }
                 }
 
-                GeneralSettingsSection("日历显示") {
+                GeneralSettingsSection(String(localized: "Calendar Display")) {
                     GeneralSettingsRow(
-                        title: "每周起始日",
-                        description: "设置月历面板中星期的排列顺序。"
+                        title: String(localized: "Week Starts On"),
+                        description: String(localized: "Week Starts On Description")
                     ) {
                         Picker("", selection: weekStartBinding) {
-                            Text("周一在前").tag(WeekStart.monday)
-                            Text("周日在前").tag(WeekStart.sunday)
+                            Text(String(localized: "Monday First")).tag(WeekStart.monday)
+                            Text(String(localized: "Sunday First")).tag(WeekStart.sunday)
                         }
                         .labelsHidden()
                         .pickerStyle(.segmented)
@@ -47,8 +47,8 @@ struct GeneralSettingsView: View {
                     Divider()
 
                     GeneralSettingsRow(
-                        title: "周末高亮显示",
-                        description: "将周六、周日的日期数字及标题显示为红色，便于快速区分休息日。"
+                        title: String(localized: "Highlight Weekends"),
+                        description: String(localized: "Highlight Weekends Description")
                     ) {
                         Toggle("", isOn: highlightWeekendsBinding)
                             .labelsHidden()
@@ -56,10 +56,10 @@ struct GeneralSettingsView: View {
                 }
 
                 if LocaleFeatureAvailability.showAlmanacFeatures {
-                    GeneralSettingsSection("面板信息") {
+                    GeneralSettingsSection(String(localized: "Panel Info")) {
                         GeneralSettingsRow(
-                            title: "显示黄历宜忌",
-                            description: "在日历面板中显示当日宜忌，基于本地历法计算，无需网络。"
+                            title: String(localized: "Show Almanac"),
+                            description: String(localized: "Show Almanac Description")
                         ) {
                             Toggle("", isOn: showAlmanacBinding)
                                 .labelsHidden()

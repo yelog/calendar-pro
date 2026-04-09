@@ -1,11 +1,11 @@
 import SwiftUI
 
 enum SettingsSidebarItem: String, CaseIterable, Identifiable {
-    case general = "通用"
-    case menuBar = "菜单栏"
-    case events = "日程"
-    case region = "地区与节假日"
-    case about = "关于"
+    case general
+    case menuBar
+    case events
+    case region
+    case about
 
     var id: String { rawValue }
 
@@ -19,35 +19,43 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
         }
     }
 
-    var title: String { rawValue }
+    var title: String {
+        switch self {
+        case .general: return String(localized: "General")
+        case .menuBar: return String(localized: "Menu Bar")
+        case .events: return String(localized: "Events")
+        case .region: return String(localized: "Regions and Holidays")
+        case .about: return String(localized: "About")
+        }
+    }
 
     var sidebarDescription: String {
         switch self {
         case .general:
-            return "查看当前配置摘要"
+            return String(localized: "View Current Summary")
         case .menuBar:
-            return "调整菜单栏文本与顺序"
+            return String(localized: "Adjust Menu Bar Text")
         case .events:
-            return "管理日历与提醒事项来源"
+            return String(localized: "Manage Calendar Sources")
         case .region:
-            return "配置地区与节假日数据"
+            return String(localized: "Configure Holiday Data")
         case .about:
-            return "版本信息与检查更新"
+            return String(localized: "Version and Updates")
         }
     }
 
     var detailDescription: String {
         switch self {
         case .general:
-            return "集中查看当前设置概览，确认菜单栏、日程和地区能力的启用状态。"
+            return String(localized: "General Detail Description")
         case .menuBar:
-            return "调整菜单栏显示项、分隔符、排序与样式，实时预览最终显示效果。"
+            return String(localized: "Menu Bar Detail Description")
         case .events:
-            return "管理日历与提醒事项访问权限，并选择要在面板中显示的数据来源。"
+            return String(localized: "Events Detail Description")
         case .region:
-            return "选择节假日地区数据集，必要时手动刷新远程节假日清单。"
+            return String(localized: "Regions Detail Description")
         case .about:
-            return "查看应用版本、作者信息，以及检查软件更新。"
+            return String(localized: "About Detail Description")
         }
     }
 }
@@ -90,14 +98,14 @@ struct SettingsRootView: View {
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("设置")
+                Text(String(localized: "Settings"))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.secondary)
 
                 Text("Calendar Pro")
                     .font(.system(size: 24, weight: .semibold))
 
-                Text("原生 macOS 菜单栏日历、日程与地区化节假日配置。")
+                Text(String(localized: "Native macOS menu bar calendar"))
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -116,7 +124,7 @@ struct SettingsRootView: View {
 
             Spacer()
 
-            Text("设置会自动保存，修改后立即生效。")
+            Text(String(localized: "Settings autosave"))
                 .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)

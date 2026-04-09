@@ -9,9 +9,9 @@ enum UpdateChannel: String, CaseIterable {
     var title: String {
         switch self {
         case .stable:
-            "稳定版"
+            String(localized: "Stable")
         case .beta:
-            "测试版"
+            String(localized: "Beta")
         }
     }
 }
