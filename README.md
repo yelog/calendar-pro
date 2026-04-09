@@ -12,6 +12,21 @@
   macOS 14+ · SwiftUI + AppKit · EventKit · Sparkle
 </p>
 
+<table>
+  <tr>
+    <th>Light Theme</th>
+    <th>Dark Theme</th>
+  </tr>
+  <tr>
+    <td>
+      <img width="363" height="695" alt="Xnip2026-04-09_09-20-11" src="https://github.com/user-attachments/assets/d7c96704-22cb-40ad-80a9-49d5b822e737" />
+    </td>
+    <td>
+      <img width="386" height="693" alt="Xnip2026-04-09_09-19-55" src="https://github.com/user-attachments/assets/2bfd23c0-dd3b-4a51-8920-228f0d07bbd7" />
+    </td>
+  </tr>
+</table>
+
 ## 概览
 
 Calendar Pro 是一个以菜单栏为核心的 macOS 原生效率工具。它不是完整的日历客户端，而是一个更轻量、更适合高频查看的桌面入口：抬头看菜单栏即可获取时间与日期信息，点击状态栏即可展开月历面板，进一步查看农历、节假日、当天日程和提醒事项。
