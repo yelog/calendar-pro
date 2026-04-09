@@ -23,6 +23,7 @@ final class UpdateChecker: NSObject, SPUUpdaterDelegate {
     static let stableFeedURLString = "https://raw.githubusercontent.com/yelog/calendar-pro/main/docs/appcast.xml"
     static let betaFeedURLString = "https://raw.githubusercontent.com/yelog/calendar-pro/main/docs/appcast-beta.xml"
     static let updateChannelDefaultsKey = "updateChannel"
+    static let autoCheckUpdatesDefaultsKey = "autoCheckUpdates"
 
     private var updaterController: SPUStandardUpdaterController?
     private let checkInterval: TimeInterval = 24 * 60 * 60
@@ -42,7 +43,7 @@ final class UpdateChecker: NSObject, SPUUpdaterDelegate {
         )
 
         if let updater = updaterController?.updater {
-            updater.automaticallyChecksForUpdates = UserDefaults.standard.bool(forKey: "autoCheckUpdates")
+            updater.automaticallyChecksForUpdates = Self.defaultAutoCheckUpdatesEnabled(userDefaults: .standard)
             updater.updateCheckInterval = checkInterval
         }
 
@@ -75,8 +76,15 @@ final class UpdateChecker: NSObject, SPUUpdaterDelegate {
         get { updaterController?.updater.automaticallyChecksForUpdates ?? false }
         set {
             updaterController?.updater.automaticallyChecksForUpdates = newValue
-            UserDefaults.standard.set(newValue, forKey: "autoCheckUpdates")
+            UserDefaults.standard.set(newValue, forKey: Self.autoCheckUpdatesDefaultsKey)
         }
+    }
+
+    static func defaultAutoCheckUpdatesEnabled(userDefaults: UserDefaults = .standard) -> Bool {
+        if userDefaults.object(forKey: autoCheckUpdatesDefaultsKey) == nil {
+            return true
+        }
+        return userDefaults.bool(forKey: autoCheckUpdatesDefaultsKey)
     }
 
     var selectedUpdateChannel: UpdateChannel {

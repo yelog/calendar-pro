@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AboutSettingsView: View {
     @State private var isCheckingUpdate = false
-    @State private var autoCheckUpdates = UserDefaults.standard.bool(forKey: "autoCheckUpdates")
+    @State private var autoCheckUpdates = UpdateChecker.defaultAutoCheckUpdatesEnabled(userDefaults: .standard)
     @State private var updateChannel = UpdateChecker.shared.selectedUpdateChannel
 
     var body: some View {
