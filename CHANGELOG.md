@@ -5,6 +5,25 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3-beta.0] - 2026-04-09
+
+### Added
+
+- add locale-aware formatting and US/UK holidays
+- localize settings and detail views
+- finish user-facing copy cleanup
+- add in-app language switch
+
+### Changed
+
+- update README with schedule details and images
+
+### Fixed
+
+- default app language to chinese
+- draw now marker through active card
+- enable automatic update checks by default
+
 ## [0.1.2] - 2026-04-09
 
 ### Changed
