@@ -17,7 +17,7 @@ struct AlmanacStripView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 4) {
-                Text("宜")
+                Text(String(localized: "Recommended"))
                     .font(.system(size: 10, weight: .semibold, design: .rounded))
                     .foregroundStyle(.green)
 
@@ -34,7 +34,7 @@ struct AlmanacStripView: View {
             }
 
             HStack(spacing: 4) {
-                Text("忌")
+                Text(String(localized: "Avoid"))
                     .font(.system(size: 10, weight: .semibold, design: .rounded))
                     .foregroundStyle(.red)
 

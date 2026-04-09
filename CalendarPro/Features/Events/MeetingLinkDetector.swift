@@ -13,9 +13,9 @@ enum MeetingLinkDetector {
         ("Zoom", "video.fill", #"https?://[\w.-]*zoom\.us/[jmy]/[^\s<>\"\)>]+"#),
         ("Google Meet", "video.fill", #"https?://meet\.google\.com/[a-z\-]+"#),
         ("Webex", "video.fill", #"https?://[\w.-]*webex\.com/(meet|join)/[^\s<>\"\)>]+"#),
-        ("飞书", "video.fill", #"https?://(meetings|vc)\.feishu\.cn/[^\s<>\"\)>]+"#),
-        ("腾讯会议", "video.fill", #"https?://meeting\.tencent\.com/[^\s<>\"\)>]+"#),
-        ("钉钉", "video.fill", #"https?://meeting\.dingtalk\.com/[^\s<>\"\)>]+"#),
+        ("Feishu", "video.fill", #"https?://(meetings|vc)\.feishu\.cn/[^\s<>\"\)>]+"#),
+        ("Tencent Meeting", "video.fill", #"https?://meeting\.tencent\.com/[^\s<>\"\)>]+"#),
+        ("DingTalk", "video.fill", #"https?://meeting\.dingtalk\.com/[^\s<>\"\)>]+"#),
     ]
 
     static func detect(in event: EKEvent) -> MeetingLink? {

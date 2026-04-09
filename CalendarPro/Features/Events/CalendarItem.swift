@@ -29,9 +29,9 @@ enum CalendarItem: Identifiable {
     var title: String {
         switch self {
         case .event(let event):
-            return event.title ?? "无标题"
+            return event.title ?? String(localized: "Untitled")
         case .reminder(let reminder):
-            return reminder.title ?? "无标题"
+            return reminder.title ?? String(localized: "Untitled")
         }
     }
     

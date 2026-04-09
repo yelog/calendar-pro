@@ -14,26 +14,26 @@ enum LaunchAtLoginStatus: Equatable {
     var summaryText: String {
         switch self {
         case .enabled:
-            "已开启"
+            String(localized: "Launch Enabled")
         case .disabled:
-            "未开启"
+            String(localized: "Launch Disabled")
         case .requiresApproval:
-            "等待批准"
+            String(localized: "Launch Pending Approval")
         case .unavailable:
-            "不可用"
+            String(localized: "Unavailable")
         }
     }
 
     var detailText: String? {
         switch self {
         case .enabled:
-            "开机后 Calendar Pro 会自动启动。"
+            String(localized: "Launch enabled detail")
         case .disabled:
-            "当前未加入系统登录项，需要时可以随时开启。"
+            String(localized: "Launch disabled detail")
         case .requiresApproval:
-            "系统需要你在“系统设置 > 通用 > 登录项”中批准 Calendar Pro。"
+            String(localized: "Launch approval detail")
         case .unavailable:
-            "系统当前未找到可注册的应用实例，请从已安装的应用包启动后重试。"
+            String(localized: "Launch unavailable detail")
         }
     }
 }

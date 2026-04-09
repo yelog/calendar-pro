@@ -31,7 +31,7 @@ struct YearPickerView: View {
 
             Spacer()
 
-            Text("选择年份")
+            Text(String(localized: "Select Year"))
                 .font(.system(.subheadline, design: .rounded).weight(.semibold))
 
             Spacer()

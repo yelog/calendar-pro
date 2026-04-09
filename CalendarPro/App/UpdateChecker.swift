@@ -147,11 +147,11 @@ final class UpdateChecker: NSObject, SPUUpdaterDelegate {
 
     private func showManualUpdateAlert() {
         let alert = NSAlert()
-        alert.messageText = "检查更新失败"
-        alert.informativeText = "自动更新不可用，请前往 GitHub 下载最新版本。"
+        alert.messageText = String(localized: "Update Check Failed")
+        alert.informativeText = String(localized: "Update Check Failed Description")
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "前往 GitHub")
-        alert.addButton(withTitle: "取消")
+        alert.addButton(withTitle: String(localized: "Go to GitHub"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
 
         NSApp.activate(ignoringOtherApps: true)
         let response = alert.runModal()

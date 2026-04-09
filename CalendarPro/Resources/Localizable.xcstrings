@@ -924,6 +924,90 @@
         "en": { "stringUnit": { "state": "translated", "value": "Remote holiday data unchanged, using cached v%@" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "远程数据未更新，继续使用缓存 v%@" } }
       }
+    },
+    "Launch Enabled": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Enabled" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "已开启" } }
+      }
+    },
+    "Launch Disabled": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Disabled" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未开启" } }
+      }
+    },
+    "Launch Pending Approval": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Pending Approval" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "等待批准" } }
+      }
+    },
+    "Unavailable": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Unavailable" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "不可用" } }
+      }
+    },
+    "Launch enabled detail": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Calendar Pro launches automatically after login." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "开机后 Calendar Pro 会自动启动。" } }
+      }
+    },
+    "Launch disabled detail": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Calendar Pro is not currently listed as a login item. You can enable it at any time." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前未加入系统登录项，需要时可以随时开启。" } }
+      }
+    },
+    "Launch approval detail": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Approve Calendar Pro in System Settings > General > Login Items." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "系统需要你在“系统设置 > 通用 > 登录项”中批准 Calendar Pro。" } }
+      }
+    },
+    "Launch unavailable detail": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "No registrable app instance was found. Launch Calendar Pro from the installed app bundle and try again." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "系统当前未找到可注册的应用实例，请从已安装的应用包启动后重试。" } }
+      }
+    },
+    "Recommended": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Recommended" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "宜" } }
+      }
+    },
+    "Avoid": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Avoid" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "忌" } }
+      }
+    },
+    "Update Check Failed": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Update Check Failed" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "检查更新失败" } }
+      }
+    },
+    "Update Check Failed Description": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Automatic updates are unavailable. Download the latest version from GitHub." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "自动更新不可用，请前往 GitHub 下载最新版本。" } }
+      }
+    },
+    "Go to GitHub": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Go to GitHub" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "前往 GitHub" } }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Cancel" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "取消" } }
+      }
     }
   },
   "version": "1.0"
