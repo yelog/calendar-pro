@@ -13,6 +13,12 @@ enum CalendarItemTimelinePlacement: Equatable {
     case untimed
 }
 
+extension EKEvent {
+    var isCanceled: Bool {
+        status == .canceled
+    }
+}
+
 enum CalendarItem: Identifiable {
     case event(EKEvent)
     case reminder(EKReminder)
@@ -58,7 +64,16 @@ enum CalendarItem: Identifiable {
         if case .reminder = self { return true }
         return false
     }
-    
+
+    var isCanceled: Bool {
+        switch self {
+        case .event(let event):
+            return event.isCanceled
+        case .reminder:
+            return false
+        }
+    }
+
     var ekReminder: EKReminder? {
         if case .reminder(let reminder) = self { return reminder }
         return nil

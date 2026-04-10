@@ -60,6 +60,43 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertFalse(item.isReminder)
     }
 
+    // MARK: - isCanceled
+
+    func testIsCanceled_falseForNormalEvent() {
+        let item = CalendarItem.event(makeEvent(
+            title: "会议",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        ))
+
+        XCTAssertFalse(item.isCanceled)
+    }
+
+    func testIsCanceled_trueForCanceledEvent() {
+        let event = makeEvent(
+            title: "取消会议",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        )
+        event.setValue(EKEventStatus.canceled.rawValue, forKey: "status")
+
+        let item = CalendarItem.event(event)
+
+        XCTAssertTrue(item.isCanceled)
+    }
+
+    func testIsCanceled_falseForReminder() {
+        let item = CalendarItem.reminder(makeReminder(
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 17,
+            minute: 15
+        ))
+
+        XCTAssertFalse(item.isCanceled)
+    }
+
     // MARK: - timeline
 
     func testHasExplicitTime_trueForTimedReminder() {

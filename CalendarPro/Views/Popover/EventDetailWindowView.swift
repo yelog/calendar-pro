@@ -40,6 +40,10 @@ struct EventDetailWindowView: View {
         Color(nsColor: event.calendar.color)
     }
 
+    private var isCanceled: Bool {
+        event.isCanceled
+    }
+
     private var header: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
@@ -47,16 +51,22 @@ struct EventDetailWindowView: View {
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
 
+                if isCanceled {
+                    canceledBadge
+                }
+
                 HStack(alignment: .top, spacing: 8) {
                     Circle()
-                        .fill(calendarColor)
+                        .fill(calendarColor.opacity(isCanceled ? 0.45 : 1))
                         .frame(width: 9, height: 9)
                         .padding(.top, 5)
 
                     SelectableDetailText(
                         text: event.title ?? L("Untitled"),
                         font: .system(size: 16, weight: .semibold, design: .rounded),
-                        lineLimit: 2
+                        foregroundColor: isCanceled ? .secondary : .primary,
+                        lineLimit: 2,
+                        strikethrough: isCanceled
                     )
                 }
             }
@@ -82,18 +92,19 @@ struct EventDetailWindowView: View {
         VStack(alignment: .leading, spacing: 6) {
             SelectableDetailText(
                 text: dateRangeText,
-                font: .system(size: 14, weight: .semibold, design: .rounded)
+                font: .system(size: 14, weight: .semibold, design: .rounded),
+                foregroundColor: isCanceled ? .secondary : .primary
             )
 
             SelectableDetailText(
                 text: timeSummaryText,
                 font: .system(size: 12),
-                foregroundColor: .secondary
+                foregroundColor: isCanceled ? Color(nsColor: .tertiaryLabelColor) : .secondary
             )
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(sectionBackground(tint: calendarColor.opacity(0.12)))
+        .background(sectionBackground(tint: summaryCardTint))
     }
 
     private var detailScrollView: some View {
@@ -172,6 +183,22 @@ struct EventDetailWindowView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(Color(nsColor: .separatorColor).opacity(0.12), lineWidth: 1)
+            )
+    }
+
+    private var summaryCardTint: Color {
+        isCanceled ? Color.red.opacity(0.08) : calendarColor.opacity(0.12)
+    }
+
+    private var canceledBadge: some View {
+        Label(L("Canceled"), systemImage: "xmark.circle.fill")
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(.red)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(Color.red.opacity(0.12))
             )
     }
 

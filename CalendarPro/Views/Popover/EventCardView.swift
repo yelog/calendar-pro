@@ -43,7 +43,7 @@ struct EventCardView: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            if timelineState == .ongoing {
+            if timelineState == .ongoing && !item.isCanceled {
                 RoundedRectangle(cornerRadius: 2, style: .continuous)
                     .fill(Color(nsColor: item.color))
                     .frame(width: 3)
@@ -55,26 +55,26 @@ struct EventCardView: View {
                     .padding(.top, 2)
             } else {
                 Circle()
-                    .fill(Color(nsColor: item.color))
+                    .fill(indicatorColor)
                     .frame(width: 6, height: 6)
                     .padding(.top, 4)
             }
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(timeRangeText)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-                
+                    .foregroundStyle(timeTextColor)
+
                 Text(item.title)
                     .font(.system(size: 13, weight: .regular))
                     .lineLimit(2)
-                    .strikethrough(item.isCompleted)
-                    .foregroundStyle(item.isCompleted ? .secondary : .primary)
+                    .strikethrough(item.isCompleted || item.isCanceled)
+                    .foregroundStyle(titleColor)
 
                 if let secondaryText {
                     Text(secondaryText)
                         .font(.system(size: 10))
-                        .foregroundStyle(.secondary.opacity(0.8))
+                        .foregroundStyle(secondaryTextColor)
                         .lineLimit(1)
                 }
             }
@@ -84,7 +84,7 @@ struct EventCardView: View {
             if showsDisclosure {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(isSelected ? Color.accentColor : Color(nsColor: .tertiaryLabelColor))
+                    .foregroundStyle(disclosureColor)
                     .padding(.top, 2)
             }
         }
@@ -125,6 +125,9 @@ struct EventCardView: View {
     }
 
     private var backgroundColor: Color {
+        if item.isCanceled {
+            return Color.red.opacity(isSelected ? 0.08 : 0.05)
+        }
         if isSelected {
             return Color.accentColor.opacity(0.12)
         }
@@ -138,6 +141,9 @@ struct EventCardView: View {
     }
 
     private var borderColor: Color {
+        if item.isCanceled {
+            return Color.red.opacity(isSelected ? 0.32 : 0.2)
+        }
         if isSelected {
             return Color.accentColor.opacity(0.35)
         }
@@ -148,10 +154,43 @@ struct EventCardView: View {
     }
 
     private var contentOpacity: Double {
+        if item.isCanceled {
+            return isSelected ? 0.96 : 0.88
+        }
         if timelineState == .past, !isSelected {
             return 0.78
         }
         return 1
+    }
+
+    private var indicatorColor: Color {
+        let color = Color(nsColor: item.color)
+        return item.isCanceled ? color.opacity(0.4) : color
+    }
+
+    private var timeTextColor: Color {
+        item.isCanceled ? Color(nsColor: .tertiaryLabelColor) : .secondary
+    }
+
+    private var titleColor: Color {
+        if item.isCompleted || item.isCanceled {
+            return .secondary
+        }
+        return .primary
+    }
+
+    private var secondaryTextColor: Color {
+        if item.isCanceled {
+            return Color(nsColor: .tertiaryLabelColor)
+        }
+        return .secondary.opacity(0.8)
+    }
+
+    private var disclosureColor: Color {
+        if item.isCanceled {
+            return Color(nsColor: .tertiaryLabelColor)
+        }
+        return isSelected ? Color.accentColor : Color(nsColor: .tertiaryLabelColor)
     }
 
     private var secondaryText: String? {
