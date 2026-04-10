@@ -4,7 +4,7 @@ import EventKit
 struct RootPopoverView: View {
     @ObservedObject var settingsStore: SettingsStore
     @ObservedObject var eventService: EventService
-    @StateObject private var viewModel = CalendarPopoverViewModel()
+    @ObservedObject var viewModel: CalendarPopoverViewModel
     let onPresentEventDetailWindow: (EKEvent, @escaping () -> Void) -> Void
     let onPresentReminderDetailWindow: (EKReminder, @escaping (EKReminder) -> Void, @escaping () -> Void) -> Void
     let onDismissEventDetailWindow: () -> Void
@@ -79,13 +79,9 @@ struct RootPopoverView: View {
             onQuit: onQuit
         )
         .onAppear {
-            viewModel.checkAndResetIfNeeded()
             eventService.checkAuthorizationStatus()
             refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
             refreshInfoStrips()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .PopoverDidCloseNotification)) { _ in
-            viewModel.popoverDidClose()
         }
         .onChange(of: eventService.isAuthorized) { _, _ in
             refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)

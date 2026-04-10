@@ -2,10 +2,6 @@ import AppKit
 import EventKit
 import SwiftUI
 
-extension Notification.Name {
-    static let PopoverDidCloseNotification = Notification.Name("PopoverDidCloseNotification")
-}
-
 @MainActor
 protocol PopoverPresenting: AnyObject {
     var isShown: Bool { get }
@@ -102,19 +98,22 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private let eventService: EventService
     private let interactionMonitor: PopoverInteractionMonitoring
     private let eventDetailPresenter: EventDetailWindowPresenting
+    private let viewModel: CalendarPopoverViewModel
 
     init(
         settingsStore: SettingsStore,
         eventService: EventService,
         popover: PopoverPresenting = NSPopover(),
         interactionMonitor: PopoverInteractionMonitoring = PopoverInteractionMonitor(),
-        eventDetailPresenter: EventDetailWindowPresenting = EventDetailWindowController()
+        eventDetailPresenter: EventDetailWindowPresenting = EventDetailWindowController(),
+        viewModel: CalendarPopoverViewModel = CalendarPopoverViewModel()
     ) {
         self.popover = popover
         self.settingsStore = settingsStore
         self.eventService = eventService
         self.interactionMonitor = interactionMonitor
         self.eventDetailPresenter = eventDetailPresenter
+        self.viewModel = viewModel
         super.init()
 
         popover.behavior = .transient
@@ -145,6 +144,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
             rootView: RootPopoverView(
                 settingsStore: settingsStore,
                 eventService: eventService,
+                viewModel: viewModel,
                 onPresentEventDetailWindow: { [weak self] event, onClose in
                     self?.showEventDetailWindow(for: event, onClose: onClose)
                 },
@@ -167,6 +167,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     }
 
     private func showPopover(relativeTo button: NSView) {
+        viewModel.checkAndResetIfNeeded()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         interactionMonitor.start { [weak self] in
             self?.closePopover()
@@ -185,7 +186,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
 
     func popoverDidClose(_ notification: Notification) {
         interactionMonitor.stop()
-        NotificationCenter.default.post(name: .PopoverDidCloseNotification, object: nil)
+        viewModel.popoverDidClose()
     }
 
     func showEventDetailWindow(for event: EKEvent, onClose: @escaping () -> Void) {

@@ -16,6 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var uiTestWindow: NSWindow?
     private var settingsWindow: NSWindow?
     private let uiTestEventDetailWindowController = EventDetailWindowController()
+    private let uiTestPopoverViewModel = CalendarPopoverViewModel()
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
@@ -142,6 +143,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             rootView: RootPopoverView(
                 settingsStore: settingsStore,
                 eventService: eventService,
+                viewModel: uiTestPopoverViewModel,
                 onPresentEventDetailWindow: { [weak self] event, onClose in
                     self?.uiTestEventDetailWindowController.show(
                         event: event,

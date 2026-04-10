@@ -217,30 +217,32 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertNotEqual(nowMonth, displayedMonth)
     }
 
-    func testCheckAndResetDoesNothingWithin5Minutes() {
+    func testCheckAndResetDoesNothingWithin30Seconds() {
         let viewModel = CalendarPopoverViewModel()
         for _ in 0..<2 {
             viewModel.showPreviousMonth(using: Calendar.current)
         }
         viewModel.popoverDidClose()
-        viewModel.lastClosedTime = Date().addingTimeInterval(-299)
+        viewModel.lastClosedTime = Date().addingTimeInterval(-29)
         viewModel.checkAndResetIfNeeded()
         let nowMonth = Calendar.current.component(.month, from: Date())
         let displayedMonth = Calendar.current.component(.month, from: viewModel.displayedMonth)
         XCTAssertNotEqual(nowMonth, displayedMonth)
     }
 
-    func testCheckAndResetAfter5Minutes() {
+    func testCheckAndResetAfter30Seconds() {
         let viewModel = CalendarPopoverViewModel()
         for _ in 0..<2 {
             viewModel.showPreviousMonth(using: Calendar.current)
         }
+        viewModel.enterYearSelection()
         viewModel.popoverDidClose()
-        viewModel.lastClosedTime = Date().addingTimeInterval(-301)
+        viewModel.lastClosedTime = Date().addingTimeInterval(-31)
         viewModel.checkAndResetIfNeeded()
         let nowMonth = Calendar.current.component(.month, from: Date())
         let displayedMonth = Calendar.current.component(.month, from: viewModel.displayedMonth)
         XCTAssertEqual(nowMonth, displayedMonth)
+        XCTAssertEqual(viewModel.selectionMode, .calendar)
         XCTAssertNotNil(viewModel.selectedDate)
         XCTAssertTrue(Calendar.current.isDate(viewModel.selectedDate!, inSameDayAs: Date()))
         XCTAssertNil(viewModel.lastClosedTime)

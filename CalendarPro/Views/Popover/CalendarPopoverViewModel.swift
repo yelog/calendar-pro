@@ -13,9 +13,11 @@ final class CalendarPopoverViewModel: ObservableObject {
     @Published private(set) var selectedEventIdentifier: String?
     @Published private(set) var selectionMode: SelectionMode = .calendar
     @Published var lastClosedTime: Date?
+    private let autoResetInterval: TimeInterval
 
-    init(displayedMonth: Date = .now) {
+    init(displayedMonth: Date = .now, autoResetInterval: TimeInterval = 30) {
         self.displayedMonth = displayedMonth
+        self.autoResetInterval = autoResetInterval
     }
 
     var displayedYear: Int {
@@ -104,6 +106,7 @@ final class CalendarPopoverViewModel: ObservableObject {
 
     func resetToToday() {
         displayedMonth = .now
+        selectionMode = .calendar
     }
 
     func popoverDidClose() {
@@ -113,7 +116,7 @@ final class CalendarPopoverViewModel: ObservableObject {
     func checkAndResetIfNeeded() {
         guard let closedTime = lastClosedTime else { return }
         let interval = Date().timeIntervalSince(closedTime)
-        if interval > 300 {
+        if interval > autoResetInterval {
             resetToToday()
             selectDate(Date())
             lastClosedTime = nil

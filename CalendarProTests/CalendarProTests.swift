@@ -112,11 +112,40 @@ final class PopoverControllerTests: XCTestCase {
         XCTAssertEqual(presenter.closeCallCount, 1)
     }
 
+    func testReopenAfterThirtySecondsResetsToToday() {
+        let popover = FakePopover()
+        let interactionMonitor = FakePopoverInteractionMonitor()
+        let viewModel = CalendarPopoverViewModel(
+            displayedMonth: Calendar.current.date(byAdding: .month, value: -2, to: Date()) ?? Date()
+        )
+        let selectedDate = Calendar.current.date(byAdding: .day, value: -10, to: Date()) ?? Date()
+        viewModel.selectDate(selectedDate)
+        let controller = makeController(
+            name: #function,
+            popover: popover,
+            interactionMonitor: interactionMonitor,
+            viewModel: viewModel
+        )
+
+        controller.toggle(relativeTo: NSButton())
+        interactionMonitor.triggerInteraction()
+        viewModel.lastClosedTime = Date().addingTimeInterval(-31)
+
+        controller.toggle(relativeTo: NSButton())
+
+        XCTAssertTrue(popover.isShown)
+        XCTAssertTrue(Calendar.current.isDate(viewModel.displayedMonth, equalTo: Date(), toGranularity: .month))
+        XCTAssertNotNil(viewModel.selectedDate)
+        XCTAssertTrue(Calendar.current.isDate(viewModel.selectedDate!, inSameDayAs: Date()))
+        XCTAssertNil(viewModel.lastClosedTime)
+    }
+
     private func makeController(
         name: String,
         popover: PopoverPresenting,
         interactionMonitor: PopoverInteractionMonitoring,
-        eventDetailPresenter: EventDetailWindowPresenting = FakeEventDetailWindowPresenter()
+        eventDetailPresenter: EventDetailWindowPresenting = FakeEventDetailWindowPresenter(),
+        viewModel: CalendarPopoverViewModel? = nil
     ) -> PopoverController {
         let userDefaults = UserDefaults(suiteName: name)!
         userDefaults.removePersistentDomain(forName: name)
@@ -127,7 +156,8 @@ final class PopoverControllerTests: XCTestCase {
             eventService: EventService(),
             popover: popover,
             interactionMonitor: interactionMonitor,
-            eventDetailPresenter: eventDetailPresenter
+            eventDetailPresenter: eventDetailPresenter,
+            viewModel: viewModel ?? CalendarPopoverViewModel()
         )
     }
 
