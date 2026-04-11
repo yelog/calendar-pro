@@ -8,6 +8,7 @@ enum EventCardTimelineState: Equatable {
 }
 
 private enum EventCardMetadata {
+    case participation(EventParticipationChoice)
     case meeting(link: MeetingLink, participantCount: Int?)
     case recurringReminder(String)
 }
@@ -58,8 +59,13 @@ struct EventCardView: View {
 
                     Spacer(minLength: 8)
 
-                    if showsDisclosure, let metadata {
-                        metadataView(metadata)
+                    if showsDisclosure, !metadataItems.isEmpty {
+                        HStack(spacing: 5) {
+                            ForEach(Array(metadataItems.enumerated()), id: \.offset) { _, metadata in
+                                metadataView(metadata)
+                            }
+                        }
+                        .fixedSize(horizontal: true, vertical: false)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -186,16 +192,22 @@ struct EventCardView: View {
         return isSelected ? Color.accentColor : Color(nsColor: .tertiaryLabelColor)
     }
 
-    private var metadata: EventCardMetadata? {
+    private var metadataItems: [EventCardMetadata] {
+        var items: [EventCardMetadata] = []
+
+        if let participationChoice = item.currentUserParticipationChoice {
+            items.append(.participation(participationChoice))
+        }
+
         if let meetingLink = item.meetingLink {
-            return .meeting(link: meetingLink, participantCount: item.meetingParticipantCount)
+            items.append(.meeting(link: meetingLink, participantCount: item.meetingParticipantCount))
         }
 
-        if let recurrenceText = item.reminderRecurrenceText {
-            return .recurringReminder(recurrenceText)
+        if items.isEmpty, let recurrenceText = item.reminderRecurrenceText {
+            items.append(.recurringReminder(recurrenceText))
         }
 
-        return nil
+        return items
     }
 
     private var secondaryText: String? {
@@ -223,6 +235,8 @@ struct EventCardView: View {
     @ViewBuilder
     private func metadataView(_ metadata: EventCardMetadata) -> some View {
         switch metadata {
+        case .participation(let choice):
+            EventParticipationStatusBadge(choice: choice, style: .compactIcon)
         case .meeting(let link, let participantCount):
             HStack(spacing: 5) {
                 MeetingPlatformMark(platform: link.platform, style: .compact)
@@ -248,6 +262,147 @@ struct EventCardView: View {
             }
             .foregroundStyle(metadataColor)
             .fixedSize(horizontal: true, vertical: false)
+        }
+    }
+}
+
+enum EventParticipationBadgeStyle {
+    case compactIcon
+    case detail
+
+    var font: Font {
+        switch self {
+        case .compactIcon:
+            return .system(size: 10, weight: .semibold)
+        case .detail:
+            return .system(size: 11, weight: .semibold)
+        }
+    }
+
+    var iconFont: Font {
+        switch self {
+        case .compactIcon:
+            return .system(size: 9, weight: .semibold)
+        case .detail:
+            return .system(size: 10, weight: .semibold)
+        }
+    }
+
+    var horizontalPadding: CGFloat {
+        switch self {
+        case .compactIcon:
+            return 0
+        case .detail:
+            return 8
+        }
+    }
+
+    var verticalPadding: CGFloat {
+        switch self {
+        case .compactIcon:
+            return 0
+        case .detail:
+            return 4
+        }
+    }
+
+    var showsTitle: Bool {
+        switch self {
+        case .compactIcon:
+            return false
+        case .detail:
+            return true
+        }
+    }
+
+    var iconFrameSize: CGFloat {
+        switch self {
+        case .compactIcon:
+            return 18
+        case .detail:
+            return 0
+        }
+    }
+}
+
+struct EventParticipationStatusBadge: View {
+    let choice: EventParticipationChoice
+    let style: EventParticipationBadgeStyle
+
+    var body: some View {
+        Group {
+            if style.showsTitle {
+                HStack(spacing: 4) {
+                    Image(systemName: choice.badgeSymbolName)
+                        .font(style.iconFont)
+
+                    Text(choice.badgeTitle)
+                        .font(style.font)
+                        .lineLimit(1)
+                }
+                .padding(.horizontal, style.horizontalPadding)
+                .padding(.vertical, style.verticalPadding)
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(choice.badgeBackgroundColor)
+                )
+            } else {
+                Image(systemName: choice.badgeSymbolName)
+                    .font(style.iconFont)
+                    .frame(width: style.iconFrameSize, height: style.iconFrameSize)
+                    .background(
+                        Circle()
+                            .fill(choice.badgeBackgroundColor)
+                    )
+            }
+        }
+        .foregroundStyle(choice.badgeForegroundColor)
+        .fixedSize(horizontal: true, vertical: false)
+    }
+}
+
+private extension EventParticipationChoice {
+    var badgeTitle: String {
+        switch self {
+        case .accept:
+            return L("Accepted")
+        case .maybe:
+            return L("Maybe")
+        case .decline:
+            return L("Declined")
+        }
+    }
+
+    var badgeSymbolName: String {
+        switch self {
+        case .accept:
+            return "checkmark.circle.fill"
+        case .maybe:
+            return "questionmark.circle.fill"
+        case .decline:
+            return "xmark.circle.fill"
+        }
+    }
+
+    var badgeForegroundColor: Color {
+        switch self {
+        case .accept:
+            return Color(red: 0.11, green: 0.55, blue: 0.25)
+        case .maybe:
+            return Color(red: 0.82, green: 0.48, blue: 0.08)
+        case .decline:
+            return Color(red: 0.78, green: 0.22, blue: 0.19)
+        }
+    }
+
+    var badgeBackgroundColor: Color {
+        switch self {
+        case .accept:
+            return Color(red: 0.11, green: 0.55, blue: 0.25).opacity(0.12)
+        case .maybe:
+            return Color(red: 0.82, green: 0.48, blue: 0.08).opacity(0.14)
+        case .decline:
+            return Color(red: 0.78, green: 0.22, blue: 0.19).opacity(0.12)
         }
     }
 }

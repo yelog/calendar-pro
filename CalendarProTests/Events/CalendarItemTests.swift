@@ -138,6 +138,57 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertNil(item.reminderRecurrenceText)
     }
 
+    func testEventParticipationChoice_mapsAcceptedStatus() {
+        XCTAssertEqual(EventParticipationChoice(participantStatus: .accepted), .accept)
+    }
+
+    func testEventParticipationChoice_mapsTentativeStatusToMaybe() {
+        XCTAssertEqual(EventParticipationChoice(participantStatus: .tentative), .maybe)
+    }
+
+    func testEventParticipationChoice_mapsDeclinedStatus() {
+        XCTAssertEqual(EventParticipationChoice(participantStatus: .declined), .decline)
+    }
+
+    func testEventParticipationChoice_returnsNilForPendingStatus() {
+        XCTAssertNil(EventParticipationChoice(participantStatus: .pending))
+    }
+
+    func testCurrentUserParticipationChoice_returnsNilWithoutInviteContext() {
+        let event = makeEvent(
+            title: "普通会议",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        )
+        event.setValue(EKParticipantStatus.accepted.rawValue, forKey: "participationStatus")
+
+        XCTAssertNil(event.currentUserParticipationChoice)
+        XCTAssertNil(CalendarItem.event(event).currentUserParticipationChoice)
+    }
+
+    func testCanModifyCurrentUserParticipationChoice_requiresInviteContext() {
+        let event = makeEvent(
+            title: "普通会议",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        )
+
+        XCTAssertFalse(event.canModifyCurrentUserParticipationChoice)
+    }
+
+    func testIsRecurringParticipationSeries_trueForRecurringInvite() {
+        let event = makeEvent(
+            title: "重复会议",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        )
+        event.recurrenceRules = [
+            EKRecurrenceRule(recurrenceWith: .weekly, interval: 1, end: nil)
+        ]
+
+        XCTAssertTrue(event.isRecurringParticipationSeries)
+    }
+
     // MARK: - timeline
 
     func testHasExplicitTime_trueForTimedReminder() {

@@ -6,10 +6,21 @@ struct EventDetailWindowView: View {
     let onClose: () -> Void
     let onPreferredHeightChange: ((CGFloat) -> Void)?
 
+    @State private var displayedParticipationChoice: EventParticipationChoice?
+    @State private var pendingParticipationChoice: EventParticipationChoice?
+    @State private var showsParticipationScopeDialog = false
+    @State private var responseErrorMessage: String?
     @State private var containerHeight: CGFloat = 0
     @State private var detailViewportHeight: CGFloat = 0
     @State private var detailContentHeight: CGFloat = 0
     @State private var lastReportedPreferredHeight: CGFloat = 0
+
+    init(event: EKEvent, onClose: @escaping () -> Void, onPreferredHeightChange: ((CGFloat) -> Void)? = nil) {
+        self.event = event
+        self.onClose = onClose
+        self.onPreferredHeightChange = onPreferredHeightChange
+        _displayedParticipationChoice = State(initialValue: event.currentUserParticipationChoice)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
@@ -30,6 +41,30 @@ struct EventDetailWindowView: View {
                 reportPreferredHeightIfNeeded()
             }
         )
+        .confirmationDialog(L("Apply Response"), isPresented: $showsParticipationScopeDialog, titleVisibility: .visible) {
+            if let pendingParticipationChoice {
+                Button(L("Only This Event")) {
+                    applyParticipationChoice(pendingParticipationChoice, span: .thisEvent)
+                }
+
+                Button(L("Entire Series")) {
+                    applyParticipationChoice(pendingParticipationChoice, span: .futureEvents)
+                }
+            }
+
+            Button(L("Cancel"), role: .cancel) {
+                pendingParticipationChoice = nil
+            }
+        } message: {
+            Text(L("Choose whether to update only this event or the whole series."))
+        }
+        .alert(L("Unable to Update Response"), isPresented: showsResponseError) {
+            Button(L("OK")) {
+                responseErrorMessage = nil
+            }
+        } message: {
+            Text(responseErrorMessage ?? L("Unable to Update Response Description"))
+        }
     }
 
     private var meetingLink: MeetingLink? {
@@ -42,6 +77,25 @@ struct EventDetailWindowView: View {
 
     private var isCanceled: Bool {
         event.isCanceled
+    }
+
+    private var canModifyParticipationChoice: Bool {
+        event.canModifyCurrentUserParticipationChoice
+    }
+
+    private var showsParticipationSection: Bool {
+        event.hasCurrentUserParticipationContext && (canModifyParticipationChoice || displayedParticipationChoice != nil)
+    }
+
+    private var showsResponseError: Binding<Bool> {
+        Binding(
+            get: { responseErrorMessage != nil },
+            set: { isPresented in
+                if !isPresented {
+                    responseErrorMessage = nil
+                }
+            }
+        )
     }
 
     private var header: some View {
@@ -72,6 +126,11 @@ struct EventDetailWindowView: View {
             }
 
             Spacer(minLength: 0)
+
+            if let displayedParticipationChoice {
+                EventParticipationStatusBadge(choice: displayedParticipationChoice, style: .detail)
+                    .padding(.top, 1)
+            }
 
             Button(action: onClose) {
                 Image(systemName: "xmark")
@@ -124,6 +183,14 @@ struct EventDetailWindowView: View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
             EventDetailRow(icon: "calendar", title: L("Calendar"), value: event.calendar.title)
 
+            if showsParticipationSection {
+                ParticipationResponseRow(
+                    currentChoice: displayedParticipationChoice,
+                    isEditable: canModifyParticipationChoice,
+                    onSelect: handleParticipationSelection
+                )
+            }
+
             if let locationText {
                 EventDetailRow(icon: "mappin.and.ellipse", title: L("Location"), value: locationText)
             }
@@ -140,7 +207,8 @@ struct EventDetailWindowView: View {
                 NotesDetailRow(notes: notesText)
             }
 
-            if locationText == nil, event.url == nil, notesText == nil,
+            if !showsParticipationSection,
+               locationText == nil, event.url == nil, notesText == nil,
                (event.attendees ?? []).isEmpty {
                 EmptyDetailState()
             }
@@ -256,6 +324,35 @@ struct EventDetailWindowView: View {
 
         lastReportedPreferredHeight = preferredHeight
         onPreferredHeightChange?(preferredHeight)
+    }
+
+    private func handleParticipationSelection(_ choice: EventParticipationChoice) {
+        guard choice != displayedParticipationChoice else {
+            return
+        }
+
+        responseErrorMessage = nil
+
+        if event.isRecurringParticipationSeries {
+            pendingParticipationChoice = choice
+            showsParticipationScopeDialog = true
+            return
+        }
+
+        applyParticipationChoice(choice, span: .thisEvent)
+    }
+
+    private func applyParticipationChoice(_ choice: EventParticipationChoice, span: EKSpan) {
+        do {
+            try event.updateCurrentUserParticipationChoice(choice, span: span)
+            displayedParticipationChoice = choice
+            pendingParticipationChoice = nil
+            showsParticipationScopeDialog = false
+        } catch {
+            pendingParticipationChoice = nil
+            showsParticipationScopeDialog = false
+            responseErrorMessage = error.localizedDescription.nilIfEmpty ?? L("Unable to Update Response Description")
+        }
     }
 }
 
@@ -425,6 +522,127 @@ private struct AttendeesDetailRow: View {
         }
         let email = (participant.url as NSURL).resourceSpecifier ?? ""
         return email.isEmpty ? L("Unknown Attendee") : email
+    }
+}
+
+private struct ParticipationResponseRow: View {
+    let currentChoice: EventParticipationChoice?
+    let isEditable: Bool
+    let onSelect: (EventParticipationChoice) -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "person.crop.circle.badge.checkmark")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(Color(nsColor: .controlAccentColor).opacity(0.08))
+                )
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(L("Response"))
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                if isEditable {
+                    HStack(spacing: 8) {
+                        ForEach(EventParticipationChoice.allCases, id: \.self) { choice in
+                            ParticipationChoiceButton(choice: choice, isSelected: currentChoice == choice) {
+                                onSelect(choice)
+                            }
+                        }
+                    }
+                } else if let currentChoice {
+                    EventParticipationStatusBadge(choice: currentChoice, style: .detail)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(nsColor: .controlBackgroundColor).opacity(0.88))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color(nsColor: .separatorColor).opacity(0.12), lineWidth: 1)
+                )
+        )
+    }
+}
+
+private struct ParticipationChoiceButton: View {
+    let choice: EventParticipationChoice
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: symbolName)
+                    .font(.system(size: 10, weight: .semibold))
+
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(isSelected ? selectedForegroundColor : .secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isSelected ? selectedBackgroundColor : Color(nsColor: .windowBackgroundColor).opacity(0.6))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(isSelected ? selectedBorderColor : Color(nsColor: .separatorColor).opacity(0.16), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var title: String {
+        switch choice {
+        case .accept:
+            return L("Accept")
+        case .maybe:
+            return L("Maybe")
+        case .decline:
+            return L("Decline")
+        }
+    }
+
+    private var symbolName: String {
+        switch choice {
+        case .accept:
+            return "checkmark.circle.fill"
+        case .maybe:
+            return "questionmark.circle.fill"
+        case .decline:
+            return "xmark.circle.fill"
+        }
+    }
+
+    private var selectedForegroundColor: Color {
+        switch choice {
+        case .accept:
+            return Color(red: 0.11, green: 0.55, blue: 0.25)
+        case .maybe:
+            return Color(red: 0.82, green: 0.48, blue: 0.08)
+        case .decline:
+            return Color(red: 0.78, green: 0.22, blue: 0.19)
+        }
+    }
+
+    private var selectedBackgroundColor: Color {
+        selectedForegroundColor.opacity(0.12)
+    }
+
+    private var selectedBorderColor: Color {
+        selectedForegroundColor.opacity(0.26)
     }
 }
 
@@ -736,7 +954,7 @@ private struct FooterActions: View {
         if let appURL = workspace.urlForApplication(
             withBundleIdentifier: "com.apple.iCal"
         ) {
-            try? workspace.openApplication(at: appURL, configuration: .init())
+            workspace.openApplication(at: appURL, configuration: .init())
         }
     }
 }

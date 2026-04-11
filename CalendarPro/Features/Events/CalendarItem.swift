@@ -18,9 +18,66 @@ enum ReminderRecurrenceSummaryStyle {
     case detailed
 }
 
+enum EventParticipationChoice: CaseIterable, Equatable {
+    case accept
+    case maybe
+    case decline
+
+    init?(participantStatus: EKParticipantStatus) {
+        switch participantStatus {
+        case .accepted:
+            self = .accept
+        case .tentative:
+            self = .maybe
+        case .declined:
+            self = .decline
+        default:
+            return nil
+        }
+    }
+
+    init?(participantStatusRawValue: Int) {
+        guard let status = EKParticipantStatus(rawValue: participantStatusRawValue) else {
+            return nil
+        }
+        self.init(participantStatus: status)
+    }
+
+    var eventKitStatus: EKParticipantStatus {
+        switch self {
+        case .accept:
+            return .accepted
+        case .maybe:
+            return .tentative
+        case .decline:
+            return .declined
+        }
+    }
+}
+
 extension EKEvent {
     var isCanceled: Bool {
         status == .canceled
+    }
+
+    private var currentUserActsAsOrganizer: Bool {
+        organizer?.isCurrentUser == true
+    }
+
+    private var hasReliableCurrentUserParticipationIdentity: Bool {
+        if let attendees, attendees.contains(where: { $0.isCurrentUser }) {
+            return true
+        }
+
+        if runtimeBoolValue(forKey: "currentUserInvitedAttendee") {
+            return true
+        }
+
+        if let participantRole = runtimeIntValue(forKey: "currentUserGeneralizedParticipantRole"), participantRole != 0 {
+            return true
+        }
+
+        return false
     }
 
     var selectionIdentifier: String {
@@ -34,6 +91,105 @@ extension EKEvent {
             String(startDate.timeIntervalSinceReferenceDate),
             String(endDate.timeIntervalSinceReferenceDate)
         ].joined(separator: "|")
+    }
+
+    var hasCurrentUserParticipationContext: Bool {
+        guard !currentUserActsAsOrganizer else {
+            return false
+        }
+
+        if hasReliableCurrentUserParticipationIdentity {
+            return true
+        }
+
+        // Some providers omit an explicit self attendee for pending invites, but the
+        // attendee list plus a non-organizer current user still means we should show
+        // response controls in the detail view.
+        if let attendees, !attendees.isEmpty {
+            return true
+        }
+
+        return false
+    }
+
+    var currentUserParticipationChoice: EventParticipationChoice? {
+        guard hasCurrentUserParticipationContext else {
+            return nil
+        }
+
+        if let participant = attendees?.first(where: { $0.isCurrentUser }) {
+            return EventParticipationChoice(participantStatus: participant.participantStatus)
+        }
+
+        guard hasReliableCurrentUserParticipationIdentity else {
+            return nil
+        }
+
+        return EventParticipationChoice(participantStatusRawValue: runtimeIntValue(forKey: "participationStatus") ?? EKParticipantStatus.unknown.rawValue)
+    }
+
+    var canModifyCurrentUserParticipationChoice: Bool {
+        guard hasCurrentUserParticipationContext else {
+            return false
+        }
+
+        return runtimeBoolValue(forKey: "allowsParticipationStatusModifications")
+            || runtimeBoolValue(forKey: "canBeRespondedTo")
+            || responds(to: NSSelectorFromString("setParticipationStatus:"))
+    }
+
+    var isRecurringParticipationSeries: Bool {
+        hasRecurrenceRules || occurrenceDate != nil
+    }
+
+    func updateCurrentUserParticipationChoice(_ choice: EventParticipationChoice, span: EKSpan) throws {
+        guard hasCurrentUserParticipationContext else {
+            throw NSError(
+                domain: "CalendarPro.EventParticipation",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "This event has no current-user participation context."]
+            )
+        }
+
+        guard canModifyCurrentUserParticipationChoice else {
+            throw NSError(
+                domain: "CalendarPro.EventParticipation",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: "This event does not allow participation updates."]
+            )
+        }
+
+        guard let eventStore = value(forKey: "eventStore") as? EKEventStore else {
+            throw NSError(
+                domain: "CalendarPro.EventParticipation",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "Unable to access the backing event store."]
+            )
+        }
+
+        setValue(choice.eventKitStatus.rawValue, forKey: "participationStatus")
+
+        do {
+            try eventStore.save(self, span: span)
+        } catch {
+            throw error
+        }
+    }
+
+    private func runtimeBoolValue(forKey key: String) -> Bool {
+        guard responds(to: NSSelectorFromString(key)) else {
+            return false
+        }
+
+        return (value(forKey: key) as? NSNumber)?.boolValue ?? false
+    }
+
+    private func runtimeIntValue(forKey key: String) -> Int? {
+        guard responds(to: NSSelectorFromString(key)) else {
+            return nil
+        }
+
+        return (value(forKey: key) as? NSNumber)?.intValue
     }
 }
 
@@ -251,6 +407,13 @@ enum CalendarItem: Identifiable {
             return nil
         }
         return attendees.count
+    }
+
+    var currentUserParticipationChoice: EventParticipationChoice? {
+        guard case .event(let event) = self else {
+            return nil
+        }
+        return event.currentUserParticipationChoice
     }
 
     var reminderRecurrenceText: String? {
