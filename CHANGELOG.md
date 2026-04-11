@@ -5,6 +5,20 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3-beta.1] - 2026-04-11
+
+### Added
+
+- add participation status UI and responses
+- expand meeting platform support
+- show semantic metadata in event cards
+- add cancelled event styling in timeline and detail view
+
+### Fixed
+
+- use template image to fix faded text on inactive displays
+- reset to today after 30 seconds
+
 ## [0.1.3-beta.0] - 2026-04-09
 
 ### Added
