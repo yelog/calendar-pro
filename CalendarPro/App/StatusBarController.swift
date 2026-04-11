@@ -12,6 +12,9 @@ final class StatusBarController {
     private let eventService: EventService
 
     private var cancellables = Set<AnyCancellable>()
+
+    /// 渲染菜单栏文字时使用的字体（与之前保持一致）
+    private let statusBarFont: NSFont = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
     
     init(settingsStore: SettingsStore, eventService: EventService) {
         self.settingsStore = settingsStore
@@ -51,17 +54,55 @@ final class StatusBarController {
         guard let button else { return }
         button.target = self
         button.action = #selector(togglePopover(_:))
-        button.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
-        button.title = menuBarViewModel.displayText
+        // 使用模板图片渲染文字，确保在 active/inactive 菜单栏和深色/浅色模式下均正确着色
+        button.imagePosition = .imageOnly
+        applyTemplateImage(menuBarViewModel.displayText, to: button)
     }
 
     private func bindViewModel() {
         menuBarViewModel.$displayText
             .receive(on: RunLoop.main)
             .sink { [weak self] text in
-                self?.statusItems.forEach { $0.button?.title = text }
+                guard let self else { return }
+                self.statusItems.forEach {
+                    if let button = $0.button {
+                        self.applyTemplateImage(text, to: button)
+                    }
+                }
             }
             .store(in: &cancellables)
+    }
+
+    /// 将文本渲染成黑色实体图，然后设置 isTemplate = true，
+    /// 让 AppKit 根据当前 appearance（active / inactive / highlighted）自动着色。
+    private func applyTemplateImage(_ text: String, to button: NSStatusBarButton) {
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: statusBarFont
+        ]
+        let attributedText = NSAttributedString(string: text, attributes: attributes)
+        let textSize = attributedText.size()
+
+        // 使用 1 pt 左右内边距，避免文字贴边
+        let padding: CGFloat = 2
+        let imageSize = NSSize(width: ceil(textSize.width) + padding * 2,
+                               height: ceil(textSize.height))
+
+        let image = NSImage(size: imageSize, flipped: false) { rect in
+            // 用纯黑色绘制——isTemplate 之后系统只读取 alpha 通道
+            let drawRect = NSRect(
+                x: padding,
+                y: (rect.height - textSize.height) / 2,
+                width: textSize.width,
+                height: textSize.height
+            )
+            attributedText.draw(in: drawRect)
+            return true
+        }
+        image.isTemplate = true
+
+        button.image = image
+        // 确保 accessibilityLabel 仍然可用（辅助功能）
+        button.toolTip = text
     }
 
     @objc
