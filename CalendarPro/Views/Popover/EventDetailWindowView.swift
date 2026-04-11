@@ -686,10 +686,9 @@ private struct JoinMeetingButton: View {
             NSWorkspace.shared.open(meetingLink.url)
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: meetingLink.iconName)
-                    .font(.system(size: 13, weight: .semibold))
+                MeetingPlatformMark(platform: meetingLink.platform, style: .detail)
 
-                Text(LF("Join %@ Meeting", meetingLink.platform))
+                Text(meetingLink.platform.joinButtonTitle)
                     .font(.system(size: 13, weight: .semibold))
             }
             .frame(maxWidth: .infinity)

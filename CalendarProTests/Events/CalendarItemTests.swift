@@ -109,7 +109,7 @@ final class CalendarItemTests: XCTestCase {
 
         let item = CalendarItem.event(event)
 
-        XCTAssertEqual(item.meetingLink?.platform, "Microsoft Teams")
+        XCTAssertEqual(item.meetingLink?.platform, .microsoftTeams)
     }
 
     func testReminderRecurrenceText_returnsCompactSummary() {

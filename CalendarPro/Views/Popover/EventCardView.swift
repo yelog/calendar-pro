@@ -225,13 +225,14 @@ struct EventCardView: View {
         switch metadata {
         case .meeting(let link, let participantCount):
             HStack(spacing: 5) {
-                meetingPlatformIcon(for: link)
+                MeetingPlatformMark(platform: link.platform, style: .compact)
+                    .foregroundStyle(metadataColor)
 
                 if let participantCount {
                     HStack(spacing: 2) {
                         Image(systemName: "person.2")
                             .font(.system(size: 9, weight: .medium))
-                        Text("\(participantCount)")
+                        Text(verbatim: "\(participantCount)")
                     }
                     .foregroundStyle(metadataColor)
                 }
@@ -249,48 +250,135 @@ struct EventCardView: View {
             .fixedSize(horizontal: true, vertical: false)
         }
     }
+}
 
-    @ViewBuilder
-    private func meetingPlatformIcon(for link: MeetingLink) -> some View {
-        if link.platform == "Microsoft Teams" {
-            TeamsBrandMark()
-        } else {
-            Image(systemName: link.iconName)
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundStyle(metadataColor)
+enum MeetingPlatformMarkStyle {
+    case compact
+    case detail
+
+    var frameWidth: CGFloat {
+        switch self {
+        case .compact: return 14
+        case .detail: return 18
+        }
+    }
+
+    var frameHeight: CGFloat {
+        switch self {
+        case .compact: return 12
+        case .detail: return 16
+        }
+    }
+
+    var monogramFontSize: CGFloat {
+        switch self {
+        case .compact: return 6.3
+        case .detail: return 7.5
+        }
+    }
+
+    var symbolFont: Font {
+        switch self {
+        case .compact:
+            return .system(size: 9, weight: .semibold)
+        case .detail:
+            return .system(size: 13, weight: .semibold)
+        }
+    }
+
+    var cornerRadius: CGFloat {
+        switch self {
+        case .compact: return 3.4
+        case .detail: return 4.5
+        }
+    }
+
+    var scale: CGFloat {
+        switch self {
+        case .compact: return 1
+        case .detail: return 1.18
         }
     }
 }
 
+struct MeetingPlatformMark: View {
+    let platform: MeetingPlatform
+    let style: MeetingPlatformMarkStyle
+
+    var body: some View {
+        switch platform {
+        case .microsoftTeams:
+            TeamsBrandMark(style: style)
+        case .tencentMeeting:
+            MeetingMonogramMark(text: "TM", background: Color(red: 0.11, green: 0.51, blue: 0.98), style: style)
+        case .feishu:
+            MeetingMonogramMark(text: "F", background: Color(red: 0.18, green: 0.54, blue: 0.96), style: style)
+        case .zoom:
+            MeetingMonogramMark(text: "Z", background: Color(red: 0.16, green: 0.46, blue: 0.95), style: style)
+        case .googleMeet:
+            MeetingMonogramMark(text: "G", background: Color(red: 0.20, green: 0.66, blue: 0.33), style: style)
+        case .webex:
+            MeetingMonogramMark(text: "W", background: Color(red: 0.00, green: 0.68, blue: 0.71), style: style)
+        default:
+            Image(systemName: platform.symbolName)
+                .font(style.symbolFont)
+                .frame(width: style.frameWidth, height: style.frameHeight)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
+private struct MeetingMonogramMark: View {
+    let text: String
+    let background: Color
+    let style: MeetingPlatformMarkStyle
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous)
+            .fill(background)
+            .overlay {
+                Text(verbatim: text)
+                    .font(.system(size: style.monogramFontSize, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
+            }
+            .frame(width: style.frameWidth, height: style.frameHeight)
+            .accessibilityHidden(true)
+    }
+}
+
 private struct TeamsBrandMark: View {
+    let style: MeetingPlatformMarkStyle
+
     var body: some View {
         ZStack {
             Circle()
                 .fill(Color(red: 0.43, green: 0.47, blue: 0.93))
-                .frame(width: 4.6, height: 4.6)
-                .offset(x: 4.8, y: 3)
+                .frame(width: 4.6 * style.scale, height: 4.6 * style.scale)
+                .offset(x: 4.8 * style.scale, y: 3 * style.scale)
 
             Circle()
                 .fill(Color(red: 0.31, green: 0.36, blue: 0.84))
-                .frame(width: 4.4, height: 4.4)
-                .offset(x: 5.2, y: -3.1)
+                .frame(width: 4.4 * style.scale, height: 4.4 * style.scale)
+                .offset(x: 5.2 * style.scale, y: -3.1 * style.scale)
 
             RoundedRectangle(cornerRadius: 2.1, style: .continuous)
                 .fill(Color(red: 0.38, green: 0.43, blue: 0.93))
-                .frame(width: 6.2, height: 8.2)
-                .offset(x: 2.3)
+                .frame(width: 6.2 * style.scale, height: 8.2 * style.scale)
+                .offset(x: 2.3 * style.scale)
 
             RoundedRectangle(cornerRadius: 2.4, style: .continuous)
                 .fill(Color(red: 0.28, green: 0.32, blue: 0.79))
-                .frame(width: 8.1, height: 10.2)
-                .offset(x: -1.1)
+                .frame(width: 8.1 * style.scale, height: 10.2 * style.scale)
+                .offset(x: -1.1 * style.scale)
 
-            Text("T")
-                .font(.system(size: 6.3, weight: .bold, design: .rounded))
+            Text(verbatim: "T")
+                .font(.system(size: style.monogramFontSize, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
-                .offset(x: -1.1, y: -0.3)
+                .offset(x: -1.1 * style.scale, y: -0.3 * style.scale)
         }
-        .frame(width: 14, height: 12)
+        .frame(width: style.frameWidth, height: style.frameHeight)
         .accessibilityHidden(true)
     }
 }

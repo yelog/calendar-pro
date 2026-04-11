@@ -92,9 +92,6 @@
         }
       }
     },
-    "%lld" : {
-
-    },
     "About" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1151,6 +1148,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入%@会议"
+          }
+        }
+      }
+    },
+    "Join Google Meet" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join Google Meet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入Google Meet"
+          }
+        }
+      }
+    },
+    "Join GoTo Meeting" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join GoTo Meeting"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入GoTo Meeting"
+          }
+        }
+      }
+    },
+    "Join Tencent Meeting" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join Tencent Meeting"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入腾讯会议"
+          }
+        }
+      }
+    },
+    "Join VooV Meeting" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join VooV Meeting"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入VooV会议"
           }
         }
       }
@@ -2514,9 +2579,6 @@
           }
         }
       }
-    },
-    "T" : {
-
     },
     "Time" : {
       "extractionState" : "stale",

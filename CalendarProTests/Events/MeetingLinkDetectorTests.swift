@@ -3,6 +3,16 @@ import XCTest
 
 final class MeetingLinkDetectorTests: XCTestCase {
 
+    // MARK: - Join button titles
+
+    func testGoogleMeetJoinButtonTitle_isNatural() {
+        XCTAssertEqual(MeetingPlatform.googleMeet.joinButtonTitle, L("Join Google Meet"))
+    }
+
+    func testTencentMeetingJoinButtonTitle_isNatural() {
+        XCTAssertEqual(MeetingPlatform.tencentMeeting.joinButtonTitle, L("Join Tencent Meeting"))
+    }
+
     // MARK: - Teams
 
     func testDetectsTeamsLinkInText() {
@@ -10,7 +20,8 @@ final class MeetingLinkDetectorTests: XCTestCase {
             "Join: https://teams.microsoft.com/l/meetup-join/abc123-def456"
         )
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "Microsoft Teams")
+        XCTAssertEqual(link?.platform, .microsoftTeams)
+        XCTAssertEqual(link?.platform.displayName, "Microsoft Teams")
         XCTAssertTrue(link?.url.absoluteString.contains("teams.microsoft.com") == true)
     }
 
@@ -21,7 +32,15 @@ final class MeetingLinkDetectorTests: XCTestCase {
             "https://us02web.zoom.us/j/1234567890?pwd=abc"
         )
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "Zoom")
+        XCTAssertEqual(link?.platform, .zoom)
+    }
+
+    func testDetectsZoomPersonalLink() {
+        let link = MeetingLinkDetector.findInText(
+            "https://acme.zoom.us/my/team-standup"
+        )
+        XCTAssertNotNil(link)
+        XCTAssertEqual(link?.platform, .zoom)
     }
 
     // MARK: - Google Meet
@@ -31,7 +50,7 @@ final class MeetingLinkDetectorTests: XCTestCase {
             "Meet at https://meet.google.com/abc-defg-hij"
         )
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "Google Meet")
+        XCTAssertEqual(link?.platform, .googleMeet)
     }
 
     // MARK: - Webex
@@ -41,7 +60,15 @@ final class MeetingLinkDetectorTests: XCTestCase {
             "https://company.webex.com/meet/john.doe"
         )
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "Webex")
+        XCTAssertEqual(link?.platform, .webex)
+    }
+
+    func testDetectsWebexJoinServiceLink() {
+        let link = MeetingLinkDetector.findInText(
+            "https://company.webex.com/wbxmjs/joinservice/sites/company/meeting/download/abc123"
+        )
+        XCTAssertNotNil(link)
+        XCTAssertEqual(link?.platform, .webex)
     }
 
     // MARK: - 飞书
@@ -51,7 +78,7 @@ final class MeetingLinkDetectorTests: XCTestCase {
             "https://meetings.feishu.cn/s/abc123"
         )
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "Feishu")
+        XCTAssertEqual(link?.platform, .feishu)
     }
 
     // MARK: - 腾讯会议
@@ -61,7 +88,15 @@ final class MeetingLinkDetectorTests: XCTestCase {
             "https://meeting.tencent.com/dm/abc123"
         )
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "Tencent Meeting")
+        XCTAssertEqual(link?.platform, .tencentMeeting)
+    }
+
+    func testDetectsVooVMeetingLink() {
+        let link = MeetingLinkDetector.findInText(
+            "https://voovmeeting.com/dm/987654321"
+        )
+        XCTAssertNotNil(link)
+        XCTAssertEqual(link?.platform, .voovMeeting)
     }
 
     // MARK: - 钉钉
@@ -71,7 +106,33 @@ final class MeetingLinkDetectorTests: XCTestCase {
             "https://meeting.dingtalk.com/j/abc123"
         )
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "DingTalk")
+        XCTAssertEqual(link?.platform, .dingTalk)
+    }
+
+    // MARK: - Other common platforms
+
+    func testDetectsWherebyLink() {
+        let link = MeetingLinkDetector.findInText(
+            "https://whereby.com/calendarpro-demo"
+        )
+        XCTAssertNotNil(link)
+        XCTAssertEqual(link?.platform, .whereby)
+    }
+
+    func testDetectsGoToMeetingLink() {
+        let link = MeetingLinkDetector.findInText(
+            "https://meet.goto.com/123456789"
+        )
+        XCTAssertNotNil(link)
+        XCTAssertEqual(link?.platform, .goToMeeting)
+    }
+
+    func testDetectsLegacyGoToMeetingLink() {
+        let link = MeetingLinkDetector.findInText(
+            "https://global.gotomeeting.com/join/123456789"
+        )
+        XCTAssertNotNil(link)
+        XCTAssertEqual(link?.platform, .goToMeeting)
     }
 
     // MARK: - No match
@@ -100,6 +161,6 @@ final class MeetingLinkDetectorTests: XCTestCase {
         """
         let link = MeetingLinkDetector.findInText(notes)
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "Microsoft Teams")
+        XCTAssertEqual(link?.platform, .microsoftTeams)
     }
 }
