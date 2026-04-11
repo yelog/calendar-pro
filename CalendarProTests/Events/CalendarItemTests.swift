@@ -97,6 +97,47 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertFalse(item.isCanceled)
     }
 
+    // MARK: - metadata
+
+    func testMeetingLink_detectsTeamsEventFromURL() {
+        let event = makeEvent(
+            title: "MES Daily Review Meeting",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 15),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 45)
+        )
+        event.url = URL(string: "https://teams.microsoft.com/l/meetup-join/abc123")
+
+        let item = CalendarItem.event(event)
+
+        XCTAssertEqual(item.meetingLink?.platform, "Microsoft Teams")
+    }
+
+    func testReminderRecurrenceText_returnsCompactSummary() {
+        let reminder = makeReminder(year: 2026, month: 4, day: 1, hour: 20, minute: 0)
+        reminder.recurrenceRules = [
+            EKRecurrenceRule(recurrenceWith: .daily, interval: 1, end: nil)
+        ]
+
+        let item = CalendarItem.reminder(reminder)
+
+        XCTAssertEqual(item.reminderRecurrenceText, L("Daily"))
+    }
+
+    func testReminderRecurrenceSummary_returnsDetailedSummaryFromSharedHelper() {
+        let reminder = makeReminder(year: 2026, month: 4, day: 1, hour: 20, minute: 0)
+        reminder.recurrenceRules = [
+            EKRecurrenceRule(recurrenceWith: .weekly, interval: 2, end: nil)
+        ]
+
+        XCTAssertEqual(reminder.recurrenceSummary(style: .detailed), LF("Every %d Weeks", 2))
+    }
+
+    func testReminderRecurrenceText_returnsNilForNonRepeatingReminder() {
+        let item = CalendarItem.reminder(makeReminder(year: 2026, month: 4, day: 1, hour: 20, minute: 0))
+
+        XCTAssertNil(item.reminderRecurrenceText)
+    }
+
     // MARK: - timeline
 
     func testHasExplicitTime_trueForTimedReminder() {

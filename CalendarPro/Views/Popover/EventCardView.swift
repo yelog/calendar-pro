@@ -7,19 +7,9 @@ enum EventCardTimelineState: Equatable {
     case ongoing
 }
 
-extension EKEvent {
-    var selectionIdentifier: String {
-        if let eventIdentifier {
-            return eventIdentifier
-        }
-
-        return [
-            calendar?.calendarIdentifier ?? "unknown-calendar",
-            title ?? "untitled",
-            String(startDate.timeIntervalSinceReferenceDate),
-            String(endDate.timeIntervalSinceReferenceDate)
-        ].joined(separator: "|")
-    }
+private enum EventCardMetadata {
+    case meeting(link: MeetingLink, participantCount: Int?)
+    case recurringReminder(String)
 }
 
 struct EventCardView: View {
@@ -61,32 +51,35 @@ struct EventCardView: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(timeRangeText)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(timeTextColor)
+                HStack(alignment: .top, spacing: 8) {
+                    Text(timeRangeText)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(timeTextColor)
+
+                    Spacer(minLength: 8)
+
+                    if showsDisclosure, let metadata {
+                        metadataView(metadata)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(item.title)
                     .font(.system(size: 13, weight: .regular))
                     .lineLimit(2)
                     .strikethrough(item.isCompleted || item.isCanceled)
                     .foregroundStyle(titleColor)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 if let secondaryText {
                     Text(secondaryText)
                         .font(.system(size: 10))
                         .foregroundStyle(secondaryTextColor)
                         .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            
-            Spacer()
-
-            if showsDisclosure {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(disclosureColor)
-                    .padding(.top, 2)
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 8)
@@ -186,11 +179,23 @@ struct EventCardView: View {
         return .secondary.opacity(0.8)
     }
 
-    private var disclosureColor: Color {
+    private var metadataColor: Color {
         if item.isCanceled {
             return Color(nsColor: .tertiaryLabelColor)
         }
         return isSelected ? Color.accentColor : Color(nsColor: .tertiaryLabelColor)
+    }
+
+    private var metadata: EventCardMetadata? {
+        if let meetingLink = item.meetingLink {
+            return .meeting(link: meetingLink, participantCount: item.meetingParticipantCount)
+        }
+
+        if let recurrenceText = item.reminderRecurrenceText {
+            return .recurringReminder(recurrenceText)
+        }
+
+        return nil
     }
 
     private var secondaryText: String? {
@@ -213,5 +218,79 @@ struct EventCardView: View {
                 .foregroundStyle(item.isCompleted ? Color(nsColor: item.color) : .secondary)
         }
         .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func metadataView(_ metadata: EventCardMetadata) -> some View {
+        switch metadata {
+        case .meeting(let link, let participantCount):
+            HStack(spacing: 5) {
+                meetingPlatformIcon(for: link)
+
+                if let participantCount {
+                    HStack(spacing: 2) {
+                        Image(systemName: "person.2")
+                            .font(.system(size: 9, weight: .medium))
+                        Text("\(participantCount)")
+                    }
+                    .foregroundStyle(metadataColor)
+                }
+            }
+            .fixedSize(horizontal: true, vertical: false)
+        case .recurringReminder(let recurrenceText):
+            HStack(spacing: 4) {
+                Image(systemName: "repeat")
+                    .font(.system(size: 9, weight: .semibold))
+                Text(recurrenceText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+            }
+            .foregroundStyle(metadataColor)
+            .fixedSize(horizontal: true, vertical: false)
+        }
+    }
+
+    @ViewBuilder
+    private func meetingPlatformIcon(for link: MeetingLink) -> some View {
+        if link.platform == "Microsoft Teams" {
+            TeamsBrandMark()
+        } else {
+            Image(systemName: link.iconName)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(metadataColor)
+        }
+    }
+}
+
+private struct TeamsBrandMark: View {
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color(red: 0.43, green: 0.47, blue: 0.93))
+                .frame(width: 4.6, height: 4.6)
+                .offset(x: 4.8, y: 3)
+
+            Circle()
+                .fill(Color(red: 0.31, green: 0.36, blue: 0.84))
+                .frame(width: 4.4, height: 4.4)
+                .offset(x: 5.2, y: -3.1)
+
+            RoundedRectangle(cornerRadius: 2.1, style: .continuous)
+                .fill(Color(red: 0.38, green: 0.43, blue: 0.93))
+                .frame(width: 6.2, height: 8.2)
+                .offset(x: 2.3)
+
+            RoundedRectangle(cornerRadius: 2.4, style: .continuous)
+                .fill(Color(red: 0.28, green: 0.32, blue: 0.79))
+                .frame(width: 8.1, height: 10.2)
+                .offset(x: -1.1)
+
+            Text("T")
+                .font(.system(size: 6.3, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .offset(x: -1.1, y: -0.3)
+        }
+        .frame(width: 14, height: 12)
+        .accessibilityHidden(true)
     }
 }

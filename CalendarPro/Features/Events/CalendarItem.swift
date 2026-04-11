@@ -13,9 +13,87 @@ enum CalendarItemTimelinePlacement: Equatable {
     case untimed
 }
 
+enum ReminderRecurrenceSummaryStyle {
+    case compact
+    case detailed
+}
+
 extension EKEvent {
     var isCanceled: Bool {
         status == .canceled
+    }
+
+    var selectionIdentifier: String {
+        if let eventIdentifier {
+            return eventIdentifier
+        }
+
+        return [
+            calendar?.calendarIdentifier ?? "unknown-calendar",
+            title ?? "untitled",
+            String(startDate.timeIntervalSinceReferenceDate),
+            String(endDate.timeIntervalSinceReferenceDate)
+        ].joined(separator: "|")
+    }
+}
+
+extension EKReminder {
+    func recurrenceSummary(style: ReminderRecurrenceSummaryStyle = .detailed) -> String? {
+        guard let rules = recurrenceRules, !rules.isEmpty,
+              let rule = rules.first else {
+            return nil
+        }
+        return rule.localizedSummary(style: style)
+    }
+}
+
+private extension EKRecurrenceRule {
+    func localizedSummary(style: ReminderRecurrenceSummaryStyle) -> String {
+        let interval = max(interval, 1)
+
+        switch frequency {
+        case .daily:
+            return interval == 1 ? L("Daily") : LF("Every %d Days", interval)
+        case .weekly:
+            if interval == 1 {
+                if style == .detailed,
+                   let days = daysOfTheWeek,
+                   !days.isEmpty {
+                    let dayNames = days
+                        .map { weekdayName($0.dayOfTheWeek) }
+                        .filter { !$0.isEmpty }
+                    if !dayNames.isEmpty {
+                        return LF("Weekly %@", dayNames.joined(separator: ", "))
+                    }
+                }
+                return L("Weekly")
+            }
+            return LF("Every %d Weeks", interval)
+        case .monthly:
+            return interval == 1 ? L("Monthly") : LF("Every %d Months", interval)
+        case .yearly:
+            return interval == 1 ? L("Yearly") : LF("Every %d Years", interval)
+        @unknown default:
+            return L("Custom Repeat")
+        }
+    }
+
+    private func weekdayName(_ weekday: EKWeekday) -> String {
+        let calendar = Calendar.autoupdatingCurrent
+        let formatter = DateFormatter()
+        formatter.locale = AppLocalization.locale
+        let symbols = formatter.shortStandaloneWeekdaySymbols ?? calendar.shortWeekdaySymbols
+
+        switch weekday {
+        case .sunday: return symbols[0]
+        case .monday: return symbols[1]
+        case .tuesday: return symbols[2]
+        case .wednesday: return symbols[3]
+        case .thursday: return symbols[4]
+        case .friday: return symbols[5]
+        case .saturday: return symbols[6]
+        @unknown default: return ""
+        }
     }
 }
 
@@ -157,6 +235,29 @@ enum CalendarItem: Identifiable {
         case .reminder(let reminder):
             return reminder.calendar.title
         }
+    }
+
+    var meetingLink: MeetingLink? {
+        guard case .event(let event) = self else {
+            return nil
+        }
+        return MeetingLinkDetector.detect(in: event)
+    }
+
+    var meetingParticipantCount: Int? {
+        guard case .event(let event) = self,
+              let attendees = event.attendees,
+              !attendees.isEmpty else {
+            return nil
+        }
+        return attendees.count
+    }
+
+    var reminderRecurrenceText: String? {
+        guard case .reminder(let reminder) = self else {
+            return nil
+        }
+        return reminder.recurrenceSummary(style: .compact)
     }
 
     func timelinePlacement(using calendar: Calendar = .autoupdatingCurrent) -> CalendarItemTimelinePlacement {

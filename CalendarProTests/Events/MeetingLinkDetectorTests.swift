@@ -51,7 +51,7 @@ final class MeetingLinkDetectorTests: XCTestCase {
             "https://meetings.feishu.cn/s/abc123"
         )
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "飞书")
+        XCTAssertEqual(link?.platform, "Feishu")
     }
 
     // MARK: - 腾讯会议
@@ -61,7 +61,7 @@ final class MeetingLinkDetectorTests: XCTestCase {
             "https://meeting.tencent.com/dm/abc123"
         )
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "腾讯会议")
+        XCTAssertEqual(link?.platform, "Tencent Meeting")
     }
 
     // MARK: - 钉钉
@@ -71,7 +71,7 @@ final class MeetingLinkDetectorTests: XCTestCase {
             "https://meeting.dingtalk.com/j/abc123"
         )
         XCTAssertNotNil(link)
-        XCTAssertEqual(link?.platform, "钉钉")
+        XCTAssertEqual(link?.platform, "DingTalk")
     }
 
     // MARK: - No match

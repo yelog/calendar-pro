@@ -175,11 +175,7 @@ struct ReminderDetailWindowView: View {
     }
 
     private var recurrenceText: String? {
-        guard let rules = reminder.recurrenceRules, !rules.isEmpty,
-              let rule = rules.first else {
-            return nil
-        }
-        return describeRecurrenceRule(rule)
+        reminder.recurrenceSummary(style: .detailed)
     }
 
     private var priorityText: String? {
@@ -244,44 +240,6 @@ struct ReminderDetailWindowView: View {
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter.string(from: date)
-    }
-
-    private func describeRecurrenceRule(_ rule: EKRecurrenceRule) -> String {
-        let interval = rule.interval
-        switch rule.frequency {
-        case .daily:
-            return interval == 1 ? L("Daily") : LF("Every %d Days", interval)
-        case .weekly:
-            if interval == 1 {
-                if let days = rule.daysOfTheWeek, !days.isEmpty {
-                    let dayNames = days.map { weekdayName($0.dayOfTheWeek) }
-                    return LF("Weekly %@", dayNames.joined(separator: ", "))
-                }
-                return L("Weekly")
-            }
-            return LF("Every %d Weeks", interval)
-        case .monthly:
-            return interval == 1 ? L("Monthly") : LF("Every %d Months", interval)
-        case .yearly:
-            return interval == 1 ? L("Yearly") : LF("Every %d Years", interval)
-        @unknown default:
-            return L("Custom Repeat")
-        }
-    }
-
-    private func weekdayName(_ weekday: EKWeekday) -> String {
-        let calendar = Calendar.autoupdatingCurrent
-        let symbols = DateFormatter().shortStandaloneWeekdaySymbols ?? calendar.shortWeekdaySymbols
-        switch weekday {
-        case .sunday: return symbols[0]
-        case .monday: return symbols[1]
-        case .tuesday: return symbols[2]
-        case .wednesday: return symbols[3]
-        case .thursday: return symbols[4]
-        case .friday: return symbols[5]
-        case .saturday: return symbols[6]
-        @unknown default: return ""
-        }
     }
 
     // MARK: - Background
