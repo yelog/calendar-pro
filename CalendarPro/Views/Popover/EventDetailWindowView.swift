@@ -80,11 +80,23 @@ struct EventDetailWindowView: View {
     }
 
     private var canModifyParticipationChoice: Bool {
-        event.canModifyCurrentUserParticipationChoice
+        if case .editable = participationPresentation {
+            return true
+        }
+
+        return false
+    }
+
+    private var participationPresentation: EventParticipationPresentation {
+        event.currentUserParticipationPresentation
+    }
+
+    private var showsReadOnlyParticipationNotice: Bool {
+        participationPresentation == .readOnly
     }
 
     private var showsParticipationSection: Bool {
-        event.hasCurrentUserParticipationContext && (canModifyParticipationChoice || displayedParticipationChoice != nil)
+        canModifyParticipationChoice || showsReadOnlyParticipationNotice
     }
 
     private var showsResponseError: Binding<Bool> {
@@ -127,7 +139,7 @@ struct EventDetailWindowView: View {
 
             Spacer(minLength: 0)
 
-            if let displayedParticipationChoice {
+            if let displayedParticipationChoice, canModifyParticipationChoice {
                 EventParticipationStatusBadge(choice: displayedParticipationChoice, style: .detail)
                     .padding(.top, 1)
             }
@@ -183,12 +195,13 @@ struct EventDetailWindowView: View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
             EventDetailRow(icon: "calendar", title: L("Calendar"), value: event.calendar.title)
 
-            if showsParticipationSection {
+            if canModifyParticipationChoice {
                 ParticipationResponseRow(
                     currentChoice: displayedParticipationChoice,
-                    isEditable: canModifyParticipationChoice,
                     onSelect: handleParticipationSelection
                 )
+            } else if showsReadOnlyParticipationNotice {
+                ReadOnlyParticipationRow()
             }
 
             if let locationText {
@@ -527,7 +540,6 @@ private struct AttendeesDetailRow: View {
 
 private struct ParticipationResponseRow: View {
     let currentChoice: EventParticipationChoice?
-    let isEditable: Bool
     let onSelect: (EventParticipationChoice) -> Void
 
     var body: some View {
@@ -546,17 +558,50 @@ private struct ParticipationResponseRow: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
 
-                if isEditable {
-                    HStack(spacing: 8) {
-                        ForEach(EventParticipationChoice.allCases, id: \.self) { choice in
-                            ParticipationChoiceButton(choice: choice, isSelected: currentChoice == choice) {
-                                onSelect(choice)
-                            }
+                HStack(spacing: 8) {
+                    ForEach(EventParticipationChoice.allCases, id: \.self) { choice in
+                        ParticipationChoiceButton(choice: choice, isSelected: currentChoice == choice) {
+                            onSelect(choice)
                         }
                     }
-                } else if let currentChoice {
-                    EventParticipationStatusBadge(choice: currentChoice, style: .detail)
                 }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(nsColor: .controlBackgroundColor).opacity(0.88))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color(nsColor: .separatorColor).opacity(0.12), lineWidth: 1)
+                )
+        )
+    }
+}
+
+private struct ReadOnlyParticipationRow: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "lock")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(Color(nsColor: .controlAccentColor).opacity(0.08))
+                )
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(L("Response"))
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                Text(L("This event is read-only"))
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 0)

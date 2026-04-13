@@ -55,6 +55,12 @@ enum EventParticipationChoice: CaseIterable, Equatable {
     }
 }
 
+enum EventParticipationPresentation: Equatable {
+    case hidden
+    case readOnly
+    case editable(currentChoice: EventParticipationChoice?)
+}
+
 extension EKEvent {
     var isCanceled: Bool {
         status == .canceled
@@ -80,6 +86,26 @@ extension EKEvent {
         return false
     }
 
+    private var supportsParticipationStatusModifications: Bool {
+        runtimeBoolValue(forKey: "allowsParticipationStatusModifications")
+            || runtimeBoolValue(forKey: "canBeRespondedTo")
+    }
+
+    private var resolvedCurrentUserParticipationChoice: EventParticipationChoice? {
+        if let participant = attendees?.first(where: { $0.isCurrentUser }) {
+            return EventParticipationChoice(participantStatus: participant.participantStatus)
+        }
+
+        guard hasReliableCurrentUserParticipationIdentity else {
+            return nil
+        }
+
+        return EventParticipationChoice(
+            participantStatusRawValue: runtimeIntValue(forKey: "participationStatus")
+                ?? EKParticipantStatus.unknown.rawValue
+        )
+    }
+
     var selectionIdentifier: String {
         if let eventIdentifier {
             return eventIdentifier
@@ -94,48 +120,41 @@ extension EKEvent {
     }
 
     var hasCurrentUserParticipationContext: Bool {
+        currentUserParticipationPresentation != .hidden
+    }
+
+    var currentUserParticipationPresentation: EventParticipationPresentation {
         guard !currentUserActsAsOrganizer else {
-            return false
+            return .hidden
+        }
+
+        let currentChoice = resolvedCurrentUserParticipationChoice
+
+        if supportsParticipationStatusModifications {
+            return .editable(currentChoice: currentChoice)
         }
 
         if hasReliableCurrentUserParticipationIdentity {
-            return true
+            return .readOnly
         }
 
-        // Some providers omit an explicit self attendee for pending invites, but the
-        // attendee list plus a non-organizer current user still means we should show
-        // response controls in the detail view.
-        if let attendees, !attendees.isEmpty {
+        return .hidden
+    }
+
+    var currentUserParticipationChoice: EventParticipationChoice? {
+        guard case .editable(let currentChoice) = currentUserParticipationPresentation else {
+            return nil
+        }
+
+        return currentChoice
+    }
+
+    var canModifyCurrentUserParticipationChoice: Bool {
+        if case .editable = currentUserParticipationPresentation {
             return true
         }
 
         return false
-    }
-
-    var currentUserParticipationChoice: EventParticipationChoice? {
-        guard hasCurrentUserParticipationContext else {
-            return nil
-        }
-
-        if let participant = attendees?.first(where: { $0.isCurrentUser }) {
-            return EventParticipationChoice(participantStatus: participant.participantStatus)
-        }
-
-        guard hasReliableCurrentUserParticipationIdentity else {
-            return nil
-        }
-
-        return EventParticipationChoice(participantStatusRawValue: runtimeIntValue(forKey: "participationStatus") ?? EKParticipantStatus.unknown.rawValue)
-    }
-
-    var canModifyCurrentUserParticipationChoice: Bool {
-        guard hasCurrentUserParticipationContext else {
-            return false
-        }
-
-        return runtimeBoolValue(forKey: "allowsParticipationStatusModifications")
-            || runtimeBoolValue(forKey: "canBeRespondedTo")
-            || responds(to: NSSelectorFromString("setParticipationStatus:"))
     }
 
     var isRecurringParticipationSeries: Bool {
@@ -143,15 +162,7 @@ extension EKEvent {
     }
 
     func updateCurrentUserParticipationChoice(_ choice: EventParticipationChoice, span: EKSpan) throws {
-        guard hasCurrentUserParticipationContext else {
-            throw NSError(
-                domain: "CalendarPro.EventParticipation",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "This event has no current-user participation context."]
-            )
-        }
-
-        guard canModifyCurrentUserParticipationChoice else {
+        guard case .editable = currentUserParticipationPresentation else {
             throw NSError(
                 domain: "CalendarPro.EventParticipation",
                 code: 2,

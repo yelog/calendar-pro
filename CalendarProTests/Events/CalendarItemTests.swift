@@ -166,6 +166,16 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertNil(CalendarItem.event(event).currentUserParticipationChoice)
     }
 
+    func testCurrentUserParticipationPresentation_returnsHiddenForUnrelatedEventWithoutInviteIdentity() {
+        let event = makeEvent(
+            title: "普通会议",
+            start: makeDate(year: 2026, month: 4, day: 13, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 13, hour: 10, minute: 0)
+        )
+
+        XCTAssertEqual(event.currentUserParticipationPresentation, .hidden)
+    }
+
     func testCanModifyCurrentUserParticipationChoice_requiresInviteContext() {
         let event = makeEvent(
             title: "普通会议",

@@ -1900,6 +1900,23 @@
         }
       }
     },
+    "This event is read-only" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This event is read-only"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此日程为只读"
+          }
+        }
+      }
+    },
     "Native macOS menu bar calendar" : {
       "extractionState" : "stale",
       "localizations" : {
