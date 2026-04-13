@@ -3,7 +3,6 @@ import EventKit
 @testable import CalendarPro
 
 final class MeetingActionResolverTests: XCTestCase {
-
     func testResolve_returnsJoinForTeamsMeetupJoinLink() {
         let event = makeEvent(
             title: "MES meeting",
@@ -27,65 +26,6 @@ final class MeetingActionResolverTests: XCTestCase {
         }
         XCTAssertEqual(primary.first?.scheme, "msteams")
         XCTAssertEqual(fallback?.scheme, "https")
-    }
-
-    func testResolve_returnsJoinAndHighConfidenceChatWhenExplicitChatLinkExists() {
-        let event = makeEvent(
-            title: "Design sync",
-            start: makeDate(year: 2026, month: 4, day: 13, hour: 10, minute: 0),
-            end: makeDate(year: 2026, month: 4, day: 13, hour: 11, minute: 0)
-        )
-        event.notes = """
-        Join Microsoft Teams Meeting
-        https://teams.microsoft.com/l/meetup-join/19%3ameeting_xxx/0?context=%7b%7d
-        Chat:
-        https://teams.microsoft.com/l/chat/19:abc123@thread.v2/conversations
-        """
-
-        let actions = MeetingActionResolver.resolve(for: event)
-
-        XCTAssertEqual(actions.map(\.kind), [.join, .chat])
-        XCTAssertEqual(actions.last?.confidence, .high)
-        XCTAssertEqual(actions.last?.source, .explicitLink)
-        XCTAssertEqual(actions.last?.title, L("Chat"))
-    }
-
-    func testResolve_returnsJoinAndMediumConfidenceChatFromAttendeeIdentities() {
-        let event = makeEvent(
-            title: "Team sync",
-            start: makeDate(year: 2026, month: 4, day: 13, hour: 14, minute: 0),
-            end: makeDate(year: 2026, month: 4, day: 13, hour: 15, minute: 0)
-        )
-        event.notes = "https://teams.microsoft.com/l/meetup-join/19%3ameeting_xxx/0?context=%7b%7d"
-
-        let actions = MeetingActionResolver.resolve(for: event) { _ in
-            ["alice@example.com", "bob@example.com"]
-        }
-
-        XCTAssertEqual(actions.map(\.kind), [.join, .chat])
-        XCTAssertEqual(actions.last?.confidence, .medium)
-        XCTAssertEqual(actions.last?.source, .inferredFromAttendees)
-
-        guard case .ordered(let primary, let fallback)? = actions.last?.openPlan else {
-            return XCTFail("Expected ordered chat open plan")
-        }
-        XCTAssertEqual(primary.first?.scheme, "msteams")
-        XCTAssertTrue(fallback?.absoluteString.contains("users=") == true)
-    }
-
-    func testResolve_hidesChatWhenAttendeeIdentitiesAreInsufficient() {
-        let event = makeEvent(
-            title: "1:1",
-            start: makeDate(year: 2026, month: 4, day: 13, hour: 16, minute: 0),
-            end: makeDate(year: 2026, month: 4, day: 13, hour: 16, minute: 30)
-        )
-        event.notes = "https://teams.microsoft.com/l/meetup-join/19%3ameeting_xxx/0?context=%7b%7d"
-
-        let actions = MeetingActionResolver.resolve(for: event) { _ in
-            ["invalid-address"]
-        }
-
-        XCTAssertEqual(actions.map(\.kind), [.join])
     }
 
     func testResolve_returnsSingleJoinForNonTeamsPlatform() {

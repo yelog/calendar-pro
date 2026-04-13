@@ -952,36 +952,18 @@ private struct MeetingActionsSection: View {
     let opener: MeetingActionOpener
 
     var body: some View {
-        if actions.count == 1, let action = actions.first {
+        if let action = actions.first {
             MeetingActionButton(
                 action: action,
-                emphasis: .primary,
                 calendarColor: calendarColor,
                 opener: opener
             )
-        } else {
-            HStack(spacing: 8) {
-                ForEach(Array(actions.enumerated()), id: \.offset) { index, action in
-                    MeetingActionButton(
-                        action: action,
-                        emphasis: index == 0 ? .primary : .secondary,
-                        calendarColor: calendarColor,
-                        opener: opener
-                    )
-                }
-            }
         }
     }
 }
 
-private enum MeetingActionButtonEmphasis: Equatable {
-    case primary
-    case secondary
-}
-
 private struct MeetingActionButton: View {
     let action: MeetingAction
-    let emphasis: MeetingActionButtonEmphasis
     let calendarColor: Color
     let opener: MeetingActionOpener
 
@@ -990,7 +972,7 @@ private struct MeetingActionButton: View {
             _ = opener.open(action)
         } label: {
             HStack(spacing: 8) {
-                icon
+                MeetingPlatformMark(platform: action.platform, style: .detail)
 
                 Text(action.title)
                     .font(.system(size: 13, weight: .semibold))
@@ -998,54 +980,13 @@ private struct MeetingActionButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
-            .background(background)
-            .foregroundStyle(foregroundColor)
-            .overlay(borderOverlay)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(calendarColor)
+            )
+            .foregroundStyle(.white)
         }
         .buttonStyle(.plain)
-    }
-
-    @ViewBuilder
-    private var icon: some View {
-        switch action.kind {
-        case .join:
-            MeetingPlatformMark(platform: action.platform, style: .detail)
-        case .chat:
-            Image(systemName: "bubble.left.and.bubble.right")
-                .font(.system(size: 13, weight: .semibold))
-                .accessibilityHidden(true)
-        }
-    }
-
-    private var foregroundColor: Color {
-        switch emphasis {
-        case .primary:
-            return .white
-        case .secondary:
-            return .accentColor
-        }
-    }
-
-    private var background: some View {
-        RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(backgroundColor)
-    }
-
-    private var backgroundColor: Color {
-        switch emphasis {
-        case .primary:
-            return calendarColor
-        case .secondary:
-            return Color(nsColor: .controlBackgroundColor).opacity(0.92)
-        }
-    }
-
-    @ViewBuilder
-    private var borderOverlay: some View {
-        if emphasis == .secondary {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(Color.accentColor.opacity(0.18), lineWidth: 1)
-        }
     }
 }
 
