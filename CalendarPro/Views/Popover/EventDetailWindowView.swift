@@ -6,6 +6,8 @@ struct EventDetailWindowView: View {
     let onClose: () -> Void
     let onPreferredHeightChange: ((CGFloat) -> Void)?
 
+    private let meetingActionOpener = MeetingActionOpener()
+
     @State private var displayedParticipationChoice: EventParticipationChoice?
     @State private var pendingParticipationChoice: EventParticipationChoice?
     @State private var showsParticipationScopeDialog = false
@@ -26,8 +28,12 @@ struct EventDetailWindowView: View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
             header
             summaryCard
-            if let meetingLink {
-                JoinMeetingButton(meetingLink: meetingLink, calendarColor: calendarColor)
+            if !meetingActions.isEmpty {
+                MeetingActionsSection(
+                    actions: meetingActions,
+                    calendarColor: calendarColor,
+                    opener: meetingActionOpener
+                )
             }
             detailScrollView
             FooterActions(event: event)
@@ -67,8 +73,8 @@ struct EventDetailWindowView: View {
         }
     }
 
-    private var meetingLink: MeetingLink? {
-        MeetingLinkDetector.detect(in: event)
+    private var meetingActions: [MeetingAction] {
+        MeetingActionResolver.resolve(for: event)
     }
 
     private var calendarColor: Color {
@@ -940,29 +946,106 @@ private struct EmptyDetailState: View {
     }
 }
 
-private struct JoinMeetingButton: View {
-    let meetingLink: MeetingLink
+private struct MeetingActionsSection: View {
+    let actions: [MeetingAction]
     let calendarColor: Color
+    let opener: MeetingActionOpener
+
+    var body: some View {
+        if actions.count == 1, let action = actions.first {
+            MeetingActionButton(
+                action: action,
+                emphasis: .primary,
+                calendarColor: calendarColor,
+                opener: opener
+            )
+        } else {
+            HStack(spacing: 8) {
+                ForEach(Array(actions.enumerated()), id: \.offset) { index, action in
+                    MeetingActionButton(
+                        action: action,
+                        emphasis: index == 0 ? .primary : .secondary,
+                        calendarColor: calendarColor,
+                        opener: opener
+                    )
+                }
+            }
+        }
+    }
+}
+
+private enum MeetingActionButtonEmphasis: Equatable {
+    case primary
+    case secondary
+}
+
+private struct MeetingActionButton: View {
+    let action: MeetingAction
+    let emphasis: MeetingActionButtonEmphasis
+    let calendarColor: Color
+    let opener: MeetingActionOpener
 
     var body: some View {
         Button {
-            NSWorkspace.shared.open(meetingLink.url)
+            _ = opener.open(action)
         } label: {
             HStack(spacing: 8) {
-                MeetingPlatformMark(platform: meetingLink.platform, style: .detail)
+                icon
 
-                Text(meetingLink.platform.joinButtonTitle)
+                Text(action.title)
                     .font(.system(size: 13, weight: .semibold))
+                    .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(calendarColor)
-            )
-            .foregroundColor(.white)
+            .background(background)
+            .foregroundStyle(foregroundColor)
+            .overlay(borderOverlay)
         }
         .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private var icon: some View {
+        switch action.kind {
+        case .join:
+            MeetingPlatformMark(platform: action.platform, style: .detail)
+        case .chat:
+            Image(systemName: "bubble.left.and.bubble.right")
+                .font(.system(size: 13, weight: .semibold))
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var foregroundColor: Color {
+        switch emphasis {
+        case .primary:
+            return .white
+        case .secondary:
+            return .accentColor
+        }
+    }
+
+    private var background: some View {
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
+            .fill(backgroundColor)
+    }
+
+    private var backgroundColor: Color {
+        switch emphasis {
+        case .primary:
+            return calendarColor
+        case .secondary:
+            return Color(nsColor: .controlBackgroundColor).opacity(0.92)
+        }
+    }
+
+    @ViewBuilder
+    private var borderOverlay: some View {
+        if emphasis == .secondary {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Color.accentColor.opacity(0.18), lineWidth: 1)
+        }
     }
 }
 

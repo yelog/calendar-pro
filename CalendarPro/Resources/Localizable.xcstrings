@@ -676,6 +676,23 @@
         }
       }
     },
+    "Chat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chat"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聊天"
+          }
+        }
+      }
+    },
     "Choose whether to update only this event or the whole series." : {
       "extractionState" : "manual",
       "localizations" : {

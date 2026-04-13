@@ -74,6 +74,7 @@ enum MeetingLinkDetector {
     }
 
     private static let patterns: [PlatformPattern] = [
+        PlatformPattern(platform: .microsoftTeams, regex: #"msteams://teams\.microsoft\.com/l/meetup-join/[^\s<>\"\)>]+"#),
         PlatformPattern(platform: .microsoftTeams, regex: #"https?://teams\.microsoft\.com/l/meetup-join/[^\s<>\"\)>]+"#),
         PlatformPattern(platform: .zoom, regex: #"https?://[\w.-]*zoom\.us/(?:j|my|w|wc/join)/[^\s<>\"\)>]+"#),
         PlatformPattern(platform: .googleMeet, regex: #"https?://meet\.google\.com/[a-z\-]+"#),
