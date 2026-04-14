@@ -179,17 +179,19 @@ struct CalendarPopoverView: View {
 
     @ViewBuilder
     private var infoStripsSection: some View {
-        if showAlmanac {
+        if shouldShowAlmanacStrip, let almanac {
             Divider()
                 .padding(.horizontal, -PopoverSurfaceMetrics.outerPadding)
 
             VStack(spacing: 6) {
-                if showAlmanac, let almanac {
-                    AlmanacStripView(almanac: almanac)
-                }
+                AlmanacStripView(almanac: almanac)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private var shouldShowAlmanacStrip: Bool {
+        showAlmanac && (almanac?.hasContent ?? false)
     }
 
     private var eventCountText: String {

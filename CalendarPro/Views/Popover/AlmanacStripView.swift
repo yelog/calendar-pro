@@ -1,65 +1,109 @@
 import SwiftUI
 
-import tyme
-
 struct AlmanacStripView: View {
     let almanac: AlmanacDescriptor
     @Environment(\.colorScheme) private var colorScheme
 
-    private var maxVisibleRecommends: Int {
-        almanac.recommends.count > 3 ? 3 : almanac.recommends.count
-    }
-
-    private var maxVisibleAvoids: Int {
-        almanac.avoids.count > 2 ? 2 : almanac.avoids.count
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 4) {
-                Text(L("Recommended"))
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.green)
-
-                Text(almanac.recommendsText)
-                    .font(.system(size: 10, weight: .regular, design: .rounded))
-                    .foregroundStyle(.green.opacity(0.8))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+        VStack(alignment: .leading, spacing: 10) {
+            if !almanac.recommends.isEmpty {
+                almanacRow(
+                    label: L("Recommended"),
+                    items: almanac.recommends,
+                    style: .recommended
+                )
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
 
             if !almanac.avoids.isEmpty {
-                Spacer(minLength: 0)
+                almanacRow(
+                    label: L("Avoid"),
+                    items: almanac.avoids,
+                    style: .avoid
+                )
             }
-
-            HStack(spacing: 4) {
-                Text(L("Avoid"))
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.red)
-
-                Text(avoidsText)
-                    .font(.system(size: 10, weight: .regular, design: .rounded))
-                    .foregroundStyle(.red.opacity(0.8))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(colorScheme == .dark ? Color.white.opacity(0.06) : Color(nsColor: .controlBackgroundColor).opacity(0.5))
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(backgroundFillColor)
         }
         .overlay {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(Color(nsColor: .separatorColor).opacity(0.15), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(borderColor, lineWidth: 0.5)
         }
     }
 
-    private var avoidsText: String {
-        almanac.avoids.joined(separator: "·")
+    private func almanacRow(
+        label: String,
+        items: [String],
+        style: AlmanacRowStyle
+    ) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(label)
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .foregroundStyle(style.badgeForeground)
+                .padding(.horizontal, label.count > 2 ? 9 : 0)
+                .frame(minWidth: 26, minHeight: 26)
+                .background {
+                    Capsule(style: .continuous)
+                        .fill(style.badgeFill)
+                }
+                .overlay {
+                    Capsule(style: .continuous)
+                        .strokeBorder(style.badgeStroke, lineWidth: 0.6)
+                }
+                .fixedSize()
+
+            Text(itemsText(items))
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundStyle(bodyTextColor)
+                .lineSpacing(3)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
+
+    private func itemsText(_ items: [String]) -> String {
+        items.joined(separator: "、")
+    }
+
+    private var bodyTextColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.88)
+            : Color.primary.opacity(0.86)
+    }
+
+    private var backgroundFillColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.055)
+            : Color(nsColor: .controlBackgroundColor).opacity(0.72)
+    }
+
+    private var borderColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.08)
+            : Color(nsColor: .separatorColor).opacity(0.18)
+    }
+}
+
+private struct AlmanacRowStyle {
+    let badgeFill: Color
+    let badgeStroke: Color
+    let badgeForeground: Color
+
+    static let recommended = AlmanacRowStyle(
+        badgeFill: Color(red: 0.76, green: 0.30, blue: 0.20),
+        badgeStroke: Color(red: 0.88, green: 0.47, blue: 0.34).opacity(0.9),
+        badgeForeground: Color.white.opacity(0.98)
+    )
+
+    static let avoid = AlmanacRowStyle(
+        badgeFill: Color(red: 0.23, green: 0.16, blue: 0.14),
+        badgeStroke: Color(red: 0.42, green: 0.31, blue: 0.27).opacity(0.95),
+        badgeForeground: Color(red: 0.98, green: 0.92, blue: 0.88)
+    )
 }
