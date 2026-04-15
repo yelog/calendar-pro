@@ -5,6 +5,7 @@ struct EventDetailWindowView: View {
     let event: EKEvent
     let onClose: () -> Void
     let onPreferredHeightChange: ((CGFloat) -> Void)?
+    @Environment(\.colorScheme) private var colorScheme
 
     private let meetingActionOpener = MeetingActionOpener()
 
@@ -244,19 +245,14 @@ struct EventDetailWindowView: View {
 
     private var surfaceBackground: some View {
         RoundedRectangle(cornerRadius: PopoverSurfaceMetrics.cornerRadius, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [
-                        Color(nsColor: .windowBackgroundColor),
-                        calendarColor.opacity(0.06)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+            .fill(PopoverSurfaceMetrics.floatingPanelBaseFill(for: colorScheme))
+            .overlay(
+                RoundedRectangle(cornerRadius: PopoverSurfaceMetrics.cornerRadius, style: .continuous)
+                    .fill(PopoverSurfaceMetrics.floatingPanelTintOverlay(accent: calendarColor, for: colorScheme))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: PopoverSurfaceMetrics.cornerRadius, style: .continuous)
-                    .stroke(Color(nsColor: .separatorColor).opacity(0.18), lineWidth: 1)
+                    .stroke(PopoverSurfaceMetrics.floatingPanelBorderColor(for: colorScheme), lineWidth: 1)
             )
     }
 

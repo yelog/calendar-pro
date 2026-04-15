@@ -144,14 +144,10 @@ struct VacationOpportunityCardView: View {
     }
 
     private var cardFillColor: Color {
-        colorScheme == .dark
-            ? Color.white.opacity(0.05)
-            : Color(nsColor: .windowBackgroundColor).opacity(0.96)
+        PopoverSurfaceMetrics.elevatedCardFillColor(for: colorScheme)
     }
 
     private var cardBorderColor: Color {
-        colorScheme == .dark
-            ? Color.white.opacity(0.08)
-            : Color(nsColor: .separatorColor).opacity(0.18)
+        PopoverSurfaceMetrics.elevatedCardBorderColor(for: colorScheme)
     }
 }

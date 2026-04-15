@@ -51,6 +51,7 @@ struct VacationGuideWindowView: View {
     @State private var listViewportHeight: CGFloat = 0
     @State private var listContentHeight: CGFloat = 0
     @State private var lastReportedPreferredHeight: CGFloat = 0
+    @Environment(\.colorScheme) private var colorScheme
 
     private let planningService: VacationPlanningService
     private let onPreferredHeightChange: ((CGFloat) -> Void)?
@@ -160,7 +161,11 @@ struct VacationGuideWindowView: View {
             .frame(maxWidth: .infinity, minHeight: 220, maxHeight: .infinity, alignment: .leading)
             .background {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color(nsColor: .controlBackgroundColor).opacity(0.55))
+                    .fill(PopoverSurfaceMetrics.elevatedCardFillColor(for: colorScheme))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(PopoverSurfaceMetrics.elevatedCardBorderColor(for: colorScheme), lineWidth: 0.8)
             }
         }
     }
@@ -331,19 +336,14 @@ struct VacationGuideWindowView: View {
 
     private var surfaceBackground: some View {
         RoundedRectangle(cornerRadius: PopoverSurfaceMetrics.cornerRadius, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [
-                        Color(nsColor: .windowBackgroundColor),
-                        Color.accentColor.opacity(0.05)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+            .fill(PopoverSurfaceMetrics.floatingPanelBaseFill(for: colorScheme))
+            .overlay(
+                RoundedRectangle(cornerRadius: PopoverSurfaceMetrics.cornerRadius, style: .continuous)
+                    .fill(PopoverSurfaceMetrics.floatingPanelTintOverlay(accent: .accentColor, for: colorScheme))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: PopoverSurfaceMetrics.cornerRadius, style: .continuous)
-                    .stroke(Color(nsColor: .separatorColor).opacity(0.18), lineWidth: 1)
+                    .stroke(PopoverSurfaceMetrics.floatingPanelBorderColor(for: colorScheme), lineWidth: 1)
             )
     }
 }
