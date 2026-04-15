@@ -98,6 +98,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private let eventService: EventService
     private let interactionMonitor: PopoverInteractionMonitoring
     private let eventDetailPresenter: EventDetailWindowPresenting
+    private let vacationGuidePresenter: VacationGuideWindowPresenting
     private let viewModel: CalendarPopoverViewModel
 
     init(
@@ -106,6 +107,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         popover: PopoverPresenting = NSPopover(),
         interactionMonitor: PopoverInteractionMonitoring = PopoverInteractionMonitor(),
         eventDetailPresenter: EventDetailWindowPresenting = EventDetailWindowController(),
+        vacationGuidePresenter: VacationGuideWindowPresenting = VacationGuideWindowController(),
         viewModel: CalendarPopoverViewModel = CalendarPopoverViewModel()
     ) {
         self.popover = popover
@@ -113,6 +115,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         self.eventService = eventService
         self.interactionMonitor = interactionMonitor
         self.eventDetailPresenter = eventDetailPresenter
+        self.vacationGuidePresenter = vacationGuidePresenter
         self.viewModel = viewModel
         super.init()
 
@@ -151,6 +154,9 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                 onPresentReminderDetailWindow: { [weak self] reminder, onToggle, onClose in
                     self?.showReminderDetailWindow(for: reminder, onToggle: onToggle, onClose: onClose)
                 },
+                onPresentVacationGuide: { [weak self] month, onLocate in
+                    self?.showVacationGuide(forMonth: month, onLocateDate: onLocate)
+                },
                 onDismissEventDetailWindow: { [weak self] in
                     self?.closeEventDetailWindow()
                 },
@@ -176,11 +182,13 @@ final class PopoverController: NSObject, NSPopoverDelegate {
 
     private func closePopover() {
         interactionMonitor.stop()
+        closeVacationGuideWindow()
         popover.performClose(nil)
     }
 
     func popoverShouldClose(_ popover: NSPopover) -> Bool {
         closeEventDetailWindow()
+        closeVacationGuideWindow()
         return true
     }
 
@@ -190,6 +198,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     }
 
     func showEventDetailWindow(for event: EKEvent, onClose: @escaping () -> Void) {
+        closeVacationGuideWindow()
         eventDetailPresenter.show(
             event: event,
             anchoredTo: popover.contentViewController?.view.window,
@@ -198,6 +207,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     }
 
     func showReminderDetailWindow(for reminder: EKReminder, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void) {
+        closeVacationGuideWindow()
         eventDetailPresenter.show(
             reminder: reminder,
             anchoredTo: popover.contentViewController?.view.window,
@@ -208,6 +218,20 @@ final class PopoverController: NSObject, NSPopoverDelegate {
 
     func closeEventDetailWindow() {
         eventDetailPresenter.close()
+    }
+
+    func closeVacationGuideWindow() {
+        vacationGuidePresenter.close()
+    }
+
+    private func showVacationGuide(forMonth month: Date, onLocateDate: @escaping (Date) -> Void) {
+        closeEventDetailWindow()
+        vacationGuidePresenter.show(
+            referenceMonth: month,
+            settingsStore: settingsStore,
+            anchoredTo: popover.contentViewController?.view.window,
+            onLocateDate: onLocateDate
+        )
     }
 
     private func quitApp() {

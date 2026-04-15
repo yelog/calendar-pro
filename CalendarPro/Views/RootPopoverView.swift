@@ -7,6 +7,7 @@ struct RootPopoverView: View {
     @ObservedObject var viewModel: CalendarPopoverViewModel
     let onPresentEventDetailWindow: (EKEvent, @escaping () -> Void) -> Void
     let onPresentReminderDetailWindow: (EKReminder, @escaping (EKReminder) -> Void, @escaping () -> Void) -> Void
+    let onPresentVacationGuide: (Date, @escaping (Date) -> Void) -> Void
     let onDismissEventDetailWindow: () -> Void
     let onQuit: () -> Void
 
@@ -36,6 +37,9 @@ struct RootPopoverView: View {
             isLoadingEvents: isLoadingEvents,
             almanac: almanacDescriptor,
             showAlmanac: settingsStore.menuBarPreferences.showAlmanac,
+            showVacationGuideButton: showVacationGuideButton,
+            isVacationGuideEnabled: isVacationGuideEnabled,
+            vacationGuideDisabledReason: vacationGuideDisabledReason,
             onPreviousMonth: {
                 viewModel.showPreviousMonth(using: displayCalendar)
             },
@@ -69,6 +73,13 @@ struct RootPopoverView: View {
             },
             onOpenReminder: { reminder in
                 handleOpenReminder(reminder)
+            },
+            onOpenVacationGuide: {
+                onPresentVacationGuide(viewModel.displayedMonth) { date in
+                    dismissEventDetail()
+                    viewModel.showMonth(containing: date, calendar: displayCalendar)
+                    viewModel.selectDate(date)
+                }
             },
             onResetToToday: {
                 dismissEventDetail()
@@ -278,6 +289,28 @@ struct RootPopoverView: View {
 
     private var monthService: MonthCalendarService {
         MonthCalendarService(calendar: displayCalendar)
+    }
+
+    private var showVacationGuideButton: Bool {
+        LocaleFeatureAvailability.showVacationGuideFeatures
+            && settingsStore.menuBarPreferences.activeRegionIDs.contains("mainland-cn")
+    }
+
+    private var isVacationGuideEnabled: Bool {
+        showVacationGuideButton && isHolidaySetEnabled("statutory-holidays")
+    }
+
+    private var vacationGuideDisabledReason: String? {
+        guard showVacationGuideButton, !isVacationGuideEnabled else {
+            return nil
+        }
+
+        return "请先在地区设置中启用法定节假日"
+    }
+
+    private func isHolidaySetEnabled(_ holidaySetID: String) -> Bool {
+        let enabledSetIDs = settingsStore.menuBarPreferences.enabledHolidayIDs
+        return enabledSetIDs.isEmpty || enabledSetIDs.contains(holidaySetID)
     }
 
     private var monthDays: [CalendarDay] {

@@ -16,6 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var uiTestWindow: NSWindow?
     private var settingsWindow: NSWindow?
     private let uiTestEventDetailWindowController = EventDetailWindowController()
+    private let uiTestVacationGuideWindowController = VacationGuideWindowController()
     private let uiTestPopoverViewModel = CalendarPopoverViewModel()
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -145,6 +146,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 eventService: eventService,
                 viewModel: uiTestPopoverViewModel,
                 onPresentEventDetailWindow: { [weak self] event, onClose in
+                    self?.uiTestVacationGuideWindowController.close()
                     self?.uiTestEventDetailWindowController.show(
                         event: event,
                         anchoredTo: self?.uiTestWindow,
@@ -152,12 +154,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     )
                 },
                 onPresentReminderDetailWindow: { [weak self] reminder, onToggle, onClose in
+                    self?.uiTestVacationGuideWindowController.close()
                     self?.uiTestEventDetailWindowController.show(
                         reminder: reminder,
                         anchoredTo: self?.uiTestWindow,
                         onToggle: onToggle,
                         onClose: onClose
                     )
+                },
+                onPresentVacationGuide: { [weak self] month, onLocate in
+                    guard let self else { return }
+                    self.uiTestEventDetailWindowController.close()
+                    self.uiTestVacationGuideWindowController.show(
+                        referenceMonth: month,
+                        settingsStore: self.settingsStore,
+                        anchoredTo: self.uiTestWindow
+                    ) { date in
+                        onLocate(date)
+                    }
                 },
                 onDismissEventDetailWindow: { [weak self] in
                     self?.uiTestEventDetailWindowController.close()

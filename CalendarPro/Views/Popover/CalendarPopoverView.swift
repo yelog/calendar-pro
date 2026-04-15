@@ -30,6 +30,9 @@ struct CalendarPopoverView: View {
     let isLoadingEvents: Bool
     let almanac: AlmanacDescriptor?
     let showAlmanac: Bool
+    let showVacationGuideButton: Bool
+    let isVacationGuideEnabled: Bool
+    let vacationGuideDisabledReason: String?
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
     let onSelectYear: () -> Void
@@ -41,6 +44,7 @@ struct CalendarPopoverView: View {
     let onSelectEvent: (EKEvent) -> Void
     let onToggleReminder: (EKReminder) -> Void
     let onOpenReminder: (EKReminder) -> Void
+    let onOpenVacationGuide: () -> Void
     let onResetToToday: () -> Void
     let onQuit: () -> Void
 
@@ -82,10 +86,14 @@ struct CalendarPopoverView: View {
         VStack(alignment: .leading, spacing: 8) {
             MonthHeaderView(
                 displayedMonth: displayedMonth,
+                showVacationGuideButton: showVacationGuideButton,
+                isVacationGuideEnabled: isVacationGuideEnabled,
+                vacationGuideDisabledReason: vacationGuideDisabledReason,
                 onPreviousMonth: onPreviousMonth,
                 onNextMonth: onNextMonth,
                 onSelectYear: onSelectYear,
-                onSelectMonth: onSelectMonth
+                onSelectMonth: onSelectMonth,
+                onOpenVacationGuide: onOpenVacationGuide
             )
 
             CalendarGridView(

@@ -9,4 +9,5 @@ enum LocaleFeatureAvailability {
     static var showAlmanacFeatures: Bool { isChineseLocale }
     static var showChineseDateStyles: Bool { isChineseLocale }
     static var showWorkingAdjustmentDay: Bool { isChineseLocale }
+    static var showVacationGuideFeatures: Bool { isChineseLocale }
 }

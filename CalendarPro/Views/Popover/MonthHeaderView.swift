@@ -2,10 +2,14 @@ import SwiftUI
 
 struct MonthHeaderView: View {
     let displayedMonth: Date
+    let showVacationGuideButton: Bool
+    let isVacationGuideEnabled: Bool
+    let vacationGuideDisabledReason: String?
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
     let onSelectYear: () -> Void
     let onSelectMonth: () -> Void
+    let onOpenVacationGuide: () -> Void
 
     private var yearText: String {
         let formatter = DateFormatter()
@@ -50,12 +54,36 @@ struct MonthHeaderView: View {
 
             Spacer()
 
-            navigationButton(
-                systemImage: "chevron.right",
-                label: L("Next Month"),
-                identifier: "next-month-button",
-                action: onNextMonth
-            )
+            HStack(spacing: 8) {
+                if showVacationGuideButton {
+                    Button(action: onOpenVacationGuide) {
+                        Text("休假")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .foregroundStyle(isVacationGuideEnabled ? Color.accentColor : .secondary)
+                            .padding(.horizontal, 8)
+                            .frame(height: 28)
+                            .background(
+                                Capsule(style: .continuous)
+                                    .fill(
+                                        isVacationGuideEnabled
+                                            ? Color.accentColor.opacity(0.12)
+                                            : Color.primary.opacity(0.06)
+                                    )
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!isVacationGuideEnabled)
+                    .accessibilityIdentifier("vacation-guide-button")
+                    .help(vacationGuideDisabledReason ?? "查看年度休假建议")
+                }
+
+                navigationButton(
+                    systemImage: "chevron.right",
+                    label: L("Next Month"),
+                    identifier: "next-month-button",
+                    action: onNextMonth
+                )
+            }
         }
     }
 

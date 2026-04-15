@@ -68,6 +68,12 @@ final class CalendarPopoverViewModel: ObservableObject {
         selectionMode = .calendar
     }
 
+    func showMonth(containing date: Date, calendar: Calendar) {
+        let components = calendar.dateComponents([.year, .month], from: date)
+        displayedMonth = calendar.date(from: components) ?? displayedMonth
+        selectionMode = .calendar
+    }
+
     func selectDate(_ date: Date) {
         selectedDate = date
         selectedEventIdentifier = nil

@@ -151,6 +151,17 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectionMode, .calendar)
     }
 
+    func testShowMonthContainingDateMovesDisplayedMonthAndReturnsToCalendarMode() {
+        let viewModel = CalendarPopoverViewModel(displayedMonth: makeDate(year: 2026, month: 1, day: 1))
+        viewModel.enterYearSelection()
+
+        viewModel.showMonth(containing: makeDate(year: 2026, month: 10, day: 7), calendar: .gregorianMondayFirst)
+
+        XCTAssertEqual(viewModel.displayedYear, 2026)
+        XCTAssertEqual(viewModel.displayedMonthNumber, 10)
+        XCTAssertEqual(viewModel.selectionMode, .calendar)
+    }
+
     func testDisplayedYearReturnsCurrentYear() {
         let viewModel = CalendarPopoverViewModel(displayedMonth: makeDate(year: 2026, month: 5, day: 10))
 
