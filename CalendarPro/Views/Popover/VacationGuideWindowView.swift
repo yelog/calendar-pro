@@ -121,7 +121,7 @@ struct VacationGuideWindowView: View {
             HStack(spacing: 6) {
                 yearButton(systemImage: "chevron.left", action: { displayedYear -= 1 })
 
-                Text("\(displayedYear)")
+                Text(verbatim: "\(displayedYear)年")
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
                     .frame(minWidth: 56)
 
