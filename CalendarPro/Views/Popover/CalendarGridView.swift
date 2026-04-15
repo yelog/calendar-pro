@@ -44,6 +44,7 @@ struct CalendarGridView: View {
 
 private struct CalendarDayCellView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @State private var isHovered = false
 
     let day: CalendarDay
     let highlightWeekends: Bool
@@ -93,6 +94,9 @@ private struct CalendarDayCellView: View {
             .offset(x: 4, y: -4)
         }
         .contentShape(Rectangle())
+        .onHover { hovering in
+            isHovered = hovering
+        }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(dayIdentifier)
     }
@@ -135,10 +139,6 @@ private struct CalendarDayCellView: View {
         if day.isToday {
             return colorScheme == .dark ? Color(red: 0.45, green: 0.35, blue: 0.08) : Color(red: 1.0, green: 0.92, blue: 0.65)
         }
-        
-        if day.isSelected {
-            return Color.accentColor.opacity(colorScheme == .dark ? 0.34 : 0.24)
-        }
 
         return semanticStyle?.fill ?? .clear
     }
@@ -147,16 +147,20 @@ private struct CalendarDayCellView: View {
         if day.isToday {
             return colorScheme == .dark ? Color(red: 0.9, green: 0.75, blue: 0.25).opacity(0.5) : Color(red: 0.85, green: 0.65, blue: 0.15).opacity(0.4)
         }
-        
+
         if day.isSelected {
-            return Color.accentColor.opacity(colorScheme == .dark ? 0.62 : 0.2)
+            return selectionBorderColor
+        }
+
+        if isHovered {
+            return selectionBorderColor
         }
 
         return semanticStyle?.border ?? .clear
     }
 
     private var cellBorderWidth: CGFloat {
-        if day.isSelected || day.isToday {
+        if day.isSelected || day.isToday || isHovered {
             return 1
         }
 
@@ -164,19 +168,17 @@ private struct CalendarDayCellView: View {
     }
 
     private var cellShadowColor: Color {
-        if day.isSelected {
-            return Color.accentColor.opacity(colorScheme == .dark ? 0.18 : 0)
-        }
-
         return semanticStyle?.shadow ?? .clear
     }
 
     private var cellShadowRadius: CGFloat {
-        if day.isSelected {
-            return colorScheme == .dark ? 8 : 0
-        }
-
         return semanticStyle == nil || colorScheme == .light ? 0 : 8
+    }
+
+    private var selectionBorderColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.9, green: 0.75, blue: 0.25).opacity(0.72)
+            : Color(red: 0.9, green: 0.67, blue: 0.12).opacity(0.72)
     }
 
     private var dayIdentifier: String {
