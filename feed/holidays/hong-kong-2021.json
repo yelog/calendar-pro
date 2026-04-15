@@ -1,0 +1,19 @@
+[
+  { "date": "2021-01-01", "name": "The first day of January", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-02-12", "name": "Lunar New Year’s Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-02-13", "name": "The second day of Lunar New Year", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-02-15", "name": "The fourth day of Lunar New Year", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2021-04-02", "name": "Good Friday", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-04-03", "name": "The day following Good Friday", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2021-04-05", "name": "Easter Monday", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-04-06", "name": "The day following Ching Ming Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2021-05-01", "name": "Labour Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-05-19", "name": "The Birthday of the Buddha", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-06-14", "name": "Tuen Ng Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-07-01", "name": "Hong Kong Special Administrative Region Establishment Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-09-22", "name": "The day following the Chinese Mid-Autumn Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2021-10-01", "name": "National Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-10-14", "name": "Chung Yeung Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-12-25", "name": "Christmas Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2021-12-27", "name": "The first weekday after Christmas Day", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true }
+]

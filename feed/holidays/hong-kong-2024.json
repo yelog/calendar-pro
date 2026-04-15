@@ -1,0 +1,19 @@
+[
+  { "date": "2024-01-01", "name": "The first day of January", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-02-10", "name": "Lunar New Year’s Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-02-12", "name": "The third day of Lunar New Year", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-02-13", "name": "The fourth day of Lunar New Year", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2024-03-29", "name": "Good Friday", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-03-30", "name": "The day following Good Friday", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2024-04-01", "name": "Easter Monday", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-04-04", "name": "Ching Ming Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-05-01", "name": "Labour Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-05-15", "name": "The Birthday of the Buddha", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-06-10", "name": "Tuen Ng Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-07-01", "name": "Hong Kong Special Administrative Region Establishment Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-09-18", "name": "The day following the Chinese Mid-Autumn Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2024-10-01", "name": "National Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-10-11", "name": "Chung Yeung Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-12-25", "name": "Christmas Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2024-12-26", "name": "The first weekday after Christmas Day", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true }
+]

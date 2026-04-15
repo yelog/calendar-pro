@@ -73,6 +73,26 @@ Calendar Pro 是一个以菜单栏为核心的 macOS 原生效率工具。它不
 - `Sparkle` 提供稳定版与预发布版自动更新能力。
 - 节假日数据采用“内置 JSON + 远程 Manifest + 本地缓存”策略，在离线场景下依然可用。
 
+## 节假日显示流程
+
+```mermaid
+flowchart TD
+    A[HolidayFeedClient 刷新远程 manifest] --> B[HolidayCacheStore 缓存各地区各年份 JSON]
+    B --> C[BundledHolidayDataLoader 按 region/year 读取]
+    D[App Bundle 内置 Holidays JSON] --> C
+    C --> E[MainlandCNProvider / HongKongProvider]
+    E --> F[HolidayResolver]
+    G[MenuBarPreferences\nactiveRegionIDs / enabledHolidayIDs] --> F
+    F --> H[CalendarDayFactory.makeMonthGrid]
+    H --> I[HolidayOccurrence -> DayBadge]
+    I --> J[CalendarDay.badges]
+    J --> K[CalendarDayCellView]
+    K --> L{badge kind}
+    L -->|statutoryHoliday / publicHoliday| M[显示节假日名称\n红色字幕 + OFF 标记]
+    L -->|workingAdjustmentDay| N[显示调休逻辑\n蓝色字幕 + WRK 标记]
+    L -->|无 badge| O[回退显示农历/节气文本]
+```
+
 ## 快速开始
 
 ### 环境要求

@@ -1,8 +1,18 @@
 {
-  "version": "2026.03.31",
-  "generatedAt": "2026-03-31T00:00:00Z",
+  "version": "2026.04.15",
+  "generatedAt": "2026-04-15T00:00:00Z",
   "payloads": [
+    { "regionID": "mainland-cn", "year": 2021, "path": "mainland-cn-2021.json" },
+    { "regionID": "mainland-cn", "year": 2022, "path": "mainland-cn-2022.json" },
+    { "regionID": "mainland-cn", "year": 2023, "path": "mainland-cn-2023.json" },
+    { "regionID": "mainland-cn", "year": 2024, "path": "mainland-cn-2024.json" },
+    { "regionID": "mainland-cn", "year": 2025, "path": "mainland-cn-2025.json" },
     { "regionID": "mainland-cn", "year": 2026, "path": "mainland-cn-2026.json" },
+    { "regionID": "hong-kong", "year": 2021, "path": "hong-kong-2021.json" },
+    { "regionID": "hong-kong", "year": 2022, "path": "hong-kong-2022.json" },
+    { "regionID": "hong-kong", "year": 2023, "path": "hong-kong-2023.json" },
+    { "regionID": "hong-kong", "year": 2024, "path": "hong-kong-2024.json" },
+    { "regionID": "hong-kong", "year": 2025, "path": "hong-kong-2025.json" },
     { "regionID": "hong-kong", "year": 2026, "path": "hong-kong-2026.json" }
   ]
 }

@@ -1,0 +1,19 @@
+[
+  { "date": "2022-01-01", "name": "The first day of January", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-02-01", "name": "Lunar New Year’s Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-02-02", "name": "The second day of Lunar New Year", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-02-03", "name": "The third day of Lunar New Year", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-04-05", "name": "Ching Ming Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-04-15", "name": "Good Friday", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-04-16", "name": "The day following Good Friday", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2022-04-18", "name": "Easter Monday", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-05-02", "name": "The day following Labour Day", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2022-05-09", "name": "The day following the Birthday of the Buddha", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2022-06-03", "name": "Tuen Ng Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-07-01", "name": "Hong Kong Special Administrative Region Establishment Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-09-12", "name": "The second day following the Chinese Mid-Autumn Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2022-10-01", "name": "National Day", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-10-04", "name": "Chung Yeung Festival", "kind": "publicHoliday", "holidaySetID": "public-holidays" },
+  { "date": "2022-12-26", "name": "The first weekday after Christmas Day", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true },
+  { "date": "2022-12-27", "name": "The second weekday after Christmas Day", "kind": "publicHoliday", "holidaySetID": "public-holidays", "isObserved": true }
+]
