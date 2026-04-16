@@ -93,7 +93,8 @@ struct CalendarPopoverView: View {
                 onNextMonth: onNextMonth,
                 onSelectYear: onSelectYear,
                 onSelectMonth: onSelectMonth,
-                onOpenVacationGuide: onOpenVacationGuide
+                onOpenVacationGuide: onOpenVacationGuide,
+                onResetToToday: onResetToToday
             )
 
             CalendarGridView(
@@ -126,16 +127,6 @@ struct CalendarPopoverView: View {
             }
             .buttonStyle(.plain)
             .keyboardShortcut(",", modifiers: .command)
-
-            Spacer()
-
-            Button(action: onResetToToday) {
-                Label(L("Today Nav"), systemImage: "calendar")
-                    .font(.system(size: 12))
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .keyboardShortcut("t", modifiers: .command)
 
             Spacer()
 
