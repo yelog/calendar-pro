@@ -23,6 +23,10 @@ struct ReminderDetailWindowView: View {
         Color(nsColor: reminder.calendar.color)
     }
 
+    private var calendarContextPresentation: CalendarContextPresentation {
+        reminder.calendar.calendarContextPresentation
+    }
+
     // MARK: - Header
 
     private var header: some View {
@@ -115,7 +119,14 @@ struct ReminderDetailWindowView: View {
     private var detailScrollView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
-                ReminderDetailRow(icon: "list.bullet", title: L("List"), value: reminder.calendar.title)
+                ReminderDetailRow(
+                    icon: "list.bullet",
+                    title: L("List"),
+                    value: calendarContextPresentation.calendarTitle,
+                    secondaryValue: calendarContextPresentation.accountTitle,
+                    secondaryLineLimit: 1,
+                    secondaryTruncationMode: .middle
+                )
 
                 if let recurrenceText {
                     ReminderDetailRow(icon: "repeat", title: L("Repeat"), value: recurrenceText)
@@ -278,7 +289,10 @@ private struct ReminderDetailRow: View {
     let icon: String
     let title: String
     let value: String
+    var secondaryValue: String? = nil
     var lineLimit: Int? = 2
+    var secondaryLineLimit: Int? = nil
+    var secondaryTruncationMode: Text.TruncationMode = .tail
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -301,6 +315,17 @@ private struct ReminderDetailRow: View {
                     font: .system(size: 12),
                     lineLimit: lineLimit
                 )
+
+                if let secondaryValue {
+                    Text(secondaryValue)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(secondaryLineLimit)
+                        .truncationMode(secondaryTruncationMode)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .textSelection(.enabled)
+                        .help(secondaryValue)
+                }
             }
 
             Spacer(minLength: 0)

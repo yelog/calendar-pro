@@ -138,6 +138,36 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertNil(item.reminderRecurrenceText)
     }
 
+    func testCalendarContextPresentation_keepsDistinctAccountTitle() {
+        let presentation = CalendarContextPresentation(
+            calendarTitle: "日历",
+            sourceTitle: "yangyi13@lenovo.com"
+        )
+
+        XCTAssertEqual(presentation.calendarTitle, "日历")
+        XCTAssertEqual(presentation.accountTitle, "yangyi13@lenovo.com")
+    }
+
+    func testCalendarContextPresentation_hidesDuplicateAccountTitle() {
+        let presentation = CalendarContextPresentation(
+            calendarTitle: "Calendar",
+            sourceTitle: "calendar"
+        )
+
+        XCTAssertEqual(presentation.calendarTitle, "Calendar")
+        XCTAssertNil(presentation.accountTitle)
+    }
+
+    func testCalendarContextPresentation_hidesEmptyAccountTitleAfterTrimming() {
+        let presentation = CalendarContextPresentation(
+            calendarTitle: "工作",
+            sourceTitle: "   \n  "
+        )
+
+        XCTAssertEqual(presentation.calendarTitle, "工作")
+        XCTAssertNil(presentation.accountTitle)
+    }
+
     func testEventParticipationChoice_mapsAcceptedStatus() {
         XCTAssertEqual(EventParticipationChoice(participantStatus: .accepted), .accept)
     }

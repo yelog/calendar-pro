@@ -78,6 +78,10 @@ struct EventDetailWindowView: View {
         MeetingActionResolver.resolve(for: event)
     }
 
+    private var calendarContextPresentation: CalendarContextPresentation {
+        event.calendarContextPresentation
+    }
+
     private var calendarColor: Color {
         Color(nsColor: event.calendar.color)
     }
@@ -200,7 +204,14 @@ struct EventDetailWindowView: View {
 
     private var detailContent: some View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
-            EventDetailRow(icon: "calendar", title: L("Calendar"), value: event.calendar.title)
+            EventDetailRow(
+                icon: "calendar",
+                title: L("Calendar"),
+                value: calendarContextPresentation.calendarTitle,
+                secondaryValue: calendarContextPresentation.accountTitle,
+                secondaryLineLimit: 1,
+                secondaryTruncationMode: .middle
+            )
 
             if canModifyParticipationChoice {
                 ParticipationResponseRow(
@@ -888,7 +899,10 @@ private struct EventDetailRow: View {
     let icon: String
     let title: String
     let value: String
+    var secondaryValue: String? = nil
     var lineLimit: Int? = 2
+    var secondaryLineLimit: Int? = nil
+    var secondaryTruncationMode: Text.TruncationMode = .tail
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -911,6 +925,17 @@ private struct EventDetailRow: View {
                     font: .system(size: 12),
                     lineLimit: lineLimit
                 )
+
+                if let secondaryValue {
+                    Text(secondaryValue)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(secondaryLineLimit)
+                        .truncationMode(secondaryTruncationMode)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .textSelection(.enabled)
+                        .help(secondaryValue)
+                }
             }
 
             Spacer(minLength: 0)

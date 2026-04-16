@@ -61,6 +61,35 @@ enum EventParticipationPresentation: Equatable {
     case editable(currentChoice: EventParticipationChoice?)
 }
 
+struct CalendarContextPresentation: Equatable {
+    let calendarTitle: String
+    let accountTitle: String?
+
+    init(calendarTitle: String, sourceTitle: String?) {
+        let normalizedCalendarTitle = calendarTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedSourceTitle = sourceTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        self.calendarTitle = normalizedCalendarTitle
+
+        if let normalizedSourceTitle,
+           !normalizedSourceTitle.isEmpty,
+           normalizedSourceTitle.localizedCaseInsensitiveCompare(normalizedCalendarTitle) != .orderedSame {
+            self.accountTitle = normalizedSourceTitle
+        } else {
+            self.accountTitle = nil
+        }
+    }
+}
+
+extension EKCalendar {
+    var calendarContextPresentation: CalendarContextPresentation {
+        CalendarContextPresentation(
+            calendarTitle: title,
+            sourceTitle: source?.title
+        )
+    }
+}
+
 extension EKEvent {
     var isCanceled: Bool {
         status == .canceled
@@ -147,6 +176,10 @@ extension EKEvent {
         }
 
         return currentChoice
+    }
+
+    var calendarContextPresentation: CalendarContextPresentation {
+        calendar.calendarContextPresentation
     }
 
     var canModifyCurrentUserParticipationChoice: Bool {
