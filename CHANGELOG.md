@@ -5,6 +5,25 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3-beta.2] - 2026-04-19
+
+### Added
+
+- add 2021-2025 regional holiday data
+- add vacation guide panel
+- add teams join and chat actions
+
+### Fixed
+
+- 调整顶部日历导航布局
+- show source account in detail views
+- show vacation guide year without digit grouping
+- use yellow border for selected and hovered days
+- reduce auxiliary panel transparency
+- improve almanac strip readability
+- remove teams chat action
+- hide response state for read-only invites
+
 ## [0.1.3-beta.1] - 2026-04-11
 
 ### Added
