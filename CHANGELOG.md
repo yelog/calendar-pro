@@ -5,46 +5,7 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.3-beta.3] - 2026-04-22
-
-### Added
-
-- unify refresh coordination
-
-## [0.1.3-beta.2] - 2026-04-19
-
-### Added
-
-- add 2021-2025 regional holiday data
-- add vacation guide panel
-- add teams join and chat actions
-
-### Fixed
-
-- 调整顶部日历导航布局
-- show source account in detail views
-- show vacation guide year without digit grouping
-- use yellow border for selected and hovered days
-- reduce auxiliary panel transparency
-- improve almanac strip readability
-- remove teams chat action
-- hide response state for read-only invites
-
-## [0.1.3-beta.1] - 2026-04-11
-
-### Added
-
-- add participation status UI and responses
-- expand meeting platform support
-- show semantic metadata in event cards
-- add cancelled event styling in timeline and detail view
-
-### Fixed
-
-- use template image to fix faded text on inactive displays
-- reset to today after 30 seconds
-
-## [0.1.3-beta.0] - 2026-04-09
+## [0.1.3] - 2026-04-22
 
 ### Added
 
@@ -52,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - localize settings and detail views
 - finish user-facing copy cleanup
 - add in-app language switch
+- add participation status UI and responses
+- expand meeting platform support
+- show semantic metadata in event cards
+- add cancelled event styling in timeline and detail view
+- add 2021-2025 regional holiday data
+- add vacation guide panel
+- add teams join and chat actions
+- unify refresh coordination
+- add text styling and unpadded formats
+- default menu bar text to bold
+- show active item position in header
 
 ### Changed
 
@@ -62,6 +34,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - default app language to chinese
 - draw now marker through active card
 - enable automatic update checks by default
+- use template image to fix faded text on inactive displays
+- reset to today after 30 seconds
+- adjust top calendar navigation layout
+- show source account in detail views
+- show vacation guide year without digit grouping
+- use yellow border for selected and hovered days
+- reduce auxiliary panel transparency
+- improve almanac strip readability
+- remove teams chat action
+- hide response state for read-only invites
+- sync settings preview with live rendering
 
 ## [0.1.2] - 2026-04-09
 
