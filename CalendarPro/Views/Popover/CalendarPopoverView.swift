@@ -2,9 +2,18 @@ import SwiftUI
 import EventKit
 
 enum CalendarPopoverEventCountFormatter {
-    static func text(isLoadingEvents: Bool, itemCount: Int) -> String {
+    static func text(
+        isLoadingEvents: Bool,
+        itemCount: Int,
+        activeTimedItemIndex: Int? = nil,
+        timedItemCount: Int = 0
+    ) -> String {
         if isLoadingEvents {
             return L("Loading")
+        }
+
+        if let activeIndex = activeTimedItemIndex, timedItemCount > 0 {
+            return LF("Item %1$d of %2$d", activeIndex, timedItemCount)
         }
 
         return LF("%d items", itemCount)
@@ -196,9 +205,16 @@ struct CalendarPopoverView: View {
     }
 
     private var eventCountText: String {
-        CalendarPopoverEventCountFormatter.text(
+        let activeInfo = EventTimelineSnapshot.activeTimedItemInfo(
+            items: items,
+            selectedDate: selectedDate,
+            now: timeRefreshCoordinator.currentDate
+        )
+        return CalendarPopoverEventCountFormatter.text(
             isLoadingEvents: isLoadingEvents,
-            itemCount: items.count
+            itemCount: items.count,
+            activeTimedItemIndex: activeInfo.activeIndex,
+            timedItemCount: activeInfo.timedCount
         )
     }
 

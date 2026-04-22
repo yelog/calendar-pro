@@ -438,6 +438,121 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertNil(snapshot.scrollTargetGroupID)
     }
 
+    // MARK: - activeTimedItemInfo
+
+    func testActiveTimedItemInfoReturnsNilIndexForNonTodaySelection() {
+        let event = CalendarItem.event(makeEvent(
+            title: "会议",
+            start: makeDate(year: 2026, month: 3, day: 31, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 3, day: 31, hour: 10, minute: 0)
+        ))
+
+        let info = EventTimelineSnapshot.activeTimedItemInfo(
+            items: [event],
+            selectedDate: makeDate(year: 2026, month: 3, day: 31, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertNil(info.activeIndex)
+        XCTAssertEqual(info.timedCount, 1)
+    }
+
+    func testActiveTimedItemInfoReturnsOngoingItemIndex() {
+        let morningEvent = CalendarItem.event(makeEvent(
+            title: "晨会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 30)
+        ))
+        let ongoingEvent = CalendarItem.event(makeEvent(
+            title: "进行中",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 11, minute: 0)
+        ))
+        let laterEvent = CalendarItem.event(makeEvent(
+            title: "下午",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 14, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 15, minute: 0)
+        ))
+
+        let info = EventTimelineSnapshot.activeTimedItemInfo(
+            items: [morningEvent, ongoingEvent, laterEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 30),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(info.activeIndex, 2)
+        XCTAssertEqual(info.timedCount, 3)
+    }
+
+    func testActiveTimedItemInfoReturnsNextFutureItemIndex() {
+        let morningEvent = CalendarItem.event(makeEvent(
+            title: "晨会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 30)
+        ))
+        let afternoonEvent = CalendarItem.event(makeEvent(
+            title: "下午会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 14, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 15, minute: 0)
+        ))
+
+        let info = EventTimelineSnapshot.activeTimedItemInfo(
+            items: [morningEvent, afternoonEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(info.activeIndex, 2)
+        XCTAssertEqual(info.timedCount, 2)
+    }
+
+    func testActiveTimedItemInfoReturnsLastItemWhenAllPast() {
+        let event = CalendarItem.event(makeEvent(
+            title: "晨会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 30)
+        ))
+
+        let info = EventTimelineSnapshot.activeTimedItemInfo(
+            items: [event],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(info.activeIndex, 1)
+        XCTAssertEqual(info.timedCount, 1)
+    }
+
+    func testActiveTimedItemInfoExcludesAllDayAndUntimed() {
+        let allDayEvent = CalendarItem.event(makeAllDayEvent(
+            title: "全天",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 23, minute: 59)
+        ))
+        let timedEvent = CalendarItem.event(makeEvent(
+            title: "定时",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 11, minute: 0)
+        ))
+        let untimedReminder = CalendarItem.reminder(makeDateOnlyReminder(
+            year: 2026, month: 4, day: 1
+        ))
+
+        let info = EventTimelineSnapshot.activeTimedItemInfo(
+            items: [allDayEvent, timedEvent, untimedReminder],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 30),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(info.activeIndex, 1)
+        XCTAssertEqual(info.timedCount, 1)
+    }
+
     private func makeEvent(title: String = "会议", start: Date, end: Date) -> EKEvent {
         let store = EKEventStore()
         let event = EKEvent(eventStore: store)

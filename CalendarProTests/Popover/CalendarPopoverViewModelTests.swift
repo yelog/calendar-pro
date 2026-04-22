@@ -217,6 +217,30 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         )
     }
 
+    func testEventCountFormatterReturnsActiveItemText() {
+        XCTAssertEqual(
+            CalendarPopoverEventCountFormatter.text(
+                isLoadingEvents: false,
+                itemCount: 10,
+                activeTimedItemIndex: 3,
+                timedItemCount: 7
+            ),
+            "3/7"
+        )
+    }
+
+    func testEventCountFormatterReturnsItemCountWhenNoActiveIndex() {
+        XCTAssertEqual(
+            CalendarPopoverEventCountFormatter.text(
+                isLoadingEvents: false,
+                itemCount: 5,
+                activeTimedItemIndex: nil,
+                timedItemCount: 0
+            ),
+            "5 项"
+        )
+    }
+
     func testPopoverDidCloseRecordsTime() {
         let viewModel = CalendarPopoverViewModel()
         XCTAssertNil(viewModel.lastClosedTime)

@@ -1305,6 +1305,23 @@
         }
       }
     },
+    "Item %1$d of %2$d" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d/%2$d"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d/%2$d"
+          }
+        }
+      }
+    },
     "Include Calendar Events" : {
       "extractionState" : "stale",
       "localizations" : {

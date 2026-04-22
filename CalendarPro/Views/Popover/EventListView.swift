@@ -38,6 +38,44 @@ struct EventTimelineSnapshot {
     let scrollTargetGroupID: String?
     let shouldAnchorBottom: Bool
 
+    static func activeTimedItemInfo(
+        items: [CalendarItem],
+        selectedDate: Date?,
+        now: Date,
+        calendar: Calendar = .autoupdatingCurrent
+    ) -> (activeIndex: Int?, timedCount: Int) {
+        let timedItems = items.compactMap { item -> (CalendarItem, Int)? in
+            guard case .timed(let mins) = item.timelinePlacement(using: calendar) else {
+                return nil
+            }
+            return (item, mins)
+        }
+
+        let timedCount = timedItems.count
+
+        guard let selectedDate,
+              calendar.isDate(selectedDate, inSameDayAs: now),
+              timedCount > 0 else {
+            return (nil, timedCount)
+        }
+
+        let currentMinutes = Self.minutes(for: now, calendar: calendar)
+
+        for (index, pair) in timedItems.enumerated() {
+            if pair.0.timelineStatus(at: now, calendar: calendar) == .ongoing {
+                return (index + 1, timedCount)
+            }
+        }
+
+        for (index, pair) in timedItems.enumerated() {
+            if pair.1 >= currentMinutes {
+                return (index + 1, timedCount)
+            }
+        }
+
+        return (timedCount, timedCount)
+    }
+
     static func make(
         items: [CalendarItem],
         selectedDate: Date?,
