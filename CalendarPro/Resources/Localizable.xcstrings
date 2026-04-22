@@ -92,9 +92,6 @@
         }
       }
     },
-    "%lld" : {
-
-    },
     "About" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3282,9 +3279,6 @@
           }
         }
       }
-    },
-    "休假" : {
-
     },
     "休假建议" : {
 
