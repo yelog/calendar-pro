@@ -188,6 +188,14 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.currentMonthNumber, expectedMonth)
     }
 
+    func testCurrentYearAndMonthUseInjectedClock() {
+        let currentDate = MutableBox(makeDate(year: 2030, month: 6, day: 15))
+        let viewModel = CalendarPopoverViewModel(now: { currentDate.value })
+
+        XCTAssertEqual(viewModel.currentYear, 2030)
+        XCTAssertEqual(viewModel.currentMonthNumber, 6)
+    }
+
     func testEventCountFormatterReturnsLoadingTextWhileFetching() {
         XCTAssertEqual(
             CalendarPopoverEventCountFormatter.text(isLoadingEvents: true, itemCount: 10),
@@ -259,6 +267,22 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.lastClosedTime)
     }
 
+    func testCheckAndResetUsesInjectedClockForTodaySelection() {
+        let currentDate = MutableBox(makeDate(year: 2030, month: 6, day: 15))
+        let viewModel = CalendarPopoverViewModel(
+            displayedMonth: makeDate(year: 2026, month: 1, day: 1),
+            now: { currentDate.value }
+        )
+
+        viewModel.lastClosedTime = currentDate.value.addingTimeInterval(-31)
+        viewModel.checkAndResetIfNeeded()
+
+        XCTAssertTrue(Calendar.gregorianMondayFirst.isDate(viewModel.displayedMonth, equalTo: currentDate.value, toGranularity: .month))
+        XCTAssertNotNil(viewModel.selectedDate)
+        XCTAssertTrue(Calendar.gregorianMondayFirst.isDate(viewModel.selectedDate!, inSameDayAs: currentDate.value))
+        XCTAssertNil(viewModel.lastClosedTime)
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         DateComponents(
             calendar: Calendar.gregorianMondayFirst,
@@ -267,5 +291,13 @@ final class CalendarPopoverViewModelTests: XCTestCase {
             month: month,
             day: day
         ).date!
+    }
+}
+
+private final class MutableBox<Value> {
+    var value: Value
+
+    init(_ value: Value) {
+        self.value = value
     }
 }

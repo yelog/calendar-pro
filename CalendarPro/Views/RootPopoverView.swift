@@ -5,6 +5,7 @@ struct RootPopoverView: View {
     @ObservedObject var settingsStore: SettingsStore
     @ObservedObject var eventService: EventService
     @ObservedObject var viewModel: CalendarPopoverViewModel
+    @ObservedObject var timeRefreshCoordinator: TimeRefreshCoordinator
     let onPresentEventDetailWindow: (EKEvent, @escaping () -> Void) -> Void
     let onPresentReminderDetailWindow: (EKReminder, @escaping (EKReminder) -> Void, @escaping () -> Void) -> Void
     let onPresentVacationGuide: (Date, @escaping (Date) -> Void) -> Void
@@ -35,6 +36,7 @@ struct RootPopoverView: View {
             items: itemsForSelectedDate,
             selectedEventIdentifier: viewModel.selectedEventIdentifier,
             isLoadingEvents: isLoadingEvents,
+            timeRefreshCoordinator: timeRefreshCoordinator,
             almanac: almanacDescriptor,
             showAlmanac: settingsStore.menuBarPreferences.showAlmanac,
             showVacationGuideButton: showVacationGuideButton,
@@ -84,12 +86,13 @@ struct RootPopoverView: View {
             onResetToToday: {
                 dismissEventDetail()
                 viewModel.resetToToday()
-                let today = Date()
+                let today = timeRefreshCoordinator.currentDate
                 viewModel.selectDate(today)
             },
             onQuit: onQuit
         )
         .onAppear {
+            timeRefreshCoordinator.refreshNow()
             eventService.checkAuthorizationStatus()
             refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
             refreshInfoStrips()
@@ -135,7 +138,7 @@ struct RootPopoverView: View {
     }
 
     private func refreshInfoStrips() {
-        let date = viewModel.selectedDate ?? Date()
+        let date = viewModel.selectedDate ?? timeRefreshCoordinator.currentDate
 
         if settingsStore.menuBarPreferences.showAlmanac {
             almanacDescriptor = almanacService.describe(date: date)
@@ -204,7 +207,7 @@ struct RootPopoverView: View {
         if let selectedDate = viewModel.selectedDate {
             loadEvents(for: selectedDate)
         } else if selectingTodayIfNeeded {
-            viewModel.selectDate(Date())
+            viewModel.selectDate(timeRefreshCoordinator.currentDate)
         }
     }
 
@@ -314,7 +317,11 @@ struct RootPopoverView: View {
     }
 
     private var monthDays: [CalendarDay] {
-        let factory = CalendarDayFactory(calendar: displayCalendar, registry: .live)
+        let factory = CalendarDayFactory(
+            calendar: displayCalendar,
+            registry: .live,
+            now: { timeRefreshCoordinator.currentDate }
+        )
         return (try? factory.makeMonthGrid(
             for: viewModel.displayedMonth,
             preferences: settingsStore.menuBarPreferences,
