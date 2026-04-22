@@ -7,13 +7,13 @@
         <language>zh-CN</language>
 
         <item>
-            <title>Version 0.1.3-beta.2</title>
-            <pubDate>Sun, 19 Apr 2026 14:12:33 +0000</pubDate>
-            <sparkle:version>01302</sparkle:version>
-            <sparkle:shortVersionString>0.1.3-beta.2</sparkle:shortVersionString>
+            <title>Version 0.1.3-beta.3</title>
+            <pubDate>Wed, 22 Apr 2026 09:24:08 +0000</pubDate>
+            <sparkle:version>01303</sparkle:version>
+            <sparkle:shortVersionString>0.1.3-beta.3</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description>&lt;h2&gt;CalendarPro 0.1.3-beta.2&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add 2021-2025 regional holiday data&lt;/li&gt;&lt;li&gt;add vacation guide panel&lt;/li&gt;&lt;li&gt;add teams join and chat actions&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;调整顶部日历导航布局&lt;/li&gt;&lt;li&gt;show source account in detail views&lt;/li&gt;&lt;li&gt;show vacation guide year without digit grouping&lt;/li&gt;&lt;li&gt;use yellow border for selected and hovered days&lt;/li&gt;&lt;li&gt;reduce auxiliary panel transparency&lt;/li&gt;&lt;li&gt;improve almanac strip readability&lt;/li&gt;&lt;li&gt;remove teams chat action&lt;/li&gt;&lt;li&gt;hide response state for read-only invites&lt;/li&gt;&lt;/ul&gt;</description>
-            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.1.3-beta.2/CalendarPro-0.1.3-beta.2-universal.dmg" length="6536659" type="application/octet-stream" sparkle:edSignature="HShLxJT3SZ2dZOAFTOmB4FojEsrIwmbl1if67KErz14QCfhMT0lwSrAt2Kn3kIwYYOg3joJey0RLkuxp0dJiCg==" />
+            <description>&lt;h2&gt;CalendarPro 0.1.3-beta.3&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;unify refresh coordination&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.1.3-beta.3/CalendarPro-0.1.3-beta.3-universal.dmg" length="6518109" type="application/octet-stream" sparkle:edSignature="X0Ou4Wx02m+8urdjwcPnmymsmzkPwZskEZyoj87XXVQGT2UQ7ZzHoiks0iIzTK2Xv6S7gv4lPj57WT62sO7QCA==" />
         </item>
         <item>
             <title>Version 0.1.3-beta.0</title>
