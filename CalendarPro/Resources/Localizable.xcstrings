@@ -364,6 +364,23 @@
         }
       }
     },
+    "Bold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bold"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加粗"
+          }
+        }
+      }
+    },
     "Beta" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -689,6 +706,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自定义重复"
+          }
+        }
+      }
+    },
+    "Custom Text Color" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom Text Color"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自定义文字颜色"
           }
         }
       }
@@ -1046,6 +1080,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "联邦假日"
+          }
+        }
+      }
+    },
+    "Fill Color" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fill Color"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "填充颜色"
+          }
+        }
+      }
+    },
+    "Filled Background" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filled Background"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "填充背景"
+          }
+        }
+      }
+    },
+    "Font Style" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Font Style"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字体样式"
           }
         }
       }
@@ -2495,6 +2580,23 @@
         }
       }
     },
+    "Reset Font Style" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset Font Style"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重置字体样式"
+          }
+        }
+      }
+    },
     "Select Year" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2763,6 +2865,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "周日在前"
+          }
+        }
+      }
+    },
+    "Text Color" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text Color"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字颜色"
           }
         }
       }

@@ -131,6 +131,39 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(reloaded.menuBarPreferences.tokens.first(where: { $0.token == .weekday })?.style, .chineseWeekday)
     }
 
+    func testMenuBarTextStylePersists() {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        let store = makeStore(userDefaults: userDefaults)
+
+        store.setMenuBarTextBold(true)
+        store.setMenuBarTextColorHex("#334155")
+        store.setMenuBarFilledBackground(true)
+        store.setMenuBarFillColorHex("#E2E8F0")
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+
+        XCTAssertTrue(reloaded.menuBarPreferences.textStyle.isBold)
+        XCTAssertEqual(reloaded.menuBarPreferences.textStyle.foregroundColorHex, "#334155")
+        XCTAssertTrue(reloaded.menuBarPreferences.textStyle.usesFilledBackground)
+        XCTAssertEqual(reloaded.menuBarPreferences.textStyle.backgroundColorHex, "#E2E8F0")
+    }
+
+    func testResetMenuBarTextStylePersistsDefault() {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        let store = makeStore(userDefaults: userDefaults)
+
+        store.setMenuBarTextBold(true)
+        store.setMenuBarTextColorHex("#334155")
+        store.setMenuBarFilledBackground(true)
+        store.resetMenuBarTextStyle()
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+
+        XCTAssertEqual(reloaded.menuBarPreferences.textStyle, .default)
+    }
+
     func testSetWeekStart() {
         let suiteName = #function
         let userDefaults = makeIsolatedUserDefaults(name: suiteName)

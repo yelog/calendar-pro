@@ -10,9 +10,16 @@ struct MenuBarSettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 GroupBox(L("Menu Bar Preview")) {
-                    Text(previewText)
-                        .font(.system(.body, design: .rounded))
+                    HStack {
+                        previewMenuBarText
+
+                        Spacer(minLength: 0)
+                    }
                         .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                GroupBox(L("Font Style")) {
+                    fontStyleControls
                 }
 
                 GroupBox(L("Basic Settings")) {
@@ -128,6 +135,145 @@ struct MenuBarSettingsView: View {
         )
     }
 
+    private var textStyle: MenuBarTextStyle {
+        store.menuBarPreferences.textStyle
+    }
+
+    private var previewMenuBarText: some View {
+        Text(previewText)
+            .font(.system(.body, design: .rounded))
+            .fontWeight(textStyle.isBold ? .semibold : .regular)
+            .foregroundColor(previewForegroundColor)
+            .padding(.horizontal, textStyle.usesFilledBackground ? 8 : 0)
+            .padding(.vertical, textStyle.usesFilledBackground ? 3 : 0)
+            .background {
+                if textStyle.usesFilledBackground {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(Color(menuBarHex: textStyle.backgroundColorHex))
+                }
+            }
+    }
+
+    private var previewForegroundColor: Color? {
+        if let foregroundColorHex = textStyle.foregroundColorHex {
+            return Color(menuBarHex: foregroundColorHex)
+        }
+
+        if textStyle.usesFilledBackground {
+            return Color(menuBarHex: MenuBarTextStyle.automaticForegroundColorHex(for: textStyle.backgroundColorHex))
+        }
+
+        return nil
+    }
+
+    private var fontStyleControls: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if usesCompactLayout {
+                VStack(alignment: .leading, spacing: 10) {
+                    Toggle(L("Bold"), isOn: boldBinding)
+                        .toggleStyle(.checkbox)
+
+                    textColorControl
+                    fillColorControl
+                    resetStyleButton
+                }
+            } else {
+                HStack(alignment: .center, spacing: 16) {
+                    Toggle(L("Bold"), isOn: boldBinding)
+                        .toggleStyle(.checkbox)
+
+                    textColorControl
+                    fillColorControl
+
+                    Spacer(minLength: 0)
+
+                    resetStyleButton
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var textColorControl: some View {
+        HStack(spacing: 8) {
+            Toggle(L("Custom Text Color"), isOn: customTextColorBinding)
+                .toggleStyle(.checkbox)
+
+            ColorPicker(L("Text Color"), selection: textColorBinding)
+                .labelsHidden()
+                .disabled(textStyle.foregroundColorHex == nil)
+        }
+    }
+
+    private var fillColorControl: some View {
+        HStack(spacing: 8) {
+            Toggle(L("Filled Background"), isOn: filledBackgroundBinding)
+                .toggleStyle(.checkbox)
+
+            ColorPicker(L("Fill Color"), selection: fillColorBinding)
+                .labelsHidden()
+                .disabled(!textStyle.usesFilledBackground)
+        }
+    }
+
+    private var resetStyleButton: some View {
+        Button {
+            store.resetMenuBarTextStyle()
+        } label: {
+            Image(systemName: "arrow.counterclockwise")
+        }
+        .buttonStyle(.borderless)
+        .help(L("Reset Font Style"))
+        .accessibilityLabel(L("Reset Font Style"))
+    }
+
+    private var boldBinding: Binding<Bool> {
+        Binding(
+            get: { textStyle.isBold },
+            set: { store.setMenuBarTextBold($0) }
+        )
+    }
+
+    private var customTextColorBinding: Binding<Bool> {
+        Binding(
+            get: { textStyle.foregroundColorHex != nil },
+            set: { enabled in
+                store.setMenuBarTextColorHex(
+                    enabled
+                        ? (textStyle.foregroundColorHex ?? MenuBarTextStyle.defaultCustomForegroundColorHex)
+                        : nil
+                )
+            }
+        )
+    }
+
+    private var filledBackgroundBinding: Binding<Bool> {
+        Binding(
+            get: { textStyle.usesFilledBackground },
+            set: { store.setMenuBarFilledBackground($0) }
+        )
+    }
+
+    private var textColorBinding: Binding<Color> {
+        Binding(
+            get: {
+                Color(menuBarHex: textStyle.foregroundColorHex ?? MenuBarTextStyle.defaultCustomForegroundColorHex)
+            },
+            set: { color in
+                store.setMenuBarTextColorHex(color.menuBarHexString() ?? MenuBarTextStyle.defaultCustomForegroundColorHex)
+            }
+        )
+    }
+
+    private var fillColorBinding: Binding<Color> {
+        Binding(
+            get: { Color(menuBarHex: textStyle.backgroundColorHex) },
+            set: { color in
+                store.setMenuBarFillColorHex(color.menuBarHexString() ?? MenuBarTextStyle.defaultBackgroundColorHex)
+            }
+        )
+    }
+
     private func enabledBinding(for token: DisplayTokenKind) -> Binding<Bool> {
         Binding(
             get: {
@@ -155,8 +301,10 @@ struct MenuBarSettingsView: View {
         let showChinese = LocaleFeatureAvailability.showChineseDateStyles
         switch token {
         case .date:
-            let base: [DisplayTokenStyle] = [.numeric, .short, .full]
-            return showChinese ? base + [.chineseMonthDay, .chineseFull] : base
+            let base: [DisplayTokenStyle] = [.numeric, .numericUnpadded, .short, .shortUnpadded, .full]
+            return showChinese
+                ? base + [.chineseMonthDay, .chineseMonthDayUnpadded, .chineseFull, .chineseFullUnpadded]
+                : base
         case .weekday:
             let base: [DisplayTokenStyle] = [.short, .full]
             return showChinese ? base + [.chineseWeekday] : base
@@ -252,5 +400,40 @@ private struct MenuBarSettingsContentWidthKey: PreferenceKey {
 
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
+    }
+}
+
+private extension Color {
+    init(menuBarHex hex: String) {
+        self.init(nsColor: NSColor(menuBarHex: hex) ?? .labelColor)
+    }
+
+    func menuBarHexString() -> String? {
+        NSColor(self).menuBarHexString()
+    }
+}
+
+private extension NSColor {
+    convenience init?(menuBarHex hex: String) {
+        let value = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        guard value.count == 6, let integer = UInt64(value, radix: 16) else { return nil }
+
+        self.init(
+            calibratedRed: CGFloat((integer >> 16) & 0xFF) / 255,
+            green: CGFloat((integer >> 8) & 0xFF) / 255,
+            blue: CGFloat(integer & 0xFF) / 255,
+            alpha: 1
+        )
+    }
+
+    func menuBarHexString() -> String? {
+        guard let color = usingColorSpace(.sRGB) else { return nil }
+
+        return String(
+            format: "#%02X%02X%02X",
+            Int(round(color.redComponent * 255)),
+            Int(round(color.greenComponent * 255)),
+            Int(round(color.blueComponent * 255))
+        )
     }
 }

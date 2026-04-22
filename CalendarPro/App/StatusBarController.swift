@@ -14,9 +14,6 @@ final class StatusBarController {
 
     private var cancellables = Set<AnyCancellable>()
 
-    /// 渲染菜单栏文字时使用的字体（与之前保持一致）
-    private let statusBarFont: NSFont = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
-    
     init(settingsStore: SettingsStore, eventService: EventService) {
         self.settingsStore = settingsStore
         self.eventService = eventService
@@ -62,43 +59,64 @@ final class StatusBarController {
         guard let button else { return }
         button.target = self
         button.action = #selector(togglePopover(_:))
-        // 使用模板图片渲染文字，确保在 active/inactive 菜单栏和深色/浅色模式下均正确着色
+        // 默认使用模板图片；自定义颜色或填充背景时切换为彩色图片。
         button.imagePosition = .imageOnly
-        applyTemplateImage(menuBarViewModel.displayText, to: button)
+        applyStatusImage(
+            menuBarViewModel.displayText,
+            style: settingsStore.menuBarPreferences.textStyle,
+            to: button
+        )
     }
 
     private func bindViewModel() {
-        menuBarViewModel.$displayText
+        Publishers.CombineLatest(
+            menuBarViewModel.$displayText,
+            settingsStore.$menuBarPreferences
+                .map { $0.textStyle }
+                .removeDuplicates()
+        )
             .receive(on: RunLoop.main)
-            .sink { [weak self] text in
+            .sink { [weak self] text, style in
                 guard let self else { return }
                 self.statusItems.forEach {
                     if let button = $0.button {
-                        self.applyTemplateImage(text, to: button)
+                        self.applyStatusImage(text, style: style, to: button)
                     }
                 }
             }
             .store(in: &cancellables)
     }
 
-    /// 将文本渲染成黑色实体图，然后设置 isTemplate = true，
-    /// 让 AppKit 根据当前 appearance（active / inactive / highlighted）自动着色。
-    private func applyTemplateImage(_ text: String, to button: NSStatusBarButton) {
+    private func applyStatusImage(_ text: String, style: MenuBarTextStyle, to button: NSStatusBarButton) {
+        let showsFilledBackground = style.usesFilledBackground && !text.isEmpty
+        let usesTemplateColor = style.foregroundColorHex == nil && !showsFilledBackground
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: statusBarFont
+            .font: statusBarFont(for: style),
+            .foregroundColor: usesTemplateColor ? NSColor.black : foregroundColor(for: style)
         ]
         let attributedText = NSAttributedString(string: text, attributes: attributes)
         let textSize = attributedText.size()
 
-        // 使用 1 pt 左右内边距，避免文字贴边
-        let padding: CGFloat = 2
-        let imageSize = NSSize(width: ceil(textSize.width) + padding * 2,
-                               height: ceil(textSize.height))
+        let horizontalPadding: CGFloat = showsFilledBackground ? 8 : 2
+        let verticalPadding: CGFloat = showsFilledBackground ? 3 : 0
+        let imageHeight = max(ceil(textSize.height) + verticalPadding * 2, showsFilledBackground ? 18 : 1)
+        let imageSize = NSSize(
+            width: max(ceil(textSize.width) + horizontalPadding * 2, 1),
+            height: imageHeight
+        )
 
         let image = NSImage(size: imageSize, flipped: false) { rect in
-            // 用纯黑色绘制——isTemplate 之后系统只读取 alpha 通道
+            if showsFilledBackground {
+                self.backgroundColor(for: style).setFill()
+                NSBezierPath(
+                    roundedRect: rect,
+                    xRadius: 6,
+                    yRadius: 6
+                ).fill()
+            }
+
             let drawRect = NSRect(
-                x: padding,
+                x: horizontalPadding,
                 y: (rect.height - textSize.height) / 2,
                 width: textSize.width,
                 height: textSize.height
@@ -106,11 +124,38 @@ final class StatusBarController {
             attributedText.draw(in: drawRect)
             return true
         }
-        image.isTemplate = true
+        image.isTemplate = usesTemplateColor
 
         button.image = image
-        // 确保 accessibilityLabel 仍然可用（辅助功能）
         button.toolTip = text
+        button.setAccessibilityLabel(text)
+    }
+
+    private func statusBarFont(for style: MenuBarTextStyle) -> NSFont {
+        .monospacedDigitSystemFont(
+            ofSize: NSFont.systemFontSize,
+            weight: style.isBold ? .semibold : .regular
+        )
+    }
+
+    private func foregroundColor(for style: MenuBarTextStyle) -> NSColor {
+        if let foregroundColorHex = style.foregroundColorHex,
+           let foregroundColor = NSColor(menuBarHex: foregroundColorHex) {
+            return foregroundColor
+        }
+
+        if style.usesFilledBackground,
+           let foregroundColor = NSColor(
+                menuBarHex: MenuBarTextStyle.automaticForegroundColorHex(for: style.backgroundColorHex)
+           ) {
+            return foregroundColor
+        }
+
+        return .black
+    }
+
+    private func backgroundColor(for style: MenuBarTextStyle) -> NSColor {
+        NSColor(menuBarHex: style.backgroundColorHex) ?? NSColor(menuBarHex: MenuBarTextStyle.defaultBackgroundColorHex) ?? .white
     }
 
     @objc
@@ -121,5 +166,19 @@ final class StatusBarController {
 
     func popoverContentWindow() -> NSWindow? {
         popoverController.popoverContentWindow()
+    }
+}
+
+private extension NSColor {
+    convenience init?(menuBarHex hex: String) {
+        let value = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        guard value.count == 6, let integer = UInt64(value, radix: 16) else { return nil }
+
+        self.init(
+            calibratedRed: CGFloat((integer >> 16) & 0xFF) / 255,
+            green: CGFloat((integer >> 8) & 0xFF) / 255,
+            blue: CGFloat(integer & 0xFF) / 255,
+            alpha: 1
+        )
     }
 }

@@ -78,8 +78,12 @@ struct ClockRenderService {
         switch style {
         case .numeric:
             formatter.dateFormat = "dd/MM"
+        case .numericUnpadded:
+            formatter.dateFormat = "d/M"
         case .short:
             formatter.setLocalizedDateFormatFromTemplate("yMMdd")
+        case .shortUnpadded:
+            formatter.setLocalizedDateFormatFromTemplate("yMd")
         case .full:
             formatter.dateStyle = .long
             formatter.timeStyle = .none
@@ -90,6 +94,13 @@ struct ClockRenderService {
             }
             formatter.locale = Locale(identifier: "zh_CN")
             formatter.dateFormat = "MM月dd日"
+        case .chineseMonthDayUnpadded:
+            guard LocaleFeatureAvailability.showChineseDateStyles else {
+                formatter.setLocalizedDateFormatFromTemplate("MMMd")
+                return formatter.string(from: now)
+            }
+            formatter.locale = Locale(identifier: "zh_CN")
+            formatter.dateFormat = "M月d日"
         case .chineseFull:
             guard LocaleFeatureAvailability.showChineseDateStyles else {
                 formatter.dateStyle = .long
@@ -98,6 +109,13 @@ struct ClockRenderService {
             }
             formatter.locale = Locale(identifier: "zh_CN")
             formatter.dateFormat = "yyyy年MM月dd日"
+        case .chineseFullUnpadded:
+            guard LocaleFeatureAvailability.showChineseDateStyles else {
+                formatter.setLocalizedDateFormatFromTemplate("yMMMd")
+                return formatter.string(from: now)
+            }
+            formatter.locale = Locale(identifier: "zh_CN")
+            formatter.dateFormat = "yyyy年M月d日"
         case .chineseWeekday:
             formatter.setLocalizedDateFormatFromTemplate("yMMdd")
         }

@@ -12,6 +12,15 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertTrue(prefs.showCalendarEvents)
     }
 
+    func testDefaultTextStyleFollowsSystemMenuBarColor() {
+        let prefs = MenuBarPreferences.default
+
+        XCTAssertFalse(prefs.textStyle.isBold)
+        XCTAssertNil(prefs.textStyle.foregroundColorHex)
+        XCTAssertFalse(prefs.textStyle.usesFilledBackground)
+        XCTAssertEqual(prefs.textStyle.backgroundColorHex, MenuBarTextStyle.defaultBackgroundColorHex)
+    }
+
     func testDefaultEnabledCalendarIDsIsEmpty() {
         let prefs = MenuBarPreferences.default
         XCTAssertTrue(prefs.enabledCalendarIDs.isEmpty)
@@ -63,6 +72,7 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertFalse(decoded.showEvents)
         XCTAssertFalse(decoded.showCalendarEvents)
         XCTAssertTrue(decoded.showReminders)
+        XCTAssertEqual(decoded.textStyle, .default)
     }
 
     func testEventsSummaryTextWhenModuleDisabled() {
@@ -79,5 +89,16 @@ final class MenuBarPreferencesTests: XCTestCase {
 
         XCTAssertEqual(prefs.eventsSummaryText, "未启用任何日程来源")
         XCTAssertEqual(prefs.eventListEmptyStateText, "未启用任何日程来源")
+    }
+
+    func testAutomaticForegroundColorUsesContrastForFilledBackground() {
+        XCTAssertEqual(
+            MenuBarTextStyle.automaticForegroundColorHex(for: "#F2F4F7"),
+            MenuBarTextStyle.defaultCustomForegroundColorHex
+        )
+        XCTAssertEqual(
+            MenuBarTextStyle.automaticForegroundColorHex(for: "#1F2937"),
+            "#FFFFFF"
+        )
     }
 }

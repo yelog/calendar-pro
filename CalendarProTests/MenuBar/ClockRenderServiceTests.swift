@@ -155,4 +155,110 @@ final class ClockRenderServiceTests: XCTestCase {
 
         XCTAssertEqual(text, "2026年04月05日")
     }
+
+    func testRendererSupportsUnpaddedDateStyles() {
+        let renderer = ClockRenderService()
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let now = calendar.date(from: DateComponents(year: 2026, month: 4, day: 5, hour: 10, minute: 0))!
+
+        XCTAssertEqual(
+            renderer.renderPreview(
+                token: .date,
+                style: .numericUnpadded,
+                now: now,
+                locale: Locale(identifier: "zh_CN"),
+                calendar: calendar,
+                timeZone: timeZone
+            ),
+            "5/4"
+        )
+        XCTAssertEqual(
+            renderer.renderPreview(
+                token: .date,
+                style: .shortUnpadded,
+                now: now,
+                locale: Locale(identifier: "zh_CN"),
+                calendar: calendar,
+                timeZone: timeZone
+            ),
+            "2026/4/5"
+        )
+        XCTAssertEqual(
+            renderer.renderPreview(
+                token: .date,
+                style: .chineseMonthDayUnpadded,
+                now: now,
+                locale: Locale(identifier: "zh_CN"),
+                calendar: calendar,
+                timeZone: timeZone
+            ),
+            "4月5日"
+        )
+        XCTAssertEqual(
+            renderer.renderPreview(
+                token: .date,
+                style: .chineseFullUnpadded,
+                now: now,
+                locale: Locale(identifier: "zh_CN"),
+                calendar: calendar,
+                timeZone: timeZone
+            ),
+            "2026年4月5日"
+        )
+    }
+
+    func testRendererUnpaddedDateStylesStayDistinctForDoubleDigitDay() {
+        let renderer = ClockRenderService()
+        let timeZone = TimeZone(secondsFromGMT: 0)!
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let now = calendar.date(from: DateComponents(year: 2026, month: 4, day: 22, hour: 10, minute: 0))!
+
+        XCTAssertEqual(
+            renderer.renderPreview(
+                token: .date,
+                style: .numericUnpadded,
+                now: now,
+                locale: Locale(identifier: "zh_CN"),
+                calendar: calendar,
+                timeZone: timeZone
+            ),
+            "22/4"
+        )
+        XCTAssertEqual(
+            renderer.renderPreview(
+                token: .date,
+                style: .shortUnpadded,
+                now: now,
+                locale: Locale(identifier: "zh_CN"),
+                calendar: calendar,
+                timeZone: timeZone
+            ),
+            "2026/4/22"
+        )
+        XCTAssertEqual(
+            renderer.renderPreview(
+                token: .date,
+                style: .chineseMonthDayUnpadded,
+                now: now,
+                locale: Locale(identifier: "zh_CN"),
+                calendar: calendar,
+                timeZone: timeZone
+            ),
+            "4月22日"
+        )
+        XCTAssertEqual(
+            renderer.renderPreview(
+                token: .date,
+                style: .chineseFullUnpadded,
+                now: now,
+                locale: Locale(identifier: "zh_CN"),
+                calendar: calendar,
+                timeZone: timeZone
+            ),
+            "2026年4月22日"
+        )
+    }
 }

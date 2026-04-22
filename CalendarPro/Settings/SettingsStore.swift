@@ -97,6 +97,41 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
+    func setMenuBarTextBold(_ isBold: Bool) {
+        var prefs = menuBarPreferences
+        prefs.textStyle.isBold = isBold
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setMenuBarTextColorHex(_ colorHex: String?) {
+        var prefs = menuBarPreferences
+        prefs.textStyle.foregroundColorHex = colorHex
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setMenuBarFilledBackground(_ enabled: Bool) {
+        var prefs = menuBarPreferences
+        prefs.textStyle.usesFilledBackground = enabled
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setMenuBarFillColorHex(_ colorHex: String) {
+        var prefs = menuBarPreferences
+        prefs.textStyle.backgroundColorHex = colorHex
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func resetMenuBarTextStyle() {
+        var prefs = menuBarPreferences
+        prefs.textStyle = .default
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
     func setRegionEnabled(_ isEnabled: Bool, regionID: String) {
         var activeRegions = menuBarPreferences.activeRegionIDs
 

@@ -12,10 +12,14 @@ enum DisplayTokenKind: String, Codable, CaseIterable, Identifiable {
 
 enum DisplayTokenStyle: String, Codable, CaseIterable {
     case numeric
+    case numericUnpadded = "numericUnpaddedDay"
     case short
+    case shortUnpadded = "shortUnpaddedDay"
     case full
     case chineseMonthDay
+    case chineseMonthDayUnpadded = "chineseMonthDayUnpaddedDay"
     case chineseFull
+    case chineseFullUnpadded = "chineseFullUnpaddedDay"
     case chineseWeekday
 }
 
@@ -33,9 +37,56 @@ struct DisplayTokenPreference: Codable, Equatable, Identifiable {
     var id: DisplayTokenKind { token }
 }
 
+struct MenuBarTextStyle: Codable, Equatable {
+    var isBold: Bool
+    var foregroundColorHex: String?
+    var usesFilledBackground: Bool
+    var backgroundColorHex: String
+
+    static let defaultCustomForegroundColorHex = "#4B5563"
+    static let defaultBackgroundColorHex = "#F2F4F7"
+
+    static let `default` = MenuBarTextStyle(
+        isBold: false,
+        foregroundColorHex: nil,
+        usesFilledBackground: false,
+        backgroundColorHex: defaultBackgroundColorHex
+    )
+
+    static func automaticForegroundColorHex(for backgroundColorHex: String) -> String {
+        guard let components = rgbComponents(from: backgroundColorHex) else {
+            return defaultCustomForegroundColorHex
+        }
+
+        let luminance = 0.2126 * linearized(components.red)
+            + 0.7152 * linearized(components.green)
+            + 0.0722 * linearized(components.blue)
+
+        return luminance > 0.55 ? defaultCustomForegroundColorHex : "#FFFFFF"
+    }
+
+    private static func rgbComponents(from hex: String) -> (red: Double, green: Double, blue: Double)? {
+        let value = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        guard value.count == 6, let integer = UInt64(value, radix: 16) else { return nil }
+
+        return (
+            red: Double((integer >> 16) & 0xFF) / 255,
+            green: Double((integer >> 8) & 0xFF) / 255,
+            blue: Double(integer & 0xFF) / 255
+        )
+    }
+
+    private static func linearized(_ component: Double) -> Double {
+        component <= 0.03928
+            ? component / 12.92
+            : pow((component + 0.055) / 1.055, 2.4)
+    }
+}
+
 struct MenuBarPreferences: Codable, Equatable {
     var tokens: [DisplayTokenPreference]
     var separator: String
+    var textStyle: MenuBarTextStyle = .default
     var showLunarInMenuBar: Bool
     var activeRegionIDs: [String]
     var enabledHolidayIDs: [String]
@@ -109,6 +160,7 @@ struct MenuBarPreferences: Codable, Equatable {
                 DisplayTokenPreference(token: .holiday, isEnabled: false, order: 4, style: .short)
             ],
             separator: " ",
+            textStyle: .default,
             showLunarInMenuBar: showLunar,
             activeRegionIDs: defaultRegions,
             enabledHolidayIDs: [],
@@ -130,6 +182,7 @@ struct MenuBarPreferences: Codable, Equatable {
             DisplayTokenPreference(token: .date, isEnabled: true, order: 2, style: .numeric)
         ],
         separator: " ",
+        textStyle: .default,
         showLunarInMenuBar: false,
         activeRegionIDs: ["mainland-cn"],
         enabledHolidayIDs: [],
@@ -148,6 +201,7 @@ extension MenuBarPreferences {
     private enum CodingKeys: String, CodingKey {
         case tokens
         case separator
+        case textStyle
         case showLunarInMenuBar
         case activeRegionIDs
         case enabledHolidayIDs
@@ -168,6 +222,7 @@ extension MenuBarPreferences {
         self.init(
             tokens: try container.decode([DisplayTokenPreference].self, forKey: .tokens),
             separator: try container.decode(String.self, forKey: .separator),
+            textStyle: try container.decodeIfPresent(MenuBarTextStyle.self, forKey: .textStyle) ?? .default,
             showLunarInMenuBar: try container.decode(Bool.self, forKey: .showLunarInMenuBar),
             activeRegionIDs: try container.decode([String].self, forKey: .activeRegionIDs),
             enabledHolidayIDs: try container.decode([String].self, forKey: .enabledHolidayIDs),
@@ -186,6 +241,7 @@ extension MenuBarPreferences {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(tokens, forKey: .tokens)
         try container.encode(separator, forKey: .separator)
+        try container.encode(textStyle, forKey: .textStyle)
         try container.encode(showLunarInMenuBar, forKey: .showLunarInMenuBar)
         try container.encode(activeRegionIDs, forKey: .activeRegionIDs)
         try container.encode(enabledHolidayIDs, forKey: .enabledHolidayIDs)
