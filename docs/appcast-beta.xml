@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.1.3</title>
+            <pubDate>Wed, 22 Apr 2026 11:13:28 +0000</pubDate>
+            <sparkle:version>01399</sparkle:version>
+            <sparkle:shortVersionString>0.1.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.1.3&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add locale-aware formatting and US/UK holidays&lt;/li&gt;&lt;li&gt;localize settings and detail views&lt;/li&gt;&lt;li&gt;finish user-facing copy cleanup&lt;/li&gt;&lt;li&gt;add in-app language switch&lt;/li&gt;&lt;li&gt;add participation status UI and responses&lt;/li&gt;&lt;li&gt;expand meeting platform support&lt;/li&gt;&lt;li&gt;show semantic metadata in event cards&lt;/li&gt;&lt;li&gt;add cancelled event styling in timeline and detail view&lt;/li&gt;&lt;li&gt;add 2021-2025 regional holiday data&lt;/li&gt;&lt;li&gt;add vacation guide panel&lt;/li&gt;&lt;li&gt;add teams join and chat actions&lt;/li&gt;&lt;li&gt;unify refresh coordination&lt;/li&gt;&lt;li&gt;add text styling and unpadded formats&lt;/li&gt;&lt;li&gt;default menu bar text to bold&lt;/li&gt;&lt;li&gt;show active item position in header&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Changed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;update README with schedule details and images&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;default app language to chinese&lt;/li&gt;&lt;li&gt;draw now marker through active card&lt;/li&gt;&lt;li&gt;enable automatic update checks by default&lt;/li&gt;&lt;li&gt;use template image to fix faded text on inactive displays&lt;/li&gt;&lt;li&gt;reset to today after 30 seconds&lt;/li&gt;&lt;li&gt;adjust top calendar navigation layout&lt;/li&gt;&lt;li&gt;show source account in detail views&lt;/li&gt;&lt;li&gt;show vacation guide year without digit grouping&lt;/li&gt;&lt;li&gt;use yellow border for selected and hovered days&lt;/li&gt;&lt;li&gt;reduce auxiliary panel transparency&lt;/li&gt;&lt;li&gt;improve almanac strip readability&lt;/li&gt;&lt;li&gt;remove teams chat action&lt;/li&gt;&lt;li&gt;hide response state for read-only invites&lt;/li&gt;&lt;li&gt;sync settings preview with live rendering&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.1.3/CalendarPro-0.1.3-universal.dmg" length="6567382" type="application/octet-stream" sparkle:edSignature="4L2jM/wQSQFlMIvh5byDXzUSMQ+kChukXbMSVU+MgGHloFMcd7WVjksSUf5W1GWwWGA9/3oO4tSZVqHfx4WWBA==" />
+        </item>
+        <item>
             <title>Version 0.1.3-beta.3</title>
             <pubDate>Wed, 22 Apr 2026 09:24:08 +0000</pubDate>
             <sparkle:version>01303</sparkle:version>
