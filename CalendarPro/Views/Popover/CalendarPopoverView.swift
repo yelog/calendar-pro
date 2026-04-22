@@ -28,6 +28,7 @@ struct CalendarPopoverView: View {
     let items: [CalendarItem]
     let selectedEventIdentifier: String?
     let isLoadingEvents: Bool
+    let timeRefreshCoordinator: TimeRefreshCoordinator
     let almanac: AlmanacDescriptor?
     let showAlmanac: Bool
     let showVacationGuideButton: Bool
@@ -167,6 +168,7 @@ struct CalendarPopoverView: View {
                     emptyStateText: emptyStateText,
                     selectedDate: date,
                     selectedEventIdentifier: selectedEventIdentifier,
+                    timeRefreshCoordinator: timeRefreshCoordinator,
                     onSelectEvent: onSelectEvent,
                     onToggleReminder: onToggleReminder,
                     onOpenReminder: onOpenReminder

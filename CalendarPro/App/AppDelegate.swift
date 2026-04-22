@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let uiTestEventDetailWindowController = EventDetailWindowController()
     private let uiTestVacationGuideWindowController = VacationGuideWindowController()
     private let uiTestPopoverViewModel = CalendarPopoverViewModel()
+    private let uiTestTimeRefreshCoordinator = TimeRefreshCoordinator()
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
@@ -140,11 +141,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func presentUITestWindow() {
+        uiTestTimeRefreshCoordinator.start()
         let hostingController = NSHostingController(
             rootView: RootPopoverView(
                 settingsStore: settingsStore,
                 eventService: eventService,
                 viewModel: uiTestPopoverViewModel,
+                timeRefreshCoordinator: uiTestTimeRefreshCoordinator,
                 onPresentEventDetailWindow: { [weak self] event, onClose in
                     self?.uiTestVacationGuideWindowController.close()
                     self?.uiTestEventDetailWindowController.show(

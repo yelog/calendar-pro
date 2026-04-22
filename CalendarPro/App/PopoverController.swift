@@ -99,6 +99,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private let interactionMonitor: PopoverInteractionMonitoring
     private let eventDetailPresenter: EventDetailWindowPresenting
     private let vacationGuidePresenter: VacationGuideWindowPresenting
+    private let timeRefreshCoordinator: TimeRefreshCoordinator
     private let viewModel: CalendarPopoverViewModel
 
     init(
@@ -108,7 +109,8 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         interactionMonitor: PopoverInteractionMonitoring = PopoverInteractionMonitor(),
         eventDetailPresenter: EventDetailWindowPresenting = EventDetailWindowController(),
         vacationGuidePresenter: VacationGuideWindowPresenting = VacationGuideWindowController(),
-        viewModel: CalendarPopoverViewModel = CalendarPopoverViewModel()
+        timeRefreshCoordinator: TimeRefreshCoordinator = TimeRefreshCoordinator(),
+        viewModel: CalendarPopoverViewModel? = nil
     ) {
         self.popover = popover
         self.settingsStore = settingsStore
@@ -116,7 +118,8 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         self.interactionMonitor = interactionMonitor
         self.eventDetailPresenter = eventDetailPresenter
         self.vacationGuidePresenter = vacationGuidePresenter
-        self.viewModel = viewModel
+        self.timeRefreshCoordinator = timeRefreshCoordinator
+        self.viewModel = viewModel ?? CalendarPopoverViewModel(now: { timeRefreshCoordinator.currentDate })
         super.init()
 
         popover.behavior = .transient
@@ -148,6 +151,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                 settingsStore: settingsStore,
                 eventService: eventService,
                 viewModel: viewModel,
+                timeRefreshCoordinator: timeRefreshCoordinator,
                 onPresentEventDetailWindow: { [weak self] event, onClose in
                     self?.showEventDetailWindow(for: event, onClose: onClose)
                 },
@@ -173,6 +177,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     }
 
     private func showPopover(relativeTo button: NSView) {
+        timeRefreshCoordinator.refreshNow()
         viewModel.checkAndResetIfNeeded()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         interactionMonitor.start { [weak self] in

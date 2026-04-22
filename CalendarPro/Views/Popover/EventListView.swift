@@ -209,12 +209,10 @@ struct EventListView: View {
     let emptyStateText: String
     let selectedDate: Date?
     let selectedEventIdentifier: String?
+    @ObservedObject var timeRefreshCoordinator: TimeRefreshCoordinator
     let onSelectEvent: (EKEvent) -> Void
     let onToggleReminder: (EKReminder) -> Void
     let onOpenReminder: (EKReminder) -> Void
-
-    @State private var currentTime = Date()
-    private let timer = Timer.publish(every: 60, tolerance: 5, on: .main, in: .common).autoconnect()
 
     var body: some View {
         if isLoading {
@@ -237,7 +235,7 @@ struct EventListView: View {
                     timelineContent
                 }
                 .onAppear {
-                    currentTime = Date()
+                    timeRefreshCoordinator.refreshNow()
                     scrollToActiveGroup(using: proxy)
                 }
                 .onChange(of: selectedDate) { _, _ in
@@ -245,9 +243,6 @@ struct EventListView: View {
                 }
                 .onChange(of: items.map(\.selectionIdentifier)) { _, _ in
                     scrollToActiveGroup(using: proxy)
-                }
-                .onReceive(timer) { value in
-                    currentTime = value
                 }
             }
         }
@@ -289,6 +284,10 @@ struct EventListView: View {
             now: currentTime,
             calendar: .autoupdatingCurrent
         )
+    }
+
+    private var currentTime: Date {
+        timeRefreshCoordinator.currentDate
     }
 
     private func timedGroupView(

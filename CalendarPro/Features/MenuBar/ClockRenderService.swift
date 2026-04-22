@@ -77,8 +77,7 @@ struct ClockRenderService {
 
         switch style {
         case .numeric:
-            formatter.dateStyle = .short
-            formatter.timeStyle = .none
+            formatter.dateFormat = "dd/MM"
         case .short:
             formatter.setLocalizedDateFormatFromTemplate("yMMdd")
         case .full:
@@ -112,7 +111,7 @@ struct ClockRenderService {
         formatter.timeZone = timeZone
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.dateStyle = .none
-        formatter.timeStyle = showSeconds ? .medium : .short
+        formatter.dateFormat = showSeconds ? "HH:mm:ss" : "HH:mm"
         return formatter.string(from: now)
     }
 
