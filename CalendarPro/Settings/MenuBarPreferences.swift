@@ -47,7 +47,7 @@ struct MenuBarTextStyle: Codable, Equatable {
     static let defaultBackgroundColorHex = "#F2F4F7"
 
     static let `default` = MenuBarTextStyle(
-        isBold: false,
+        isBold: true,
         foregroundColorHex: nil,
         usesFilledBackground: false,
         backgroundColorHex: defaultBackgroundColorHex

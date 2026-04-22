@@ -15,7 +15,7 @@ final class MenuBarPreferencesTests: XCTestCase {
     func testDefaultTextStyleFollowsSystemMenuBarColor() {
         let prefs = MenuBarPreferences.default
 
-        XCTAssertFalse(prefs.textStyle.isBold)
+        XCTAssertTrue(prefs.textStyle.isBold)
         XCTAssertNil(prefs.textStyle.foregroundColorHex)
         XCTAssertFalse(prefs.textStyle.usesFilledBackground)
         XCTAssertEqual(prefs.textStyle.backgroundColorHex, MenuBarTextStyle.defaultBackgroundColorHex)
