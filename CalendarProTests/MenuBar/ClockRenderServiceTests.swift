@@ -2,6 +2,47 @@ import XCTest
 @testable import CalendarPro
 
 final class ClockRenderServiceTests: XCTestCase {
+    func testTextImageRendererUsesTemplateImageForDefaultStyle() {
+        let renderer = MenuBarTextImageRenderer()
+
+        let result = renderer.render(text: "10:30 Tue 04/22", style: .default)
+
+        XCTAssertTrue(result.usesTemplateColor)
+        XCTAssertTrue(result.image.isTemplate)
+        XCTAssertGreaterThan(result.image.size.width, 0)
+    }
+
+    func testTextImageRendererUsesOriginalImageForCustomForegroundColor() {
+        let renderer = MenuBarTextImageRenderer()
+        let style = MenuBarTextStyle(
+            isBold: true,
+            foregroundColorHex: "#334155",
+            usesFilledBackground: false,
+            backgroundColorHex: MenuBarTextStyle.defaultBackgroundColorHex
+        )
+
+        let result = renderer.render(text: "10:30 Tue 04/22", style: style)
+
+        XCTAssertFalse(result.usesTemplateColor)
+        XCTAssertFalse(result.image.isTemplate)
+    }
+
+    func testTextImageRendererUsesOriginalImageForFilledBackground() {
+        let renderer = MenuBarTextImageRenderer()
+        let style = MenuBarTextStyle(
+            isBold: true,
+            foregroundColorHex: nil,
+            usesFilledBackground: true,
+            backgroundColorHex: "#111827"
+        )
+
+        let result = renderer.render(text: "10:30 Tue 04/22", style: style)
+
+        XCTAssertFalse(result.usesTemplateColor)
+        XCTAssertFalse(result.image.isTemplate)
+        XCTAssertGreaterThan(result.image.size.height, 0)
+    }
+
     func testRendererRespectsTokenOrderAndShortStyles() {
         let renderer = ClockRenderService()
         let text = renderer.render(

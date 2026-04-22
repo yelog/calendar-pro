@@ -8,6 +8,7 @@ final class StatusBarController {
     private var statusItems: [NSStatusItem] = []
     private var popoverController: PopoverController
     private let menuBarViewModel: MenuBarViewModel
+    private let textImageRenderer = MenuBarTextImageRenderer()
     private let settingsStore: SettingsStore
     private let eventService: EventService
     private let timeRefreshCoordinator = TimeRefreshCoordinator()
@@ -88,74 +89,10 @@ final class StatusBarController {
     }
 
     private func applyStatusImage(_ text: String, style: MenuBarTextStyle, to button: NSStatusBarButton) {
-        let showsFilledBackground = style.usesFilledBackground && !text.isEmpty
-        let usesTemplateColor = style.foregroundColorHex == nil && !showsFilledBackground
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: statusBarFont(for: style),
-            .foregroundColor: usesTemplateColor ? NSColor.black : foregroundColor(for: style)
-        ]
-        let attributedText = NSAttributedString(string: text, attributes: attributes)
-        let textSize = attributedText.size()
-
-        let horizontalPadding: CGFloat = showsFilledBackground ? 8 : 2
-        let verticalPadding: CGFloat = showsFilledBackground ? 3 : 0
-        let imageHeight = max(ceil(textSize.height) + verticalPadding * 2, showsFilledBackground ? 18 : 1)
-        let imageSize = NSSize(
-            width: max(ceil(textSize.width) + horizontalPadding * 2, 1),
-            height: imageHeight
-        )
-
-        let image = NSImage(size: imageSize, flipped: false) { rect in
-            if showsFilledBackground {
-                self.backgroundColor(for: style).setFill()
-                NSBezierPath(
-                    roundedRect: rect,
-                    xRadius: 6,
-                    yRadius: 6
-                ).fill()
-            }
-
-            let drawRect = NSRect(
-                x: horizontalPadding,
-                y: (rect.height - textSize.height) / 2,
-                width: textSize.width,
-                height: textSize.height
-            )
-            attributedText.draw(in: drawRect)
-            return true
-        }
-        image.isTemplate = usesTemplateColor
-
-        button.image = image
+        let renderResult = textImageRenderer.render(text: text, style: style)
+        button.image = renderResult.image
         button.toolTip = text
         button.setAccessibilityLabel(text)
-    }
-
-    private func statusBarFont(for style: MenuBarTextStyle) -> NSFont {
-        .monospacedDigitSystemFont(
-            ofSize: NSFont.systemFontSize,
-            weight: style.isBold ? .semibold : .regular
-        )
-    }
-
-    private func foregroundColor(for style: MenuBarTextStyle) -> NSColor {
-        if let foregroundColorHex = style.foregroundColorHex,
-           let foregroundColor = NSColor(menuBarHex: foregroundColorHex) {
-            return foregroundColor
-        }
-
-        if style.usesFilledBackground,
-           let foregroundColor = NSColor(
-                menuBarHex: MenuBarTextStyle.automaticForegroundColorHex(for: style.backgroundColorHex)
-           ) {
-            return foregroundColor
-        }
-
-        return .black
-    }
-
-    private func backgroundColor(for style: MenuBarTextStyle) -> NSColor {
-        NSColor(menuBarHex: style.backgroundColorHex) ?? NSColor(menuBarHex: MenuBarTextStyle.defaultBackgroundColorHex) ?? .white
     }
 
     @objc
@@ -166,19 +103,5 @@ final class StatusBarController {
 
     func popoverContentWindow() -> NSWindow? {
         popoverController.popoverContentWindow()
-    }
-}
-
-private extension NSColor {
-    convenience init?(menuBarHex hex: String) {
-        let value = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        guard value.count == 6, let integer = UInt64(value, radix: 16) else { return nil }
-
-        self.init(
-            calibratedRed: CGFloat((integer >> 16) & 0xFF) / 255,
-            green: CGFloat((integer >> 8) & 0xFF) / 255,
-            blue: CGFloat(integer & 0xFF) / 255,
-            alpha: 1
-        )
     }
 }

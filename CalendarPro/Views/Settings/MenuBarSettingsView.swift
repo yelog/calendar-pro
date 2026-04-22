@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct MenuBarSettingsView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var store: SettingsStore
     @State private var availableWidth: CGFloat = .zero
 
-    private let renderer = ClockRenderService()
+    private let clockRenderer = ClockRenderService()
+    private let textImageRenderer = MenuBarTextImageRenderer()
 
     var body: some View {
         ScrollView {
@@ -125,7 +127,7 @@ struct MenuBarSettingsView: View {
         let factory = CalendarDayFactory(calendar: .autoupdatingCurrent, registry: .live)
         let day = try? factory.makeDay(for: now, displayedMonth: now, preferences: store.menuBarPreferences)
 
-        return renderer.render(
+        return clockRenderer.render(
             now: now,
             preferences: store.menuBarPreferences,
             supplementalText: MenuBarSupplementalText(
@@ -140,30 +142,59 @@ struct MenuBarSettingsView: View {
     }
 
     private var previewMenuBarText: some View {
-        Text(previewText)
-            .font(.system(.body, design: .rounded))
-            .fontWeight(textStyle.isBold ? .semibold : .regular)
-            .foregroundColor(previewForegroundColor)
-            .padding(.horizontal, textStyle.usesFilledBackground ? 8 : 0)
-            .padding(.vertical, textStyle.usesFilledBackground ? 3 : 0)
-            .background {
-                if textStyle.usesFilledBackground {
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(Color(menuBarHex: textStyle.backgroundColorHex))
-                }
+        let renderResult = textImageRenderer.render(text: previewText, style: textStyle)
+
+        return RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(previewBackgroundColor)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(previewBorderColor, lineWidth: 0.5)
+            )
+            .overlay(alignment: .leading) {
+                previewImage(for: renderResult)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
             }
+            .frame(minWidth: 160, minHeight: 28, alignment: .leading)
+            .shadow(color: previewShadowColor, radius: 2, y: 1)
     }
 
-    private var previewForegroundColor: Color? {
-        if let foregroundColorHex = textStyle.foregroundColorHex {
-            return Color(menuBarHex: foregroundColorHex)
-        }
+    @ViewBuilder
+    private func previewImage(for renderResult: MenuBarTextImageRenderResult) -> some View {
+        let image = Image(nsImage: renderResult.image)
 
-        if textStyle.usesFilledBackground {
-            return Color(menuBarHex: MenuBarTextStyle.automaticForegroundColorHex(for: textStyle.backgroundColorHex))
+        if renderResult.usesTemplateColor {
+            image
+                .renderingMode(.template)
+                .foregroundStyle(previewTemplateForegroundColor)
+        } else {
+            image
+                .renderingMode(.original)
         }
+    }
 
-        return nil
+    private var previewBackgroundColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.16, green: 0.17, blue: 0.20)
+            : Color.white
+    }
+
+    private var previewBorderColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.08)
+            : Color.black.opacity(0.08)
+    }
+
+    private var previewShadowColor: Color {
+        colorScheme == .dark
+            ? Color.black.opacity(0.18)
+            : Color.black.opacity(0.06)
+    }
+
+    private var previewTemplateForegroundColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.96)
+            : Color.black.opacity(0.88)
     }
 
     private var fontStyleControls: some View {
@@ -333,11 +364,11 @@ struct MenuBarSettingsView: View {
 
         switch token {
         case .date:
-            return renderer.renderPreview(token: token, style: style, now: now)
+            return clockRenderer.renderPreview(token: token, style: style, now: now)
         case .time:
-            return renderer.renderPreview(token: token, style: style, now: now)
+            return clockRenderer.renderPreview(token: token, style: style, now: now)
         case .weekday:
-            return renderer.renderPreview(token: token, style: style, now: now)
+            return clockRenderer.renderPreview(token: token, style: style, now: now)
         case .lunar:
             let lunarService = LunarService()
             let lunarDescriptor = lunarService.describe(date: now, timeZone: .autoupdatingCurrent)
@@ -410,30 +441,5 @@ private extension Color {
 
     func menuBarHexString() -> String? {
         NSColor(self).menuBarHexString()
-    }
-}
-
-private extension NSColor {
-    convenience init?(menuBarHex hex: String) {
-        let value = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        guard value.count == 6, let integer = UInt64(value, radix: 16) else { return nil }
-
-        self.init(
-            calibratedRed: CGFloat((integer >> 16) & 0xFF) / 255,
-            green: CGFloat((integer >> 8) & 0xFF) / 255,
-            blue: CGFloat(integer & 0xFF) / 255,
-            alpha: 1
-        )
-    }
-
-    func menuBarHexString() -> String? {
-        guard let color = usingColorSpace(.sRGB) else { return nil }
-
-        return String(
-            format: "#%02X%02X%02X",
-            Int(round(color.redComponent * 255)),
-            Int(round(color.greenComponent * 255)),
-            Int(round(color.blueComponent * 255))
-        )
     }
 }
