@@ -15,8 +15,10 @@ struct RootPopoverView: View {
     @State private var itemsForSelectedDate: [CalendarItem] = []
     @State private var isLoadingEvents: Bool = false
     @State private var almanacDescriptor: AlmanacDescriptor?
+    @State private var weatherDescriptor: WeatherDescriptor?
 
     private let almanacService = AlmanacService()
+    private let weatherService = WeatherService()
 
     var body: some View {
         CalendarPopoverView(
@@ -39,6 +41,8 @@ struct RootPopoverView: View {
             timeRefreshCoordinator: timeRefreshCoordinator,
             almanac: almanacDescriptor,
             showAlmanac: settingsStore.menuBarPreferences.showAlmanac,
+            weather: weatherDescriptor,
+            showWeather: settingsStore.menuBarPreferences.showWeather,
             showVacationGuideButton: showVacationGuideButton,
             isVacationGuideEnabled: isVacationGuideEnabled,
             vacationGuideDisabledReason: vacationGuideDisabledReason,
@@ -135,6 +139,9 @@ struct RootPopoverView: View {
         .onChange(of: settingsStore.menuBarPreferences.showAlmanac) { _, _ in
             refreshInfoStrips()
         }
+        .onChange(of: settingsStore.menuBarPreferences.showWeather) { _, _ in
+            refreshInfoStrips()
+        }
     }
 
     private func refreshInfoStrips() {
@@ -146,6 +153,15 @@ struct RootPopoverView: View {
             almanacDescriptor = nil
         }
 
+        if settingsStore.menuBarPreferences.showWeather {
+            Task {
+                let descriptor = await weatherService.fetchCurrentWeather()
+                guard settingsStore.menuBarPreferences.showWeather else { return }
+                weatherDescriptor = descriptor.hasContent ? descriptor : nil
+            }
+        } else {
+            weatherDescriptor = nil
+        }
     }
 
     private func loadEvents(for date: Date) {

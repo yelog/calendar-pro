@@ -347,12 +347,14 @@ struct MenuBarSettingsView: View {
             return showChinese ? [.short, .chineseMonthDay, .full] : base
         case .holiday:
             return [.short] as [DisplayTokenStyle]
+        case .weather:
+            return [.short] as [DisplayTokenStyle]
         }
     }
 
     private func defaultStyle(for token: DisplayTokenKind) -> DisplayTokenStyle {
         switch token {
-        case .date, .time, .weekday, .lunar, .holiday:
+        case .date, .time, .weekday, .lunar, .holiday, .weather:
             .short
         }
     }
@@ -386,6 +388,8 @@ struct MenuBarSettingsView: View {
             return lunarDescriptor.displayText(style: lunarStyle)
         case .holiday:
             return day?.badges.first?.text ?? L("Holiday")
+        case .weather:
+            return "23°"
         }
     }
 
@@ -401,6 +405,8 @@ struct MenuBarSettingsView: View {
             L("Lunar")
         case .holiday:
             L("Holiday")
+        case .weather:
+            L("Weather")
         }
     }
 

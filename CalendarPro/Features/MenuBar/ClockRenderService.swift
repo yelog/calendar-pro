@@ -4,6 +4,7 @@ import Foundation
 struct MenuBarSupplementalText: Equatable {
     var lunarText: String?
     var holidayText: String?
+    var weatherText: String?
 
     static let empty = MenuBarSupplementalText()
 }
@@ -67,6 +68,8 @@ struct ClockRenderService {
             return supplementalText.lunarText
         case .holiday:
             return supplementalText.holidayText
+        case .weather:
+            return supplementalText.weatherText
         }
     }
 

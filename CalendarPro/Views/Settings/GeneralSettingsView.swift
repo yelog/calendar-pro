@@ -73,6 +73,16 @@ struct GeneralSettingsView: View {
                 if LocaleFeatureAvailability.showAlmanacFeatures {
                     GeneralSettingsSection(L("Panel Info")) {
                         GeneralSettingsRow(
+                            title: L("Show Weather"),
+                            description: L("Show Weather Description")
+                        ) {
+                            Toggle("", isOn: showWeatherBinding)
+                                .labelsHidden()
+                        }
+
+                        Divider()
+
+                        GeneralSettingsRow(
                             title: L("Show Almanac"),
                             description: L("Show Almanac Description")
                         ) {
@@ -120,6 +130,13 @@ struct GeneralSettingsView: View {
         Binding(
             get: { store.menuBarPreferences.showAlmanac },
             set: { store.setShowAlmanac($0) }
+        )
+    }
+
+    private var showWeatherBinding: Binding<Bool> {
+        Binding(
+            get: { store.menuBarPreferences.showWeather },
+            set: { store.setShowWeather($0) }
         )
     }
 
