@@ -256,6 +256,53 @@ final class SettingsStoreTests: XCTestCase {
         )
     }
 
+    func testSetLocationMode() {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        let store = makeStore(userDefaults: userDefaults)
+
+        XCTAssertEqual(store.menuBarPreferences.locationMode, .automatic)
+
+        store.setLocationMode(.manual)
+        XCTAssertEqual(store.menuBarPreferences.locationMode, .manual)
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertEqual(reloaded.menuBarPreferences.locationMode, .manual)
+    }
+
+    func testSetManualLocation() {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        let store = makeStore(userDefaults: userDefaults)
+
+        XCTAssertNil(store.menuBarPreferences.manualLocation)
+
+        let location = WeatherLocation(latitude: 39.9, longitude: 116.4, name: "Beijing", country: "China", admin1: "Beijing")
+        store.setManualLocation(location)
+
+        XCTAssertEqual(store.menuBarPreferences.manualLocation?.name, "Beijing")
+        XCTAssertEqual(store.menuBarPreferences.manualLocation?.latitude ?? .nan, 39.9, accuracy: 0.01)
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertEqual(reloaded.menuBarPreferences.manualLocation?.name, "Beijing")
+    }
+
+    func testSetManualLocationToNil() {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        let store = makeStore(userDefaults: userDefaults)
+
+        let location = WeatherLocation(latitude: 39.9, longitude: 116.4, name: "Beijing", country: nil, admin1: nil)
+        store.setManualLocation(location)
+        XCTAssertNotNil(store.menuBarPreferences.manualLocation)
+
+        store.setManualLocation(nil)
+        XCTAssertNil(store.menuBarPreferences.manualLocation)
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertNil(reloaded.menuBarPreferences.manualLocation)
+    }
+
     private func makeIsolatedUserDefaults(name: String = #function) -> UserDefaults {
         let userDefaults = UserDefaults(suiteName: name)!
         userDefaults.removePersistentDomain(forName: name)

@@ -84,6 +84,19 @@ struct MenuBarTextStyle: Codable, Equatable {
     }
 }
 
+enum LocationMode: String, Codable, CaseIterable {
+    case automatic
+    case manual
+}
+
+struct WeatherLocation: Codable, Equatable, Sendable {
+    let latitude: Double
+    let longitude: Double
+    let name: String
+    let country: String?
+    let admin1: String?
+}
+
 struct MenuBarPreferences: Codable, Equatable {
     var tokens: [DisplayTokenPreference]
     var separator: String
@@ -100,6 +113,8 @@ struct MenuBarPreferences: Codable, Equatable {
     var enabledReminderCalendarIDs: [String]
     var showAlmanac: Bool
     var showWeather: Bool
+    var locationMode: LocationMode = .automatic
+    var manualLocation: WeatherLocation? = nil
 
     var requiresSecondRefresh: Bool {
         tokens.contains { $0.token == .time && $0.isEnabled && $0.style == .full }
@@ -175,7 +190,9 @@ struct MenuBarPreferences: Codable, Equatable {
             showReminders: true,
             enabledReminderCalendarIDs: [],
             showAlmanac: false,
-            showWeather: false
+            showWeather: false,
+            locationMode: .automatic,
+            manualLocation: nil
         )
     }
 
@@ -198,7 +215,9 @@ struct MenuBarPreferences: Codable, Equatable {
         showReminders: true,
         enabledReminderCalendarIDs: [],
         showAlmanac: false,
-        showWeather: false
+        showWeather: false,
+        locationMode: .automatic,
+        manualLocation: nil
     )
 }
 
@@ -219,6 +238,8 @@ extension MenuBarPreferences {
         case enabledReminderCalendarIDs
         case showAlmanac
         case showWeather
+        case locationMode
+        case manualLocation
     }
 
     init(from decoder: Decoder) throws {
@@ -240,7 +261,9 @@ extension MenuBarPreferences {
             showReminders: try container.decode(Bool.self, forKey: .showReminders),
             enabledReminderCalendarIDs: try container.decode([String].self, forKey: .enabledReminderCalendarIDs),
             showAlmanac: try container.decodeIfPresent(Bool.self, forKey: .showAlmanac) ?? false,
-            showWeather: try container.decodeIfPresent(Bool.self, forKey: .showWeather) ?? false
+            showWeather: try container.decodeIfPresent(Bool.self, forKey: .showWeather) ?? false,
+            locationMode: try container.decodeIfPresent(LocationMode.self, forKey: .locationMode) ?? .automatic,
+            manualLocation: try container.decodeIfPresent(WeatherLocation.self, forKey: .manualLocation)
         )
     }
 
@@ -261,5 +284,7 @@ extension MenuBarPreferences {
         try container.encode(enabledReminderCalendarIDs, forKey: .enabledReminderCalendarIDs)
         try container.encode(showAlmanac, forKey: .showAlmanac)
         try container.encode(showWeather, forKey: .showWeather)
+        try container.encode(locationMode, forKey: .locationMode)
+        try container.encodeIfPresent(manualLocation, forKey: .manualLocation)
     }
 }

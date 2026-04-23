@@ -253,6 +253,20 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
+    func setLocationMode(_ mode: LocationMode) {
+        var prefs = menuBarPreferences
+        prefs.locationMode = mode
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setManualLocation(_ location: WeatherLocation?) {
+        var prefs = menuBarPreferences
+        prefs.manualLocation = location
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
     func setReminderCalendarEnabled(_ enabled: Bool, calendarID: String, allCalendarIDs: [String] = []) {
         let hasAllCalendarIDs = !allCalendarIDs.isEmpty
         var ids = menuBarPreferences.enabledReminderCalendarIDs

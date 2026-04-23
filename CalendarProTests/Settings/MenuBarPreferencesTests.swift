@@ -91,6 +91,47 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertEqual(prefs.eventListEmptyStateText, "未启用任何日程来源")
     }
 
+    func testDefaultLocationModeIsAutomatic() {
+        let prefs = MenuBarPreferences.default
+        XCTAssertEqual(prefs.locationMode, .automatic)
+        XCTAssertNil(prefs.manualLocation)
+    }
+
+    func testCodableRoundTripPreservesLocationMode() throws {
+        var prefs = MenuBarPreferences.default
+        prefs.locationMode = .manual
+        prefs.manualLocation = WeatherLocation(latitude: 22.3, longitude: 114.2, name: "Hong Kong", country: "HK", admin1: nil)
+
+        let data = try JSONEncoder().encode(prefs)
+        let decoded = try JSONDecoder().decode(MenuBarPreferences.self, from: data)
+
+        XCTAssertEqual(decoded.locationMode, .manual)
+        XCTAssertEqual(decoded.manualLocation?.name, "Hong Kong")
+        XCTAssertEqual(decoded.manualLocation?.latitude ?? .nan, 22.3, accuracy: 0.01)
+    }
+
+    func testLegacyDecodingDefaultsLocationModeToAutomatic() throws {
+        let legacyJSON = """
+        {
+          "tokens": [{ "token": "date", "isEnabled": true, "order": 0, "style": "short" }],
+          "separator": " ",
+          "showLunarInMenuBar": false,
+          "activeRegionIDs": [],
+          "enabledHolidayIDs": [],
+          "weekStart": "monday",
+          "showEvents": true,
+          "enabledCalendarIDs": [],
+          "showReminders": true,
+          "enabledReminderCalendarIDs": []
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(MenuBarPreferences.self, from: legacyJSON)
+
+        XCTAssertEqual(decoded.locationMode, .automatic)
+        XCTAssertNil(decoded.manualLocation)
+    }
+
     func testAutomaticForegroundColorUsesContrastForFilledBackground() {
         XCTAssertEqual(
             MenuBarTextStyle.automaticForegroundColorHex(for: "#F2F4F7"),
