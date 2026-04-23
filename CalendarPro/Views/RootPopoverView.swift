@@ -154,10 +154,15 @@ struct RootPopoverView: View {
         }
 
         if settingsStore.menuBarPreferences.showWeather {
+            let requestedDate = date
             Task {
-                let descriptor = await weatherService.fetchCurrentWeather()
-                guard settingsStore.menuBarPreferences.showWeather else { return }
-                weatherDescriptor = descriptor.hasContent ? descriptor : nil
+                let descriptor = await weatherService.describe(date: requestedDate, calendar: displayCalendar)
+                await MainActor.run {
+                    guard settingsStore.menuBarPreferences.showWeather else { return }
+                    let currentSelectedDate = viewModel.selectedDate ?? timeRefreshCoordinator.currentDate
+                    guard displayCalendar.isDate(currentSelectedDate, inSameDayAs: requestedDate) else { return }
+                    weatherDescriptor = descriptor.hasContent ? descriptor : nil
+                }
             }
         } else {
             weatherDescriptor = nil

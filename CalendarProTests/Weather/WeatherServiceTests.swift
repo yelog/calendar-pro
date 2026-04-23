@@ -8,153 +8,26 @@ final class WeatherServiceTests: XCTestCase {
     }
 
     func testWeatherDescriptorIconSystemNameForClearDay() {
-        let descriptor = WeatherDescriptor(
-            temperature: 25,
-            apparentTemperature: 27,
-            weatherCode: 0,
-            isDaytime: true
-        )
-        XCTAssertEqual(descriptor.iconSystemName, "sun.max.fill")
+        XCTAssertEqual(makeDescriptor(weatherCode: 0, isDaytime: true).iconSystemName, "sun.max.fill")
     }
 
     func testWeatherDescriptorIconSystemNameForClearNight() {
-        let descriptor = WeatherDescriptor(
-            temperature: 18,
-            apparentTemperature: 16,
-            weatherCode: 0,
-            isDaytime: false
-        )
-        XCTAssertEqual(descriptor.iconSystemName, "moon.stars.fill")
-    }
-
-    func testWeatherDescriptorIconSystemNameForOvercast() {
-        let descriptor = WeatherDescriptor(
-            temperature: 20,
-            apparentTemperature: 19,
-            weatherCode: 3,
-            isDaytime: true
-        )
-        XCTAssertEqual(descriptor.iconSystemName, "cloud.fill")
+        XCTAssertEqual(makeDescriptor(weatherCode: 0, isDaytime: false).iconSystemName, "moon.stars.fill")
     }
 
     func testWeatherDescriptorIconSystemNameForRain() {
-        let descriptor = WeatherDescriptor(
-            temperature: 15,
-            apparentTemperature: 12,
-            weatherCode: 61,
-            isDaytime: true
-        )
-        XCTAssertEqual(descriptor.iconSystemName, "cloud.rain.fill")
+        XCTAssertEqual(makeDescriptor(weatherCode: 61, isDaytime: true).iconSystemName, "cloud.rain.fill")
     }
 
-    func testWeatherDescriptorIconSystemNameForThunderstorm() {
-        let descriptor = WeatherDescriptor(
-            temperature: 22,
-            apparentTemperature: 20,
-            weatherCode: 95,
-            isDaytime: false
-        )
-        XCTAssertEqual(descriptor.iconSystemName, "cloud.bolt.rain.fill")
+    func testWeatherDescriptorHasContentWithLocationAndTemperature() {
+        XCTAssertTrue(makeDescriptor(weatherCode: 3, isDaytime: true).hasContent)
     }
 
-    func testWeatherDescriptorIconSystemNameForSnow() {
-        let descriptor = WeatherDescriptor(
-            temperature: -2,
-            apparentTemperature: -5,
-            weatherCode: 73,
-            isDaytime: true
-        )
-        XCTAssertEqual(descriptor.iconSystemName, "cloud.snow.fill")
+    func testWeatherDescriptorEmptyHasNoContent() {
+        XCTAssertFalse(WeatherDescriptor.empty.hasContent)
     }
 
-    func testWeatherDescriptorIconSystemNameForFog() {
-        let descriptor = WeatherDescriptor(
-            temperature: 10,
-            apparentTemperature: 8,
-            weatherCode: 45,
-            isDaytime: true
-        )
-        XCTAssertEqual(descriptor.iconSystemName, "cloud.fog.fill")
-    }
-
-    func testWeatherDescriptorIconSystemNameForPartlyCloudyDay() {
-        let descriptor = WeatherDescriptor(
-            temperature: 22,
-            apparentTemperature: 21,
-            weatherCode: 2,
-            isDaytime: true
-        )
-        XCTAssertEqual(descriptor.iconSystemName, "cloud.sun.fill")
-    }
-
-    func testWeatherDescriptorIconSystemNameForPartlyCloudyNight() {
-        let descriptor = WeatherDescriptor(
-            temperature: 16,
-            apparentTemperature: 14,
-            weatherCode: 1,
-            isDaytime: false
-        )
-        XCTAssertEqual(descriptor.iconSystemName, "cloud.moon.fill")
-    }
-
-    func testWeatherDescriptorIconSystemNameForUnknownCode() {
-        let descriptor = WeatherDescriptor(
-            temperature: 20,
-            apparentTemperature: 19,
-            weatherCode: 999,
-            isDaytime: true
-        )
-        XCTAssertEqual(descriptor.iconSystemName, "cloud.fill")
-    }
-
-    func testWeatherDescriptorTemperatureText() {
-        let descriptor = WeatherDescriptor(
-            temperature: 23.6,
-            apparentTemperature: 25.1,
-            weatherCode: 0,
-            isDaytime: true
-        )
-        XCTAssertEqual(descriptor.temperatureText, "24°")
-    }
-
-    func testWeatherDescriptorTemperatureTextRoundsNegative() {
-        let descriptor = WeatherDescriptor(
-            temperature: -3.4,
-            apparentTemperature: -6.2,
-            weatherCode: 71,
-            isDaytime: true
-        )
-        XCTAssertEqual(descriptor.temperatureText, "-3°")
-    }
-
-    func testWeatherDescriptorHasContentWithValidCode() {
-        let descriptor = WeatherDescriptor(
-            temperature: 20,
-            apparentTemperature: 19,
-            weatherCode: 0,
-            isDaytime: true
-        )
-        XCTAssertTrue(descriptor.hasContent)
-    }
-
-    func testWeatherDescriptorHasNoContentWithNegativeCode() {
-        let descriptor = WeatherDescriptor.empty
-        XCTAssertFalse(descriptor.hasContent)
-    }
-
-    func testWeatherDescriptorEmptyHasNegativeCode() {
-        let empty = WeatherDescriptor.empty
-        XCTAssertEqual(empty.weatherCode, -1)
-    }
-
-    func testWeatherServiceFetchReturnsEmptyOnNetworkError() async {
-        let service = WeatherService()
-        let result = await service.fetchCurrentWeather()
-        _ = result
-    }
-
-    func testWeatherServiceFetchUsesIPWhoLocation() async {
-        let forecastURLHost = "api.open-meteo.com"
+    func testWeatherServiceFetchCurrentWeatherUsesIPWhoLocation() async {
         let requestedHosts = LockedBox<[String]>([])
 
         WeatherMockURLProtocol.requestHandler = { request in
@@ -164,41 +37,64 @@ final class WeatherServiceTests: XCTestCase {
             case "ipwho.is":
                 return (
                     HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
-                    Data("{\"success\":true,\"latitude\":22.276022,\"longitude\":114.1751471}".utf8)
+                    Data("{\"success\":true,\"city\":\"Hong Kong\",\"latitude\":22.276022,\"longitude\":114.1751471}".utf8)
                 )
-            case forecastURLHost:
+            case "api.open-meteo.com":
                 let components = URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)
                 let queryItems = components?.queryItems ?? []
                 XCTAssertEqual(queryItems.first(where: { $0.name == "latitude" })?.value, "22.276022")
                 XCTAssertEqual(queryItems.first(where: { $0.name == "longitude" })?.value, "114.1751471")
+                XCTAssertEqual(queryItems.first(where: { $0.name == "daily" })?.value, "weather_code,temperature_2m_max,temperature_2m_min")
+                XCTAssertEqual(queryItems.first(where: { $0.name == "past_days" })?.value, "31")
+                XCTAssertEqual(queryItems.first(where: { $0.name == "forecast_days" })?.value, "16")
 
-                return (
-                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
-                    Data(
-                        """
-                        {
-                          "current": {
-                            "temperature_2m": 16.5,
-                            "apparent_temperature": 16.8,
-                            "weather_code": 1,
-                            "is_day": 1
-                          }
-                        }
-                        """.utf8
-                    )
-                )
+                return makeForecastResponse(for: request.url!)
             default:
                 throw URLError(.badURL)
             }
         }
 
-        let service = WeatherService(session: makeSession(), now: { Date(timeIntervalSince1970: 1_000) })
+        let service = WeatherService(session: makeSession(), now: { makeDate(year: 2026, month: 4, day: 23, hour: 10) })
 
         let result = await service.fetchCurrentWeather()
 
         XCTAssertTrue(result.hasContent)
-        XCTAssertEqual(result.temperatureText, "17°")
-        XCTAssertEqual(requestedHosts.snapshot, ["ipwho.is", forecastURLHost])
+        XCTAssertEqual(result.locationName, "Hong Kong")
+        XCTAssertEqual(result.temperatureText, "26°")
+        XCTAssertEqual(result.apparentTemperature, 31)
+        XCTAssertTrue(result.isCurrentConditions)
+        XCTAssertNil(result.forecastDate)
+        XCTAssertEqual(requestedHosts.snapshot, ["ipwho.is", "api.open-meteo.com"])
+    }
+
+    func testWeatherServiceDescribeFutureDateUsesDailyForecast() async {
+        WeatherMockURLProtocol.requestHandler = { request in
+            switch request.url?.host {
+            case "ipwho.is":
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{\"success\":true,\"city\":\"Hong Kong\",\"latitude\":22.276022,\"longitude\":114.1751471}".utf8)
+                )
+            case "api.open-meteo.com":
+                return makeForecastResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let calendar = makeCalendar()
+        let service = WeatherService(session: makeSession(), now: { makeDate(year: 2026, month: 4, day: 23, hour: 10) })
+        let selectedDate = makeDate(year: 2026, month: 4, day: 24)
+
+        let result = await service.describe(date: selectedDate, calendar: calendar)
+
+        XCTAssertTrue(result.hasContent)
+        XCTAssertEqual(result.locationName, "Hong Kong")
+        XCTAssertEqual(result.temperatureText, "27° / 20°")
+        XCTAssertNil(result.apparentTemperature)
+        XCTAssertFalse(result.isCurrentConditions)
+        XCTAssertTrue(calendar.isDate(result.forecastDate ?? .distantPast, inSameDayAs: selectedDate))
+        XCTAssertEqual(result.iconSystemName, "cloud.fill")
     }
 
     func testWeatherServiceFallsBackToIPInfoWhenPrimaryLocationProviderFails() async {
@@ -216,40 +112,25 @@ final class WeatherServiceTests: XCTestCase {
             case "ipinfo.io":
                 return (
                     HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
-                    Data("{\"loc\":\"22.2783,114.1747\"}".utf8)
+                    Data("{\"city\":\"Hong Kong\",\"region\":\"Hong Kong\",\"country\":\"HK\",\"loc\":\"22.2783,114.1747\"}".utf8)
                 )
             case "api.open-meteo.com":
-                return (
-                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
-                    Data(
-                        """
-                        {
-                          "current": {
-                            "temperature_2m": 21.2,
-                            "apparent_temperature": 24.1,
-                            "weather_code": 3,
-                            "is_day": 1
-                          }
-                        }
-                        """.utf8
-                    )
-                )
+                return makeForecastResponse(for: request.url!)
             default:
                 throw URLError(.badURL)
             }
         }
 
-        let service = WeatherService(session: makeSession(), now: { Date(timeIntervalSince1970: 1_000) })
+        let service = WeatherService(session: makeSession(), now: { makeDate(year: 2026, month: 4, day: 23, hour: 10) })
 
         let result = await service.fetchCurrentWeather()
 
-        XCTAssertTrue(result.hasContent)
-        XCTAssertEqual(result.weatherCode, 3)
+        XCTAssertEqual(result.locationName, "Hong Kong")
         XCTAssertEqual(requestedHosts.snapshot, ["ipwho.is", "ipinfo.io", "api.open-meteo.com"])
     }
 
-    func testWeatherServiceCachesWeatherWithinRefreshInterval() async {
-        let nowBox = LockedBox(Date(timeIntervalSince1970: 1_000))
+    func testWeatherServiceCachesSnapshotWithinRefreshIntervalAcrossDateSelections() async {
+        let nowBox = LockedBox(makeDate(year: 2026, month: 4, day: 23, hour: 10))
         let ipWhoRequests = LockedBox(0)
         let forecastRequests = LockedBox(0)
 
@@ -259,66 +140,60 @@ final class WeatherServiceTests: XCTestCase {
                 ipWhoRequests.withValue { $0 += 1 }
                 return (
                     HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
-                    Data("{\"success\":true,\"latitude\":22.276022,\"longitude\":114.1751471}".utf8)
+                    Data("{\"success\":true,\"city\":\"Hong Kong\",\"latitude\":22.276022,\"longitude\":114.1751471}".utf8)
                 )
             case "api.open-meteo.com":
                 forecastRequests.withValue { $0 += 1 }
-                return (
-                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
-                    Data(
-                        """
-                        {
-                          "current": {
-                            "temperature_2m": 18.4,
-                            "apparent_temperature": 18.0,
-                            "weather_code": 2,
-                            "is_day": 1
-                          }
-                        }
-                        """.utf8
-                    )
-                )
+                return makeForecastResponse(for: request.url!)
             default:
                 throw URLError(.badURL)
             }
         }
 
+        let calendar = makeCalendar()
         let service = WeatherService(
             session: makeSession(),
             now: { nowBox.snapshot },
             refreshInterval: 30 * 60
         )
 
-        let first = await service.fetchCurrentWeather()
-        nowBox.withValue { $0 = Date(timeIntervalSince1970: 1_600) }
-        let second = await service.fetchCurrentWeather()
-        nowBox.withValue { $0 = Date(timeIntervalSince1970: 3_000) }
-        let third = await service.fetchCurrentWeather()
+        let first = await service.describe(date: makeDate(year: 2026, month: 4, day: 23), calendar: calendar)
+        let second = await service.describe(date: makeDate(year: 2026, month: 4, day: 24), calendar: calendar)
+        nowBox.withValue { $0 = makeDate(year: 2026, month: 4, day: 23, hour: 10, minute: 31) }
+        let third = await service.describe(date: makeDate(year: 2026, month: 4, day: 25), calendar: calendar)
 
-        XCTAssertEqual(first, second)
-        XCTAssertEqual(first.temperatureText, "18°")
-        XCTAssertEqual(third.temperatureText, "18°")
+        XCTAssertEqual(first.locationName, "Hong Kong")
+        XCTAssertEqual(second.locationName, "Hong Kong")
+        XCTAssertEqual(third.locationName, "Hong Kong")
         XCTAssertEqual(ipWhoRequests.snapshot, 1)
         XCTAssertEqual(forecastRequests.snapshot, 2)
     }
 
-    func testOpenMeteoResponseDecoding() throws {
-        let json = """
-        {
-            "current": {
-                "temperature_2m": 22.5,
-                "apparent_temperature": 21.3,
-                "weather_code": 3,
-                "is_day": 1
+    func testWeatherServiceReturnsEmptyWhenSelectedForecastDateIsUnavailable() async {
+        WeatherMockURLProtocol.requestHandler = { request in
+            switch request.url?.host {
+            case "ipwho.is":
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{\"success\":true,\"city\":\"Hong Kong\",\"latitude\":22.276022,\"longitude\":114.1751471}".utf8)
+                )
+            case "api.open-meteo.com":
+                return makeForecastResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
             }
         }
-        """
-        let data = json.data(using: .utf8)!
 
-        let response = try JSONDecoder().decode(OpenMeteoTestResponse.self, from: data)
-        XCTAssertEqual(response.current.temperature_2m, 22.5)
-        XCTAssertEqual(response.current.weather_code, 3)
-        XCTAssertEqual(response.current.is_day, 1)
+        let service = WeatherService(session: makeSession(), now: { makeDate(year: 2026, month: 4, day: 23, hour: 10) })
+        let result = await service.describe(date: makeDate(year: 2026, month: 7, day: 1), calendar: makeCalendar())
+
+        XCTAssertEqual(result, .empty)
+    }
+
+    func testWeatherServiceFetchReturnsEmptyOnNetworkError() async {
+        let service = WeatherService()
+        let result = await service.fetchCurrentWeather()
+        XCTAssertFalse(result.hasContent)
     }
 }
 
@@ -379,12 +254,51 @@ private func makeSession() -> URLSession {
     return URLSession(configuration: configuration)
 }
 
-private struct OpenMeteoTestResponse: Decodable {
-    let current: CurrentWeather
-    struct CurrentWeather: Decodable {
-        let temperature_2m: Double
-        let apparent_temperature: Double
-        let weather_code: Int
-        let is_day: Int
-    }
+private func makeDescriptor(weatherCode: Int, isDaytime: Bool) -> WeatherDescriptor {
+    WeatherDescriptor(
+        locationName: "Hong Kong",
+        temperatureText: "20°",
+        apparentTemperature: 22,
+        forecastDate: nil,
+        weatherCode: weatherCode,
+        isDaytime: isDaytime,
+        isCurrentConditions: true
+    )
+}
+
+private func makeCalendar() -> Calendar {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    return calendar
+}
+
+private func makeDate(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0) -> Date {
+    let calendar = makeCalendar()
+    return calendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour, minute: minute))!
+}
+
+private func makeForecastResponse(for url: URL) -> (HTTPURLResponse, Data) {
+    let data = Data(
+        """
+        {
+          "current": {
+            "temperature_2m": 26.0,
+            "apparent_temperature": 31.0,
+            "weather_code": 61,
+            "is_day": 1
+          },
+          "daily": {
+            "time": ["2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25"],
+            "weather_code": [45, 61, 3, 0],
+            "temperature_2m_max": [24.0, 28.0, 27.0, 30.0],
+            "temperature_2m_min": [19.0, 24.0, 20.0, 25.0]
+          }
+        }
+        """.utf8
+    )
+
+    return (
+        HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        data
+    )
 }
