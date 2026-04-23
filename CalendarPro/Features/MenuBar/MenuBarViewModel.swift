@@ -19,6 +19,9 @@ final class MenuBarViewModel: ObservableObject {
     private var settingsCancellable: AnyCancellable?
     private var timeCancellable: AnyCancellable?
     private var localeEventCancellable: AnyCancellable?
+    private var weatherFetchTask: Task<Void, Never>?
+    private var weatherNextRefreshDate: Date = .distantPast
+    private var weatherFailureCount = 0
     private var isRunning = false
 
     init(
@@ -85,6 +88,8 @@ final class MenuBarViewModel: ObservableObject {
 
     func stop() {
         isRunning = false
+        weatherFetchTask?.cancel()
+        weatherFetchTask = nil
         timeRefreshCoordinator.stop()
     }
 
@@ -130,13 +135,17 @@ final class MenuBarViewModel: ObservableObject {
             supplementalText: fullSupplemental
         )
 
-        fetchWeatherIfNeeded(with: prefs)
+        fetchWeatherIfNeeded(with: prefs, currentDate: currentDate)
     }
 
-    private func fetchWeatherIfNeeded(with prefs: MenuBarPreferences) {
+    private func fetchWeatherIfNeeded(with prefs: MenuBarPreferences, currentDate: Date) {
         let weatherTokenEnabled = prefs.tokens.contains(where: { $0.token == .weather && $0.isEnabled })
 
         guard prefs.showWeather || weatherTokenEnabled else {
+            weatherFetchTask?.cancel()
+            weatherFetchTask = nil
+            weatherNextRefreshDate = .distantPast
+            weatherFailureCount = 0
             if weatherDescriptor != .empty {
                 weatherDescriptor = .empty
                 renderNow()
@@ -146,24 +155,67 @@ final class MenuBarViewModel: ObservableObject {
 
         let expectedLocation = prefs.locationMode == .manual ? prefs.manualLocation : nil
         if weatherService.manualLocation != expectedLocation {
+            weatherFetchTask?.cancel()
+            weatherFetchTask = nil
             weatherService = WeatherService(
                 session: weatherService.session,
                 now: weatherService.now,
                 refreshInterval: weatherService.refreshInterval,
                 manualLocation: expectedLocation
             )
+            weatherNextRefreshDate = .distantPast
+            weatherFailureCount = 0
+            if weatherDescriptor != .empty {
+                weatherDescriptor = .empty
+                renderNow()
+            }
         }
 
-        Task {
-            let descriptor = await weatherService.fetchCurrentWeather()
+        guard weatherFetchTask == nil else { return }
+        guard currentDate >= weatherNextRefreshDate else { return }
+
+        let requestDate = currentDate
+        let service = weatherService
+        weatherFetchTask = Task {
+            let descriptor = await service.fetchCurrentWeather()
             await MainActor.run { [weak self] in
                 guard let self else { return }
+                self.weatherFetchTask = nil
+                let latestPrefs = self.settingsStore.menuBarPreferences
+                let latestWeatherTokenEnabled = latestPrefs.tokens.contains(where: { $0.token == .weather && $0.isEnabled })
+                guard latestPrefs.showWeather || latestWeatherTokenEnabled else { return }
+                guard self.weatherService.manualLocation == expectedLocation else { return }
+
+                let baseDate = self.timeRefreshCoordinator.currentDate > requestDate
+                    ? self.timeRefreshCoordinator.currentDate
+                    : requestDate
+                if descriptor.hasContent {
+                    self.weatherFailureCount = 0
+                    self.weatherNextRefreshDate = baseDate.addingTimeInterval(self.weatherService.refreshInterval)
+                } else {
+                    self.weatherFailureCount += 1
+                    self.weatherNextRefreshDate = baseDate.addingTimeInterval(
+                        Self.weatherRetryDelay(forFailureCount: self.weatherFailureCount)
+                    )
+                }
+
                 let changed = self.weatherDescriptor != descriptor
                 self.weatherDescriptor = descriptor
                 if changed {
                     self.renderNow()
                 }
             }
+        }
+    }
+
+    private static func weatherRetryDelay(forFailureCount failureCount: Int) -> TimeInterval {
+        switch failureCount {
+        case ...1:
+            return 60
+        case 2:
+            return 2 * 60
+        default:
+            return 5 * 60
         }
     }
 }

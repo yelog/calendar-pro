@@ -177,6 +177,7 @@ struct WeatherService: Sendable {
 
     private let cachedLocation = LockedValue<LocationMetadata?>(nil)
     private let cachedSnapshot = LockedValue<WeatherSnapshot?>(nil)
+    private let inFlightSnapshotTask = LockedValue<Task<WeatherSnapshot?, Never>?>(nil)
 
     init(
         session: URLSession = .shared,
@@ -216,6 +217,22 @@ struct WeatherService: Sendable {
             return cachedSnapshot
         }
 
+        let task = inFlightSnapshotTask.withValue { inFlight in
+            if let inFlight {
+                return inFlight
+            }
+
+            let newTask = Task { await fetchSnapshotFromNetwork() }
+            inFlight = newTask
+            return newTask
+        }
+
+        let snapshot = await task.value
+        inFlightSnapshotTask.value = nil
+        return snapshot
+    }
+
+    private func fetchSnapshotFromNetwork() async -> WeatherSnapshot? {
         let location: LocationMetadata?
         if let manual = manualLocation {
             location = LocationMetadata(
@@ -599,6 +616,12 @@ private final class LockedValue<T: Sendable>: @unchecked Sendable {
             defer { lock.unlock() }
             _value = newValue
         }
+    }
+
+    func withValue<R>(_ update: (inout T) -> R) -> R {
+        lock.lock()
+        defer { lock.unlock() }
+        return update(&_value)
     }
 }
 
