@@ -246,6 +246,13 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
+    func setShowWeather(_ enabled: Bool) {
+        var prefs = menuBarPreferences
+        prefs.showWeather = enabled
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
     func setReminderCalendarEnabled(_ enabled: Bool, calendarID: String, allCalendarIDs: [String] = []) {
         let hasAllCalendarIDs = !allCalendarIDs.isEmpty
         var ids = menuBarPreferences.enabledReminderCalendarIDs

@@ -6,6 +6,7 @@ enum DisplayTokenKind: String, Codable, CaseIterable, Identifiable {
     case weekday
     case lunar
     case holiday
+    case weather
 
     var id: String { rawValue }
 }
@@ -98,6 +99,7 @@ struct MenuBarPreferences: Codable, Equatable {
     var showReminders: Bool
     var enabledReminderCalendarIDs: [String]
     var showAlmanac: Bool
+    var showWeather: Bool
 
     var requiresSecondRefresh: Bool {
         tokens.contains { $0.token == .time && $0.isEnabled && $0.style == .full }
@@ -157,7 +159,8 @@ struct MenuBarPreferences: Codable, Equatable {
                 DisplayTokenPreference(token: .time, isEnabled: true, order: 1, style: .short),
                 DisplayTokenPreference(token: .weekday, isEnabled: true, order: 2, style: .short),
                 DisplayTokenPreference(token: .lunar, isEnabled: false, order: 3, style: .short),
-                DisplayTokenPreference(token: .holiday, isEnabled: false, order: 4, style: .short)
+                DisplayTokenPreference(token: .holiday, isEnabled: false, order: 4, style: .short),
+                DisplayTokenPreference(token: .weather, isEnabled: false, order: 5, style: .short)
             ],
             separator: " ",
             textStyle: .default,
@@ -171,7 +174,8 @@ struct MenuBarPreferences: Codable, Equatable {
             enabledCalendarIDs: [],
             showReminders: true,
             enabledReminderCalendarIDs: [],
-            showAlmanac: false
+            showAlmanac: false,
+            showWeather: false
         )
     }
 
@@ -193,7 +197,8 @@ struct MenuBarPreferences: Codable, Equatable {
         enabledCalendarIDs: [],
         showReminders: true,
         enabledReminderCalendarIDs: [],
-        showAlmanac: false
+        showAlmanac: false,
+        showWeather: false
     )
 }
 
@@ -213,6 +218,7 @@ extension MenuBarPreferences {
         case showReminders
         case enabledReminderCalendarIDs
         case showAlmanac
+        case showWeather
     }
 
     init(from decoder: Decoder) throws {
@@ -233,7 +239,8 @@ extension MenuBarPreferences {
             enabledCalendarIDs: try container.decode([String].self, forKey: .enabledCalendarIDs),
             showReminders: try container.decode(Bool.self, forKey: .showReminders),
             enabledReminderCalendarIDs: try container.decode([String].self, forKey: .enabledReminderCalendarIDs),
-            showAlmanac: try container.decodeIfPresent(Bool.self, forKey: .showAlmanac) ?? false
+            showAlmanac: try container.decodeIfPresent(Bool.self, forKey: .showAlmanac) ?? false,
+            showWeather: try container.decodeIfPresent(Bool.self, forKey: .showWeather) ?? false
         )
     }
 
@@ -253,5 +260,6 @@ extension MenuBarPreferences {
         try container.encode(showReminders, forKey: .showReminders)
         try container.encode(enabledReminderCalendarIDs, forKey: .enabledReminderCalendarIDs)
         try container.encode(showAlmanac, forKey: .showAlmanac)
+        try container.encode(showWeather, forKey: .showWeather)
     }
 }

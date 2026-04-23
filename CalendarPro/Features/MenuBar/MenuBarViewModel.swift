@@ -5,10 +5,12 @@ import Foundation
 final class MenuBarViewModel: ObservableObject {
     @Published private(set) var displayText: String = ""
     @Published private(set) var refreshGranularity: RefreshGranularity = .minute
+    @Published private(set) var weatherDescriptor: WeatherDescriptor = .empty
 
     private let settingsStore: SettingsStore
     private let renderer: ClockRenderService
     private let registry: HolidayProviderRegistry
+    private let weatherService: WeatherService
     private let localeProvider: () -> Locale
     private let calendarProvider: () -> Calendar
     private let timeZoneProvider: () -> TimeZone
@@ -23,6 +25,7 @@ final class MenuBarViewModel: ObservableObject {
         settingsStore: SettingsStore,
         renderer: ClockRenderService = ClockRenderService(),
         registry: HolidayProviderRegistry = .live,
+        weatherService: WeatherService = WeatherService(),
         now: @escaping () -> Date = Date.init,
         localeProvider: @escaping () -> Locale = { AppLocalization.locale },
         calendarProvider: @escaping () -> Calendar = { .autoupdatingCurrent },
@@ -33,6 +36,7 @@ final class MenuBarViewModel: ObservableObject {
         self.settingsStore = settingsStore
         self.renderer = renderer
         self.registry = registry
+        self.weatherService = weatherService
         self.localeProvider = localeProvider
         self.calendarProvider = calendarProvider
         self.timeZoneProvider = timeZoneProvider
@@ -107,13 +111,49 @@ final class MenuBarViewModel: ObservableObject {
             supplementalText = .empty
         }
 
+        let weatherText: String? = weatherDescriptor.hasContent
+            ? weatherDescriptor.temperatureText
+            : nil
+
+        let fullSupplemental = MenuBarSupplementalText(
+            lunarText: supplementalText.lunarText,
+            holidayText: supplementalText.holidayText,
+            weatherText: weatherText
+        )
+
         displayText = renderer.render(
             now: currentDate,
             preferences: prefs,
             locale: localeProvider(),
             calendar: calendarProvider(),
             timeZone: timeZoneProvider(),
-            supplementalText: supplementalText
+            supplementalText: fullSupplemental
         )
+
+        fetchWeatherIfNeeded(with: prefs)
+    }
+
+    private func fetchWeatherIfNeeded(with prefs: MenuBarPreferences) {
+        let weatherTokenEnabled = prefs.tokens.contains(where: { $0.token == .weather && $0.isEnabled })
+
+        guard prefs.showWeather || weatherTokenEnabled else {
+            if weatherDescriptor != .empty {
+                weatherDescriptor = .empty
+                renderNow()
+            }
+            return
+        }
+
+        Task {
+            let descriptor = await weatherService.fetchCurrentWeather()
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                let changed = self.weatherDescriptor != descriptor
+                self.weatherDescriptor = descriptor
+                if changed {
+                    self.renderNow()
+                }
+            }
+        }
     }
 }
