@@ -20,8 +20,11 @@ struct RootPopoverView: View {
     @State private var weatherService = WeatherService()
     @State private var weatherTask: Task<Void, Never>?
     @State private var weatherRequestID = UUID()
+    @State private var lastWeatherRefreshTime: Date?
+    @State private var lastWeatherRequestedDate: Date?
 
     private let almanacService = AlmanacService()
+    private let weatherAutoRefreshInterval: TimeInterval = 15 * 60
 
     var body: some View {
         CalendarPopoverView(
@@ -152,6 +155,10 @@ struct RootPopoverView: View {
         .onChange(of: settingsStore.menuBarPreferences.manualLocation) { _, _ in
             refreshInfoStrips()
         }
+        .onReceive(timeRefreshCoordinator.$currentDate) { currentDate in
+            guard shouldAutoRefreshWeather(at: currentDate) else { return }
+            refreshWeather(for: viewModel.selectedDate ?? currentDate)
+        }
         .onDisappear {
             weatherTask?.cancel()
         }
@@ -184,6 +191,8 @@ struct RootPopoverView: View {
         weatherTask?.cancel()
         weatherDescriptor = nil
         isLoadingWeather = true
+        lastWeatherRefreshTime = timeRefreshCoordinator.currentDate
+        lastWeatherRequestedDate = date
 
         let requestID = UUID()
         weatherRequestID = requestID
@@ -219,6 +228,8 @@ struct RootPopoverView: View {
         weatherRequestID = UUID()
         weatherDescriptor = nil
         isLoadingWeather = false
+        lastWeatherRefreshTime = nil
+        lastWeatherRequestedDate = nil
     }
 
     private func loadEvents(for date: Date) {
@@ -356,6 +367,20 @@ struct RootPopoverView: View {
         settingsStore.menuBarPreferences.locationMode == .manual
             ? settingsStore.menuBarPreferences.manualLocation
             : nil
+    }
+
+    private func shouldAutoRefreshWeather(at currentDate: Date) -> Bool {
+        guard settingsStore.menuBarPreferences.showWeather else { return false }
+        guard weatherTask == nil else { return false }
+
+        if let selectedDate = viewModel.selectedDate,
+           let lastRequestedDate = lastWeatherRequestedDate,
+           !displayCalendar.isDate(selectedDate, inSameDayAs: lastRequestedDate) {
+            return false
+        }
+
+        guard let lastWeatherRefreshTime else { return true }
+        return currentDate.timeIntervalSince(lastWeatherRefreshTime) >= weatherAutoRefreshInterval
     }
 
     private static func weekendColumnIndices(for calendar: Calendar) -> Set<Int> {

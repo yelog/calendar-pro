@@ -247,6 +247,49 @@ final class WeatherServiceTests: XCTestCase {
         XCTAssertEqual(result, .empty)
     }
 
+    func testWeatherServiceDeduplicatesInFlightSnapshotFetches() async {
+        let ipWhoRequests = LockedBox(0)
+        let forecastRequests = LockedBox(0)
+        let airQualityRequests = LockedBox(0)
+
+        WeatherMockURLProtocol.requestHandler = { request in
+            switch request.url?.host {
+            case "ipwho.is":
+                ipWhoRequests.withValue { $0 += 1 }
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{\"success\":true,\"city\":\"Hong Kong\",\"latitude\":22.276022,\"longitude\":114.1751471}".utf8)
+                )
+            case "api.open-meteo.com":
+                forecastRequests.withValue { $0 += 1 }
+                Thread.sleep(forTimeInterval: 0.12)
+                return makeForecastResponse(for: request.url!)
+            case "air-quality-api.open-meteo.com":
+                airQualityRequests.withValue { $0 += 1 }
+                return makeAirQualityResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let calendar = makeCalendar()
+        let service = WeatherService(
+            session: makeSession(),
+            now: { makeDate(year: 2026, month: 4, day: 23, hour: 10) }
+        )
+
+        async let first = service.fetchCurrentWeather()
+        async let second = service.describe(
+            date: makeDate(year: 2026, month: 4, day: 24),
+            calendar: calendar
+        )
+        _ = await (first, second)
+
+        XCTAssertEqual(ipWhoRequests.snapshot, 1)
+        XCTAssertEqual(forecastRequests.snapshot, 1)
+        XCTAssertEqual(airQualityRequests.snapshot, 1)
+    }
+
     func testWeatherServiceFetchReturnsEmptyOnNetworkError() async {
         let service = WeatherService(session: makeSession())
         let result = await service.fetchCurrentWeather()
