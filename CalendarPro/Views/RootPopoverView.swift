@@ -16,13 +16,12 @@ struct RootPopoverView: View {
     @State private var isLoadingEvents: Bool = false
     @State private var almanacDescriptor: AlmanacDescriptor?
     @State private var weatherDescriptor: WeatherDescriptor?
+    @State private var isLoadingWeather: Bool = false
+    @State private var weatherService = WeatherService()
+    @State private var weatherTask: Task<Void, Never>?
+    @State private var weatherRequestID = UUID()
 
     private let almanacService = AlmanacService()
-
-    private var weatherService: WeatherService {
-        WeatherService(manualLocation: settingsStore.menuBarPreferences.locationMode == .manual
-            ? settingsStore.menuBarPreferences.manualLocation : nil)
-    }
 
     var body: some View {
         CalendarPopoverView(
@@ -46,6 +45,7 @@ struct RootPopoverView: View {
             almanac: almanacDescriptor,
             showAlmanac: settingsStore.menuBarPreferences.showAlmanac,
             weather: weatherDescriptor,
+            isLoadingWeather: isLoadingWeather,
             showWeather: settingsStore.menuBarPreferences.showWeather,
             showVacationGuideButton: showVacationGuideButton,
             isVacationGuideEnabled: isVacationGuideEnabled,
@@ -146,6 +146,15 @@ struct RootPopoverView: View {
         .onChange(of: settingsStore.menuBarPreferences.showWeather) { _, _ in
             refreshInfoStrips()
         }
+        .onChange(of: settingsStore.menuBarPreferences.locationMode) { _, _ in
+            refreshInfoStrips()
+        }
+        .onChange(of: settingsStore.menuBarPreferences.manualLocation) { _, _ in
+            refreshInfoStrips()
+        }
+        .onDisappear {
+            weatherTask?.cancel()
+        }
     }
 
     private func refreshInfoStrips() {
@@ -157,20 +166,59 @@ struct RootPopoverView: View {
             almanacDescriptor = nil
         }
 
-        if settingsStore.menuBarPreferences.showWeather {
-            let requestedDate = date
-            Task {
-                let descriptor = await weatherService.describe(date: requestedDate, calendar: displayCalendar)
-                await MainActor.run {
-                    guard settingsStore.menuBarPreferences.showWeather else { return }
-                    let currentSelectedDate = viewModel.selectedDate ?? timeRefreshCoordinator.currentDate
-                    guard displayCalendar.isDate(currentSelectedDate, inSameDayAs: requestedDate) else { return }
-                    weatherDescriptor = descriptor.hasContent ? descriptor : nil
-                }
-            }
-        } else {
-            weatherDescriptor = nil
+        refreshWeather(for: date)
+    }
+
+    private func refreshWeather(for date: Date) {
+        guard settingsStore.menuBarPreferences.showWeather else {
+            clearWeather()
+            return
         }
+
+        let expectedLocation = preferredWeatherLocation
+        if weatherService.manualLocation != expectedLocation {
+            weatherTask?.cancel()
+            weatherService = WeatherService(manualLocation: expectedLocation)
+        }
+
+        weatherTask?.cancel()
+        weatherDescriptor = nil
+        isLoadingWeather = true
+
+        let requestID = UUID()
+        weatherRequestID = requestID
+        let requestedDate = date
+        let requestedCalendar = displayCalendar
+        let service = weatherService
+
+        weatherTask = Task {
+            let descriptor = await service.describe(date: requestedDate, calendar: requestedCalendar)
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                guard weatherRequestID == requestID else { return }
+                guard settingsStore.menuBarPreferences.showWeather else {
+                    clearWeather()
+                    return
+                }
+                guard weatherService.manualLocation == expectedLocation else { return }
+
+                let currentSelectedDate = viewModel.selectedDate ?? timeRefreshCoordinator.currentDate
+                guard requestedCalendar.isDate(currentSelectedDate, inSameDayAs: requestedDate) else { return }
+
+                weatherDescriptor = descriptor.hasContent ? descriptor : nil
+                isLoadingWeather = false
+                weatherTask = nil
+            }
+        }
+    }
+
+    private func clearWeather() {
+        weatherTask?.cancel()
+        weatherTask = nil
+        weatherRequestID = UUID()
+        weatherDescriptor = nil
+        isLoadingWeather = false
     }
 
     private func loadEvents(for date: Date) {
@@ -302,6 +350,12 @@ struct RootPopoverView: View {
         var calendar = Calendar.autoupdatingCurrent
         calendar.firstWeekday = settingsStore.menuBarPreferences.weekStart == .monday ? 2 : 1
         return calendar
+    }
+
+    private var preferredWeatherLocation: WeatherLocation? {
+        settingsStore.menuBarPreferences.locationMode == .manual
+            ? settingsStore.menuBarPreferences.manualLocation
+            : nil
     }
 
     private static func weekendColumnIndices(for calendar: Calendar) -> Set<Int> {
