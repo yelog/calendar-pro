@@ -41,6 +41,7 @@ struct CalendarPopoverView: View {
     let almanac: AlmanacDescriptor?
     let showAlmanac: Bool
     let weather: WeatherDescriptor?
+    let isLoadingWeather: Bool
     let showWeather: Bool
     let showVacationGuideButton: Bool
     let isVacationGuideEnabled: Bool
@@ -196,8 +197,12 @@ struct CalendarPopoverView: View {
                 .padding(.horizontal, -PopoverSurfaceMetrics.outerPadding)
 
             VStack(spacing: 6) {
-                if shouldShowWeatherStrip, let weather {
-                    WeatherStripView(weather: weather)
+                if shouldShowWeatherStrip {
+                    WeatherStripView(
+                        weather: weather,
+                        isLoading: isLoadingWeather,
+                        requestedDate: selectedDate ?? timeRefreshCoordinator.currentDate
+                    )
                 }
 
                 if shouldShowAlmanacStrip, let almanac {
@@ -209,7 +214,7 @@ struct CalendarPopoverView: View {
     }
 
     private var shouldShowWeatherStrip: Bool {
-        showWeather && (weather?.hasContent ?? false)
+        showWeather && (isLoadingWeather || (weather?.hasContent ?? false))
     }
 
     private var shouldShowAlmanacStrip: Bool {
