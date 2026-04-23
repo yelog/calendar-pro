@@ -18,7 +18,11 @@ struct RootPopoverView: View {
     @State private var weatherDescriptor: WeatherDescriptor?
 
     private let almanacService = AlmanacService()
-    private let weatherService = WeatherService()
+
+    private var weatherService: WeatherService {
+        WeatherService(manualLocation: settingsStore.menuBarPreferences.locationMode == .manual
+            ? settingsStore.menuBarPreferences.manualLocation : nil)
+    }
 
     var body: some View {
         CalendarPopoverView(

@@ -80,6 +80,12 @@ struct GeneralSettingsView: View {
                                 .labelsHidden()
                         }
 
+                        if store.menuBarPreferences.showWeather {
+                            Divider()
+
+                            WeatherLocationSettings(store: store)
+                        }
+
                         Divider()
 
                         GeneralSettingsRow(
@@ -144,6 +150,135 @@ struct GeneralSettingsView: View {
         store.launchAtLoginStatus.detailText
     }
 
+}
+
+private struct WeatherLocationSettings: View {
+    @ObservedObject var store: SettingsStore
+    @State private var searchText = ""
+    @State private var searchResults: [CitySearchResult] = []
+    @State private var isSearching = false
+    @State private var searchTask: Task<Void, Never>?
+
+    private let citySearchService = CitySearchService()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            GeneralSettingsRow(
+                title: L("Location Source"),
+                description: L("Location Source Description")
+            ) {
+                Picker("", selection: locationModeBinding) {
+                    Text(L("Automatic")).tag(LocationMode.automatic)
+                    Text(L("Manual")).tag(LocationMode.manual)
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .frame(width: 210)
+            }
+
+            if store.menuBarPreferences.locationMode == .manual {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        TextField(L("Search city…"), text: $searchText)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.system(size: 12))
+                            .onSubmit { performSearch() }
+
+                        Button {
+                            performSearch()
+                        } label: {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 11))
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSearching)
+                    }
+
+                    if isSearching {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+
+                    if !searchResults.isEmpty {
+                        VStack(alignment: .leading, spacing: 2) {
+                            ForEach(searchResults) { result in
+                                Button {
+                                    store.setManualLocation(result.toWeatherLocation)
+                                    searchResults = []
+                                    searchText = ""
+                                } label: {
+                                    HStack {
+                                        Text(result.displayName)
+                                            .font(.system(size: 12))
+                                            .foregroundStyle(.primary)
+                                        Spacer()
+                                        if isSelected(result) {
+                                            Image(systemName: "checkmark")
+                                                .font(.system(size: 10, weight: .semibold))
+                                                .foregroundStyle(.blue)
+                                        }
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(isSelected(result) ? Color.accentColor.opacity(0.08) : Color.clear)
+                                )
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 2)
+                    }
+
+                    if let location = store.menuBarPreferences.manualLocation {
+                        HStack(spacing: 4) {
+                            Image(systemName: "mappin.and.ellipse")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                            Text(locationLabel(location))
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .padding(.leading, 16)
+            }
+        }
+    }
+
+    private func locationLabel(_ location: WeatherLocation) -> String {
+        L("Current: %@").replacingOccurrences(of: "%@", with: location.name)
+    }
+
+    private func performSearch() {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return }
+
+        searchTask?.cancel()
+        searchTask = Task {
+            isSearching = true
+            let results = await citySearchService.search(query: query)
+            guard !Task.isCancelled else { return }
+            isSearching = false
+            searchResults = results
+        }
+    }
+
+    private func isSelected(_ result: CitySearchResult) -> Bool {
+        guard let location = store.menuBarPreferences.manualLocation else { return false }
+        return abs(result.latitude - location.latitude) < 0.001
+            && abs(result.longitude - location.longitude) < 0.001
+    }
+
+    private var locationModeBinding: Binding<LocationMode> {
+        Binding(
+            get: { store.menuBarPreferences.locationMode },
+            set: { store.setLocationMode($0) }
+        )
+    }
 }
 
 private struct GeneralSettingsSection<Content: View>: View {

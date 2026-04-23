@@ -10,7 +10,7 @@ final class MenuBarViewModel: ObservableObject {
     private let settingsStore: SettingsStore
     private let renderer: ClockRenderService
     private let registry: HolidayProviderRegistry
-    private let weatherService: WeatherService
+    private var weatherService: WeatherService
     private let localeProvider: () -> Locale
     private let calendarProvider: () -> Calendar
     private let timeZoneProvider: () -> TimeZone
@@ -142,6 +142,16 @@ final class MenuBarViewModel: ObservableObject {
                 renderNow()
             }
             return
+        }
+
+        let expectedLocation = prefs.locationMode == .manual ? prefs.manualLocation : nil
+        if weatherService.manualLocation != expectedLocation {
+            weatherService = WeatherService(
+                session: weatherService.session,
+                now: weatherService.now,
+                refreshInterval: weatherService.refreshInterval,
+                manualLocation: expectedLocation
+            )
         }
 
         Task {
