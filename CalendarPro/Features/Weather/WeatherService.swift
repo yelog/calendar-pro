@@ -1,13 +1,16 @@
 import Foundation
 
 struct WeatherDescriptor: Equatable, Sendable {
-    let temperature: Double
-    let apparentTemperature: Double
+    let locationName: String
+    let temperatureText: String
+    let apparentTemperature: Double?
+    let forecastDate: Date?
     let weatherCode: Int
     let isDaytime: Bool
+    let isCurrentConditions: Bool
 
     var hasContent: Bool {
-        weatherCode >= 0
+        weatherCode >= 0 && !temperatureText.isEmpty
     }
 
     var iconSystemName: String {
@@ -18,19 +21,14 @@ struct WeatherDescriptor: Equatable, Sendable {
         WMOWeatherCode.description(for: weatherCode)
     }
 
-    var temperatureText: String {
-        "\(Int(round(temperature)))°"
-    }
-
-    var apparentTemperatureText: String {
-        L("Feels like") + " \(Int(round(apparentTemperature)))°"
-    }
-
     static let empty = WeatherDescriptor(
-        temperature: 0,
-        apparentTemperature: 0,
+        locationName: "",
+        temperatureText: "",
+        apparentTemperature: nil,
+        forecastDate: nil,
         weatherCode: -1,
-        isDaytime: true
+        isDaytime: true,
+        isCurrentConditions: true
     )
 }
 
@@ -131,8 +129,8 @@ struct WeatherService: Sendable {
     let now: @Sendable () -> Date
     let refreshInterval: TimeInterval
 
-    private let cachedLocation = LockedValue<LocationCoordinate?>(nil)
-    private let cachedWeather = LockedValue<CachedWeather?>(nil)
+    private let cachedLocation = LockedValue<LocationMetadata?>(nil)
+    private let cachedSnapshot = LockedValue<WeatherSnapshot?>(nil)
 
     init(
         session: URLSession = .shared,
@@ -145,14 +143,34 @@ struct WeatherService: Sendable {
     }
 
     func fetchCurrentWeather() async -> WeatherDescriptor {
-        if let cachedWeather = cachedWeather.value,
-           now().timeIntervalSince(cachedWeather.fetchedAt) < refreshInterval {
-            return cachedWeather.descriptor
+        await describe(date: now())
+    }
+
+    func describe(date: Date, calendar: Calendar = .autoupdatingCurrent) async -> WeatherDescriptor {
+        guard let snapshot = await fetchSnapshot() else {
+            return .empty
         }
 
-        let location: LocationCoordinate?
-        if let cached = cachedLocation.value {
-            location = cached
+        if calendar.isDate(date, inSameDayAs: now()) {
+            return makeCurrentDescriptor(from: snapshot)
+        }
+
+        guard let forecast = snapshot.dailyForecasts.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) else {
+            return .empty
+        }
+
+        return makeForecastDescriptor(from: snapshot, forecast: forecast)
+    }
+
+    private func fetchSnapshot() async -> WeatherSnapshot? {
+        if let cachedSnapshot = cachedSnapshot.value,
+           now().timeIntervalSince(cachedSnapshot.fetchedAt) < refreshInterval {
+            return cachedSnapshot
+        }
+
+        let location: LocationMetadata?
+        if let cachedLocation = cachedLocation.value {
+            location = cachedLocation
         } else {
             location = await resolveLocation()
             if let location {
@@ -160,12 +178,9 @@ struct WeatherService: Sendable {
             }
         }
 
-        guard let location else {
-            return .empty
-        }
-
-        guard let url = openMeteoURL(latitude: location.latitude, longitude: location.longitude) else {
-            return .empty
+        guard let location,
+              let url = openMeteoURL(latitude: location.latitude, longitude: location.longitude) else {
+            return nil
         }
 
         do {
@@ -173,28 +188,68 @@ struct WeatherService: Sendable {
 
             guard let httpResponse = response as? HTTPURLResponse,
                   (200..<300).contains(httpResponse.statusCode) else {
-                return .empty
+                return nil
             }
 
             let result = try JSONDecoder().decode(OpenMeteoResponse.self, from: data)
-            let descriptor = result.current.toDescriptor()
-            if descriptor.hasContent {
-                cachedWeather.value = CachedWeather(descriptor: descriptor, fetchedAt: now())
-            }
-            return descriptor
+            let snapshot = WeatherSnapshot(
+                locationName: location.displayName,
+                current: result.current.toSnapshot(),
+                dailyForecasts: result.daily.forecasts,
+                fetchedAt: now()
+            )
+            cachedSnapshot.value = snapshot
+            return snapshot
         } catch {
-            return .empty
+            return nil
         }
     }
 
-    private func resolveLocation() async -> LocationCoordinate? {
+    private func makeCurrentDescriptor(from snapshot: WeatherSnapshot) -> WeatherDescriptor {
+        WeatherDescriptor(
+            locationName: snapshot.locationName,
+            temperatureText: Self.formattedTemperature(snapshot.current.temperature),
+            apparentTemperature: snapshot.current.apparentTemperature,
+            forecastDate: nil,
+            weatherCode: snapshot.current.weatherCode,
+            isDaytime: snapshot.current.isDaytime,
+            isCurrentConditions: true
+        )
+    }
+
+    private func makeForecastDescriptor(from snapshot: WeatherSnapshot, forecast: DailyWeatherForecast) -> WeatherDescriptor {
+        WeatherDescriptor(
+            locationName: snapshot.locationName,
+            temperatureText: "\(Self.formattedTemperature(forecast.maxTemperature)) / \(Self.formattedTemperature(forecast.minTemperature))",
+            apparentTemperature: nil,
+            forecastDate: forecast.date,
+            weatherCode: forecast.weatherCode,
+            isDaytime: true,
+            isCurrentConditions: false
+        )
+    }
+
+    private static func formattedTemperature(_ value: Double) -> String {
+        "\(Int(round(value)))°"
+    }
+
+    private func resolveLocation() async -> LocationMetadata? {
         if let location = await resolveLocation(from: ipWhoURL, parser: { (response: IPWhoLocationResponse) in
             guard response.success != false,
                   let latitude = response.latitude,
                   let longitude = response.longitude else {
                 return nil
             }
-            return LocationCoordinate(latitude: latitude, longitude: longitude)
+
+            return LocationMetadata(
+                latitude: latitude,
+                longitude: longitude,
+                displayName: Self.locationDisplayName(
+                    city: response.city,
+                    region: response.region,
+                    country: response.country
+                )
+            )
         }) {
             return location
         }
@@ -211,7 +266,15 @@ struct WeatherService: Sendable {
                 return nil
             }
 
-            return LocationCoordinate(latitude: latitude, longitude: longitude)
+            return LocationMetadata(
+                latitude: latitude,
+                longitude: longitude,
+                displayName: Self.locationDisplayName(
+                    city: response.city,
+                    region: response.region,
+                    country: response.country
+                )
+            )
         }) {
             return location
         }
@@ -221,14 +284,23 @@ struct WeatherService: Sendable {
                   let longitude = response.longitude else {
                 return nil
             }
-            return LocationCoordinate(latitude: latitude, longitude: longitude)
+
+            return LocationMetadata(
+                latitude: latitude,
+                longitude: longitude,
+                displayName: Self.locationDisplayName(
+                    city: response.city,
+                    region: response.region,
+                    country: response.countryName
+                )
+            )
         })
     }
 
     private func resolveLocation<Response: Decodable>(
         from url: URL?,
-        parser: (Response) -> LocationCoordinate?
-    ) async -> LocationCoordinate? {
+        parser: (Response) -> LocationMetadata?
+    ) async -> LocationMetadata? {
         guard let url else {
             return nil
         }
@@ -246,6 +318,25 @@ struct WeatherService: Sendable {
         } catch {
             return nil
         }
+    }
+
+    private static func locationDisplayName(city: String?, region: String?, country: String?) -> String {
+        let trimmedCity = city?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedRegion = region?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedCountry = country?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let trimmedCity, !trimmedCity.isEmpty {
+            return trimmedCity
+        }
+
+        let regionCountry = [trimmedRegion, trimmedCountry]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
+        if !regionCountry.isEmpty {
+            return regionCountry.joined(separator: ", ")
+        }
+
+        return trimmedCountry ?? ""
     }
 
     private var ipWhoURL: URL? {
@@ -266,20 +357,40 @@ struct WeatherService: Sendable {
             URLQueryItem(name: "latitude", value: String(latitude)),
             URLQueryItem(name: "longitude", value: String(longitude)),
             URLQueryItem(name: "current", value: "temperature_2m,apparent_temperature,weather_code,is_day"),
+            URLQueryItem(name: "daily", value: "weather_code,temperature_2m_max,temperature_2m_min"),
+            URLQueryItem(name: "past_days", value: "31"),
+            URLQueryItem(name: "forecast_days", value: "16"),
             URLQueryItem(name: "timezone", value: "auto")
         ]
         return components?.url
     }
 }
 
-private struct LocationCoordinate: Sendable {
+private struct LocationMetadata: Sendable {
     let latitude: Double
     let longitude: Double
+    let displayName: String
 }
 
-private struct CachedWeather: Sendable {
-    let descriptor: WeatherDescriptor
+private struct WeatherSnapshot: Sendable {
+    let locationName: String
+    let current: CurrentWeatherSnapshot
+    let dailyForecasts: [DailyWeatherForecast]
     let fetchedAt: Date
+}
+
+private struct CurrentWeatherSnapshot: Sendable {
+    let temperature: Double
+    let apparentTemperature: Double
+    let weatherCode: Int
+    let isDaytime: Bool
+}
+
+private struct DailyWeatherForecast: Sendable {
+    let date: Date
+    let weatherCode: Int
+    let maxTemperature: Double
+    let minTemperature: Double
 }
 
 private final class LockedValue<T: Sendable>: @unchecked Sendable {
@@ -306,21 +417,39 @@ private final class LockedValue<T: Sendable>: @unchecked Sendable {
 
 private struct IPWhoLocationResponse: Decodable, Sendable {
     let success: Bool?
+    let city: String?
+    let region: String?
+    let country: String?
     let latitude: Double?
     let longitude: Double?
 }
 
 private struct IPInfoLocationResponse: Decodable, Sendable {
+    let city: String?
+    let region: String?
+    let country: String?
     let loc: String?
 }
 
 private struct IPAPILocationResponse: Decodable, Sendable {
+    let city: String?
+    let region: String?
+    let countryName: String?
     let latitude: Double?
     let longitude: Double?
+
+    private enum CodingKeys: String, CodingKey {
+        case city
+        case region
+        case countryName = "country_name"
+        case latitude
+        case longitude
+    }
 }
 
 private struct OpenMeteoResponse: Decodable, Sendable {
     let current: CurrentWeather
+    let daily: DailyWeather
 
     struct CurrentWeather: Decodable, Sendable {
         let temperature2m: Double
@@ -335,13 +464,57 @@ private struct OpenMeteoResponse: Decodable, Sendable {
             case isDay = "is_day"
         }
 
-        func toDescriptor() -> WeatherDescriptor {
-            WeatherDescriptor(
+        func toSnapshot() -> CurrentWeatherSnapshot {
+            CurrentWeatherSnapshot(
                 temperature: temperature2m,
                 apparentTemperature: apparentTemperature,
                 weatherCode: weatherCode,
                 isDaytime: isDay == 1
             )
         }
+    }
+
+    struct DailyWeather: Decodable, Sendable {
+        let time: [String]
+        let weatherCode: [Int]
+        let temperature2mMax: [Double]
+        let temperature2mMin: [Double]
+
+        enum CodingKeys: String, CodingKey {
+            case time
+            case weatherCode = "weather_code"
+            case temperature2mMax = "temperature_2m_max"
+            case temperature2mMin = "temperature_2m_min"
+        }
+
+        var forecasts: [DailyWeatherForecast] {
+            let count = Swift.min(
+                time.count,
+                Swift.min(weatherCode.count, Swift.min(temperature2mMax.count, temperature2mMin.count))
+            )
+            guard count > 0 else { return [] }
+
+            return (0..<count).compactMap { index in
+                guard let date = Self.dateFormatter.date(from: time[index]) else {
+                    return nil
+                }
+
+                return DailyWeatherForecast(
+                    date: date,
+                    weatherCode: weatherCode[index],
+                    maxTemperature: temperature2mMax[index],
+                    minTemperature: temperature2mMin[index]
+                )
+            }
+        }
+
+        private static let dateFormatter: DateFormatter = {
+            let formatter = DateFormatter()
+            formatter.calendar = Calendar(identifier: .gregorian)
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = .autoupdatingCurrent
+            formatter.dateFormat = "yyyy-MM-dd"
+            return formatter
+        }()
     }
 }

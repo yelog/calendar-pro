@@ -27,11 +27,13 @@ struct WeatherStripView: View {
                     Text(weather.description)
                         .font(.system(size: 11, weight: .medium, design: .rounded))
                         .foregroundStyle(bodySecondaryColor)
+                        .lineLimit(1)
                 }
 
-                Text(weather.apparentTemperatureText)
+                Text(detailText)
                     .font(.system(size: 10, weight: .regular, design: .rounded))
                     .foregroundStyle(bodySecondaryColor)
+                    .lineLimit(1)
             }
 
             Spacer(minLength: 0)
@@ -71,5 +73,34 @@ struct WeatherStripView: View {
         colorScheme == .dark
             ? Color.white.opacity(0.08)
             : Color(nsColor: .separatorColor).opacity(0.18)
+    }
+
+    private var detailText: String {
+        let suffix: String
+
+        if weather.isCurrentConditions, let apparentTemperature = weather.apparentTemperature {
+            suffix = L("Feels like") + " \(Int(round(apparentTemperature)))°"
+        } else if let forecastDate = weather.forecastDate {
+            suffix = LF("Forecast for %@", formattedForecastDate(forecastDate))
+        } else {
+            suffix = ""
+        }
+
+        guard !weather.locationName.isEmpty else {
+            return suffix
+        }
+
+        guard !suffix.isEmpty else {
+            return weather.locationName
+        }
+
+        return "\(weather.locationName) · \(suffix)"
+    }
+
+    private func formattedForecastDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = AppLocalization.locale
+        formatter.setLocalizedDateFormatFromTemplate("MMMd")
+        return formatter.string(from: date)
     }
 }
