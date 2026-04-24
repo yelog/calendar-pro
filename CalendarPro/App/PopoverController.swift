@@ -207,6 +207,9 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         eventDetailPresenter.show(
             event: event,
             anchoredTo: popover.contentViewController?.view.window,
+            onJoinMeeting: { [weak self] in
+                self?.closePopover()
+            },
             onClose: onClose
         )
     }
