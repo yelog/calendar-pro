@@ -4,7 +4,7 @@ import EventKit
 
 @MainActor
 protocol EventDetailWindowPresenting: AnyObject {
-    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onClose: @escaping () -> Void)
+    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onJoinMeeting: (() -> Void)?, onClose: @escaping () -> Void)
     func show(reminder: EKReminder, anchoredTo anchorWindow: NSWindow?, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void)
     func close()
 }
@@ -14,7 +14,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     private var panel: NSPanel?
     private var onClose: (() -> Void)?
 
-    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onClose: @escaping () -> Void) {
+    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onJoinMeeting: (() -> Void)? = nil, onClose: @escaping () -> Void) {
         self.onClose = onClose
 
         let panel = makePanelIfNeeded()
@@ -26,7 +26,8 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
                 },
                 onPreferredHeightChange: { [weak self] preferredHeight in
                     self?.resizePanelIfNeeded(preferredHeight: preferredHeight, anchoredTo: anchorWindow)
-                }
+                },
+                onJoinMeeting: onJoinMeeting
             )
         )
 

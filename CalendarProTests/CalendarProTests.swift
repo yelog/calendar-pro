@@ -300,7 +300,7 @@ private final class FakeEventDetailWindowPresenter: EventDetailWindowPresenting 
     private(set) var lastAnchorWindow: NSWindow?
     private(set) var lastOnClose: (() -> Void)?
 
-    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onClose: @escaping () -> Void) {
+    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onJoinMeeting: (() -> Void)? = nil, onClose: @escaping () -> Void) {
         showCallCount += 1
         lastEvent = event
         lastAnchorWindow = anchorWindow

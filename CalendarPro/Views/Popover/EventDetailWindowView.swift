@@ -5,6 +5,7 @@ struct EventDetailWindowView: View {
     let event: EKEvent
     let onClose: () -> Void
     let onPreferredHeightChange: ((CGFloat) -> Void)?
+    let onJoinMeeting: (() -> Void)?
     @Environment(\.colorScheme) private var colorScheme
 
     private let meetingActionOpener = MeetingActionOpener()
@@ -18,10 +19,11 @@ struct EventDetailWindowView: View {
     @State private var detailContentHeight: CGFloat = 0
     @State private var lastReportedPreferredHeight: CGFloat = 0
 
-    init(event: EKEvent, onClose: @escaping () -> Void, onPreferredHeightChange: ((CGFloat) -> Void)? = nil) {
+    init(event: EKEvent, onClose: @escaping () -> Void, onPreferredHeightChange: ((CGFloat) -> Void)? = nil, onJoinMeeting: (() -> Void)? = nil) {
         self.event = event
         self.onClose = onClose
         self.onPreferredHeightChange = onPreferredHeightChange
+        self.onJoinMeeting = onJoinMeeting
         _displayedParticipationChoice = State(initialValue: event.currentUserParticipationChoice)
     }
 
@@ -33,7 +35,8 @@ struct EventDetailWindowView: View {
                 MeetingActionsSection(
                     actions: meetingActions,
                     calendarColor: calendarColor,
-                    opener: meetingActionOpener
+                    opener: meetingActionOpener,
+                    onJoinMeeting: onJoinMeeting
                 )
             }
             detailScrollView
@@ -971,13 +974,15 @@ private struct MeetingActionsSection: View {
     let actions: [MeetingAction]
     let calendarColor: Color
     let opener: MeetingActionOpener
+    let onJoinMeeting: (() -> Void)?
 
     var body: some View {
         if let action = actions.first {
             MeetingActionButton(
                 action: action,
                 calendarColor: calendarColor,
-                opener: opener
+                opener: opener,
+                onJoinMeeting: onJoinMeeting
             )
         }
     }
@@ -987,10 +992,12 @@ private struct MeetingActionButton: View {
     let action: MeetingAction
     let calendarColor: Color
     let opener: MeetingActionOpener
+    let onJoinMeeting: (() -> Void)?
 
     var body: some View {
         Button {
             _ = opener.open(action)
+            onJoinMeeting?()
         } label: {
             HStack(spacing: 8) {
                 MeetingPlatformMark(platform: action.platform, style: .detail)
