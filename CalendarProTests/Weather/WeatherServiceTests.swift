@@ -75,6 +75,7 @@ final class WeatherServiceTests: XCTestCase {
         XCTAssertEqual(result.windSpeed, 12.4)
         XCTAssertEqual(result.windDirection, 45)
         XCTAssertEqual(result.windGusts, 22.0)
+        XCTAssertEqual(result.cloudCover, 68)
         XCTAssertEqual(result.airQualityIndex, 42)
         XCTAssertEqual(result.pm25, 9.6)
         XCTAssertTrue(result.isCurrentConditions)
@@ -455,6 +456,7 @@ private func makeForecastResponse(for url: URL) -> (HTTPURLResponse, Data) {
             "wind_speed_10m": 12.4,
             "wind_direction_10m": 45.0,
             "wind_gusts_10m": 22.0,
+            "cloud_cover": 68,
             "is_day": 1
           },
           "daily": {
