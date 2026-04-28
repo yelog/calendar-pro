@@ -312,6 +312,21 @@ private final class FakeEventDetailWindowPresenter: EventDetailWindowPresenting 
         lastOnClose = onClose
     }
 
+    func showComposer(
+        kind: CalendarItemCreationKind,
+        selectedDate: Date,
+        eventCalendars: [EKCalendar],
+        reminderCalendars: [EKCalendar],
+        anchoredTo anchorWindow: NSWindow?,
+        onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
+        onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
+        onClose: @escaping () -> Void
+    ) {
+        showCallCount += 1
+        lastAnchorWindow = anchorWindow
+        lastOnClose = onClose
+    }
+
     func close() {
         closeCallCount += 1
     }

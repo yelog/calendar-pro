@@ -46,6 +46,8 @@ struct CalendarPopoverView: View {
     let showVacationGuideButton: Bool
     let isVacationGuideEnabled: Bool
     let vacationGuideDisabledReason: String?
+    let canCreateEvent: Bool
+    let canCreateReminder: Bool
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
     let onSelectYear: () -> Void
@@ -57,6 +59,7 @@ struct CalendarPopoverView: View {
     let onSelectEvent: (EKEvent) -> Void
     let onToggleReminder: (EKReminder) -> Void
     let onOpenReminder: (EKReminder) -> Void
+    let onCreateItem: (CalendarItemCreationKind) -> Void
     let onOpenVacationGuide: () -> Void
     let onResetToToday: () -> Void
     let onQuit: () -> Void
@@ -172,6 +175,8 @@ struct CalendarPopoverView: View {
                         .font(.system(size: 11, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)
                         .fixedSize()
+
+                    creationMenu
                 }
 
                 EventListView(
@@ -187,6 +192,38 @@ struct CalendarPopoverView: View {
                 )
                 .frame(maxHeight: 200)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var creationMenu: some View {
+        if canCreateEvent || canCreateReminder {
+            Menu {
+                if canCreateEvent {
+                    Button {
+                        onCreateItem(.event)
+                    } label: {
+                        Label(L("New Event"), systemImage: "calendar.badge.plus")
+                    }
+                }
+
+                if canCreateReminder {
+                    Button {
+                        onCreateItem(.reminder)
+                    } label: {
+                        Label(L("New Reminder"), systemImage: "checklist")
+                    }
+                }
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 11, weight: .semibold))
+                    .frame(width: 22, height: 22)
+                    .contentShape(Rectangle())
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .help(L("Add"))
+            .accessibilityIdentifier("calendar-popover-add-item-button")
         }
     }
 

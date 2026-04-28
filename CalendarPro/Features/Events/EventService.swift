@@ -3,6 +3,76 @@ import Combine
 
 extension EKReminder: @unchecked @retroactive Sendable {}
 
+enum CalendarItemCreationKind: Equatable {
+    case event
+    case reminder
+}
+
+struct CalendarEventCreationRequest: Equatable {
+    var title: String
+    var calendarIdentifier: String
+    var startDate: Date
+    var endDate: Date
+    var isAllDay: Bool
+    var notes: String?
+
+    static func makeDefault(
+        selectedDate: Date,
+        calendarIdentifier: String,
+        calendar: Calendar = .autoupdatingCurrent,
+        now: Date = Date()
+    ) -> CalendarEventCreationRequest {
+        let dayStart = calendar.startOfDay(for: selectedDate)
+        let selectedHour = calendar.isDate(selectedDate, inSameDayAs: now)
+            ? max(calendar.component(.hour, from: now) + 1, 9)
+            : 9
+        let startComponents = DateComponents(hour: min(selectedHour, 22), minute: 0)
+        let startDate = calendar.date(byAdding: startComponents, to: dayStart) ?? dayStart
+        let endDate = calendar.date(byAdding: .hour, value: 1, to: startDate) ?? startDate
+
+        return CalendarEventCreationRequest(
+            title: "",
+            calendarIdentifier: calendarIdentifier,
+            startDate: startDate,
+            endDate: endDate,
+            isAllDay: false,
+            notes: nil
+        )
+    }
+}
+
+struct ReminderCreationRequest: Equatable {
+    var title: String
+    var calendarIdentifier: String
+    var dueDate: Date
+    var includesTime: Bool
+    var notes: String?
+
+    static func makeDefault(
+        selectedDate: Date,
+        calendarIdentifier: String,
+        calendar: Calendar = .autoupdatingCurrent,
+        now: Date = Date()
+    ) -> ReminderCreationRequest {
+        let dayStart = calendar.startOfDay(for: selectedDate)
+        let selectedHour = calendar.isDate(selectedDate, inSameDayAs: now)
+            ? max(calendar.component(.hour, from: now) + 1, 9)
+            : 9
+        let dueDate = calendar.date(
+            byAdding: DateComponents(hour: min(selectedHour, 22), minute: 0),
+            to: dayStart
+        ) ?? dayStart
+
+        return ReminderCreationRequest(
+            title: "",
+            calendarIdentifier: calendarIdentifier,
+            dueDate: dueDate,
+            includesTime: true,
+            notes: nil
+        )
+    }
+}
+
 @MainActor
 final class EventService: ObservableObject {
     @Published private(set) var authorizationStatus: EKAuthorizationStatus = .notDetermined
@@ -211,6 +281,88 @@ final class EventService: ObservableObject {
     
     func reminderCalendar(withIdentifier identifier: String) -> EKCalendar? {
         return reminderCalendars.first { $0.calendarIdentifier == identifier }
+    }
+
+    var writableCalendars: [EKCalendar] {
+        calendars.filter(\.allowsContentModifications)
+    }
+
+    var writableReminderCalendars: [EKCalendar] {
+        reminderCalendars.filter(\.allowsContentModifications)
+    }
+
+    func createEvent(_ request: CalendarEventCreationRequest) throws -> EKEvent {
+        guard isAuthorized else {
+            throw NSError(
+                domain: "CalendarPro.EventCreation",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: L("Calendar Access Required")]
+            )
+        }
+
+        guard let calendar = calendar(withIdentifier: request.calendarIdentifier),
+              calendar.allowsContentModifications else {
+            throw NSError(
+                domain: "CalendarPro.EventCreation",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: L("No writable calendar is available.")]
+            )
+        }
+
+        let event = EKEvent(eventStore: eventStore)
+        event.calendar = calendar
+        event.title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        event.startDate = request.startDate
+        event.endDate = max(request.endDate, request.startDate)
+        event.isAllDay = request.isAllDay
+        event.notes = normalizedOptionalText(request.notes)
+
+        try eventStore.save(event, span: .thisEvent, commit: true)
+        return event
+    }
+
+    func createReminder(_ request: ReminderCreationRequest) throws -> EKReminder {
+        guard remindersAuthorized else {
+            throw NSError(
+                domain: "CalendarPro.ReminderCreation",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: L("Reminders Access Required")]
+            )
+        }
+
+        guard let calendar = reminderCalendar(withIdentifier: request.calendarIdentifier),
+              calendar.allowsContentModifications else {
+            throw NSError(
+                domain: "CalendarPro.ReminderCreation",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: L("No writable reminder list is available.")]
+            )
+        }
+
+        let reminder = EKReminder(eventStore: eventStore)
+        reminder.calendar = calendar
+        reminder.title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        reminder.notes = normalizedOptionalText(request.notes)
+        reminder.dueDateComponents = dueDateComponents(for: request.dueDate, includesTime: request.includesTime)
+
+        try eventStore.save(reminder, commit: true)
+        return reminder
+    }
+
+    private func dueDateComponents(for date: Date, includesTime: Bool) -> DateComponents {
+        let calendar = Calendar.autoupdatingCurrent
+        let components: Set<Calendar.Component> = includesTime
+            ? [.calendar, .timeZone, .year, .month, .day, .hour, .minute]
+            : [.calendar, .timeZone, .year, .month, .day]
+        var dateComponents = calendar.dateComponents(components, from: date)
+        dateComponents.calendar = calendar
+        dateComponents.timeZone = calendar.timeZone
+        return dateComponents
+    }
+
+    private func normalizedOptionalText(_ text: String?) -> String? {
+        let normalized = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return normalized.isEmpty ? nil : normalized
     }
     
     @objc private func handleStoreChanged(_ notification: Notification) {

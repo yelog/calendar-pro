@@ -165,6 +165,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                         onClose: onClose
                     )
                 },
+                onPresentItemComposer: { [weak self] kind, selectedDate, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
+                    self?.uiTestVacationGuideWindowController.close()
+                    self?.uiTestEventDetailWindowController.showComposer(
+                        kind: kind,
+                        selectedDate: selectedDate,
+                        eventCalendars: eventCalendars,
+                        reminderCalendars: reminderCalendars,
+                        anchoredTo: self?.uiTestWindow,
+                        onSaveEvent: onSaveEvent,
+                        onSaveReminder: onSaveReminder,
+                        onClose: onClose
+                    )
+                },
                 onPresentVacationGuide: { [weak self] month, onLocate in
                     guard let self else { return }
                     self.uiTestEventDetailWindowController.close()
