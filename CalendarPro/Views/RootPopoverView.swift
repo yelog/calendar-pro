@@ -8,6 +8,15 @@ struct RootPopoverView: View {
     @ObservedObject var timeRefreshCoordinator: TimeRefreshCoordinator
     let onPresentEventDetailWindow: (EKEvent, @escaping () -> Void) -> Void
     let onPresentReminderDetailWindow: (EKReminder, @escaping (EKReminder) -> Void, @escaping () -> Void) -> Void
+    let onPresentItemComposer: (
+        CalendarItemCreationKind,
+        Date,
+        [EKCalendar],
+        [EKCalendar],
+        @escaping (CalendarEventCreationRequest) throws -> Void,
+        @escaping (ReminderCreationRequest) throws -> Void,
+        @escaping () -> Void
+    ) -> Void
     let onPresentVacationGuide: (Date, @escaping (Date) -> Void) -> Void
     let onDismissEventDetailWindow: () -> Void
     let onQuit: () -> Void
@@ -53,6 +62,8 @@ struct RootPopoverView: View {
             showVacationGuideButton: showVacationGuideButton,
             isVacationGuideEnabled: isVacationGuideEnabled,
             vacationGuideDisabledReason: vacationGuideDisabledReason,
+            canCreateEvent: canCreateEvent,
+            canCreateReminder: canCreateReminder,
             onPreviousMonth: {
                 viewModel.showPreviousMonth(using: displayCalendar)
             },
@@ -86,6 +97,9 @@ struct RootPopoverView: View {
             },
             onOpenReminder: { reminder in
                 handleOpenReminder(reminder)
+            },
+            onCreateItem: { kind in
+                handleCreateItem(kind)
             },
             onOpenVacationGuide: {
                 onPresentVacationGuide(viewModel.displayedMonth) { date in
@@ -352,6 +366,36 @@ struct RootPopoverView: View {
         }
     }
 
+    private func handleCreateItem(_ kind: CalendarItemCreationKind) {
+        guard let selectedDate = viewModel.selectedDate else { return }
+
+        dismissEventDetail()
+        if eventService.isAuthorized {
+            eventService.fetchCalendars()
+        }
+        if eventService.remindersAuthorized {
+            eventService.fetchReminderCalendars()
+        }
+
+        onPresentItemComposer(
+            kind,
+            selectedDate,
+            eventService.writableCalendars,
+            eventService.writableReminderCalendars,
+            { request in
+                _ = try eventService.createEvent(request)
+                refreshEventsForCurrentSelection()
+            },
+            { request in
+                _ = try eventService.createReminder(request)
+                refreshEventsForCurrentSelection()
+            },
+            {
+                viewModel.clearSelectedEvent()
+            }
+        )
+    }
+
     private func dismissEventDetail() {
         viewModel.clearSelectedEvent()
         onDismissEventDetailWindow()
@@ -367,6 +411,20 @@ struct RootPopoverView: View {
         settingsStore.menuBarPreferences.locationMode == .manual
             ? settingsStore.menuBarPreferences.manualLocation
             : nil
+    }
+
+    private var canCreateEvent: Bool {
+        settingsStore.menuBarPreferences.showEvents
+            && settingsStore.menuBarPreferences.showCalendarEvents
+            && eventService.isAuthorized
+            && !eventService.writableCalendars.isEmpty
+    }
+
+    private var canCreateReminder: Bool {
+        settingsStore.menuBarPreferences.showEvents
+            && settingsStore.menuBarPreferences.showReminders
+            && eventService.remindersAuthorized
+            && !eventService.writableReminderCalendars.isEmpty
     }
 
     private func shouldAutoRefreshWeather(at currentDate: Date) -> Bool {

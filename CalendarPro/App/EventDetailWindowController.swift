@@ -6,18 +6,46 @@ import EventKit
 protocol EventDetailWindowPresenting: AnyObject {
     func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onJoinMeeting: (() -> Void)?, onClose: @escaping () -> Void)
     func show(reminder: EKReminder, anchoredTo anchorWindow: NSWindow?, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void)
+    func showComposer(
+        kind: CalendarItemCreationKind,
+        selectedDate: Date,
+        eventCalendars: [EKCalendar],
+        reminderCalendars: [EKCalendar],
+        anchoredTo anchorWindow: NSWindow?,
+        onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
+        onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
+        onClose: @escaping () -> Void
+    )
     func close()
 }
 
 @MainActor
 final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, NSWindowDelegate {
+    private enum PanelMode {
+        case detail
+        case composer
+    }
+
+    private final class FloatingPanel: NSPanel {
+        var allowsTextInput = false
+
+        override var canBecomeKey: Bool {
+            allowsTextInput || super.canBecomeKey
+        }
+
+        override var canBecomeMain: Bool {
+            allowsTextInput || super.canBecomeMain
+        }
+    }
+
     private var panel: NSPanel?
+    private var panelMode: PanelMode?
     private var onClose: (() -> Void)?
 
     func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onJoinMeeting: (() -> Void)? = nil, onClose: @escaping () -> Void) {
         self.onClose = onClose
 
-        let panel = makePanelIfNeeded()
+        let panel = makePanelIfNeeded(mode: .detail)
         let hostingController = NSHostingController(
             rootView: EventDetailWindowView(
                 event: event,
@@ -37,7 +65,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     func show(reminder: EKReminder, anchoredTo anchorWindow: NSWindow?, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void) {
         self.onClose = onClose
 
-        let panel = makePanelIfNeeded()
+        let panel = makePanelIfNeeded(mode: .detail)
         let hostingController = NSHostingController(
             rootView: ReminderDetailWindowView(reminder: reminder, onToggle: onToggle) { [weak self] in
                 self?.close()
@@ -47,6 +75,35 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow)
     }
 
+    func showComposer(
+        kind: CalendarItemCreationKind,
+        selectedDate: Date,
+        eventCalendars: [EKCalendar],
+        reminderCalendars: [EKCalendar],
+        anchoredTo anchorWindow: NSWindow?,
+        onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
+        onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
+        onClose: @escaping () -> Void
+    ) {
+        self.onClose = onClose
+
+        let panel = makePanelIfNeeded(mode: .composer)
+        let hostingController = NSHostingController(
+            rootView: CalendarItemComposerView(
+                kind: kind,
+                selectedDate: selectedDate,
+                eventCalendars: eventCalendars,
+                reminderCalendars: reminderCalendars,
+                onSaveEvent: onSaveEvent,
+                onSaveReminder: onSaveReminder
+            ) { [weak self] in
+                self?.close()
+            }
+        )
+
+        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, activatesForTextInput: true)
+    }
+
     func close() {
         panel?.close()
     }
@@ -54,12 +111,21 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     func windowWillClose(_ notification: Notification) {
         let onClose = self.onClose
         self.onClose = nil
+        if let closedPanel = notification.object as? NSPanel, closedPanel === panel {
+            panel = nil
+            panelMode = nil
+        }
         onClose?()
     }
 
     // MARK: - Private
 
-    private func presentPanel(_ panel: NSPanel, hosting hostingController: NSHostingController<some View>, anchoredTo anchorWindow: NSWindow?) {
+    private func presentPanel(
+        _ panel: NSPanel,
+        hosting hostingController: NSHostingController<some View>,
+        anchoredTo anchorWindow: NSWindow?,
+        activatesForTextInput: Bool = false
+    ) {
         panel.contentViewController = hostingController
         hostingController.view.layoutSubtreeIfNeeded()
 
@@ -69,7 +135,12 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         let panelFrame = frame(for: panelSize, anchoredTo: anchorWindow)
         panel.setContentSize(panelFrame.size)
         panel.setFrame(panelFrame, display: false)
-        panel.orderFrontRegardless()
+        if activatesForTextInput {
+            NSApp.activate(ignoringOtherApps: true)
+            panel.makeKeyAndOrderFront(nil)
+        } else {
+            panel.orderFrontRegardless()
+        }
     }
 
     private func resizePanelIfNeeded(preferredHeight: CGFloat, anchoredTo anchorWindow: NSWindow?) {
@@ -94,22 +165,31 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         panel.setFrame(targetFrame, display: true)
     }
 
-    private func makePanelIfNeeded() -> NSPanel {
-        if let panel {
+    private func makePanelIfNeeded(mode: PanelMode) -> NSPanel {
+        if let panel, panelMode == mode {
             return panel
         }
 
-        let panel = NSPanel(
+        panel?.close()
+        panel = nil
+        panelMode = nil
+
+        let styleMask: NSWindow.StyleMask = mode == .composer
+            ? [.borderless, .fullSizeContentView]
+            : [.borderless, .nonactivatingPanel, .fullSizeContentView]
+
+        let panel = FloatingPanel(
             contentRect: NSRect(
                 x: 0,
                 y: 0,
                 width: EventDetailWindowSizing.width,
                 height: EventDetailWindowSizing.idealHeight
             ),
-            styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
+            styleMask: styleMask,
             backing: .buffered,
             defer: false
         )
+        panel.allowsTextInput = mode == .composer
         panel.delegate = self
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
@@ -123,6 +203,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         panel.isMovableByWindowBackground = false
 
         self.panel = panel
+        self.panelMode = mode
         return panel
     }
 

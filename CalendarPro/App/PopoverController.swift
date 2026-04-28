@@ -158,6 +158,17 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                 onPresentReminderDetailWindow: { [weak self] reminder, onToggle, onClose in
                     self?.showReminderDetailWindow(for: reminder, onToggle: onToggle, onClose: onClose)
                 },
+                onPresentItemComposer: { [weak self] kind, selectedDate, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
+                    self?.showItemComposer(
+                        kind: kind,
+                        selectedDate: selectedDate,
+                        eventCalendars: eventCalendars,
+                        reminderCalendars: reminderCalendars,
+                        onSaveEvent: onSaveEvent,
+                        onSaveReminder: onSaveReminder,
+                        onClose: onClose
+                    )
+                },
                 onPresentVacationGuide: { [weak self] month, onLocate in
                     self?.showVacationGuide(forMonth: month, onLocateDate: onLocate)
                 },
@@ -220,6 +231,28 @@ final class PopoverController: NSObject, NSPopoverDelegate {
             reminder: reminder,
             anchoredTo: popover.contentViewController?.view.window,
             onToggle: onToggle,
+            onClose: onClose
+        )
+    }
+
+    func showItemComposer(
+        kind: CalendarItemCreationKind,
+        selectedDate: Date,
+        eventCalendars: [EKCalendar],
+        reminderCalendars: [EKCalendar],
+        onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
+        onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
+        onClose: @escaping () -> Void
+    ) {
+        closeVacationGuideWindow()
+        eventDetailPresenter.showComposer(
+            kind: kind,
+            selectedDate: selectedDate,
+            eventCalendars: eventCalendars,
+            reminderCalendars: reminderCalendars,
+            anchoredTo: popover.contentViewController?.view.window,
+            onSaveEvent: onSaveEvent,
+            onSaveReminder: onSaveReminder,
             onClose: onClose
         )
     }
