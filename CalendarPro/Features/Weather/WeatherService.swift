@@ -14,6 +14,7 @@ struct WeatherDescriptor: Equatable, Sendable {
     let windSpeed: Double?
     let windDirection: Double?
     let windGusts: Double?
+    let cloudCover: Int?
     let airQualityIndex: Int?
     let pm25: Double?
     let uvIndex: Double?
@@ -32,6 +33,7 @@ struct WeatherDescriptor: Equatable, Sendable {
         windSpeed: Double? = nil,
         windDirection: Double? = nil,
         windGusts: Double? = nil,
+        cloudCover: Int? = nil,
         airQualityIndex: Int? = nil,
         pm25: Double? = nil,
         uvIndex: Double? = nil
@@ -49,6 +51,7 @@ struct WeatherDescriptor: Equatable, Sendable {
         self.windSpeed = windSpeed
         self.windDirection = windDirection
         self.windGusts = windGusts
+        self.cloudCover = cloudCover
         self.airQualityIndex = airQualityIndex
         self.pm25 = pm25
         self.uvIndex = uvIndex
@@ -286,6 +289,7 @@ struct WeatherService: Sendable {
             windSpeed: snapshot.current.windSpeed,
             windDirection: snapshot.current.windDirection,
             windGusts: snapshot.current.windGusts,
+            cloudCover: snapshot.current.cloudCover,
             airQualityIndex: airQuality?.usAQI,
             pm25: airQuality?.pm25
         )
@@ -561,6 +565,7 @@ private struct CurrentWeatherSnapshot: Sendable {
     let windSpeed: Double?
     let windDirection: Double?
     let windGusts: Double?
+    let cloudCover: Int?
 }
 
 private struct DailyWeatherForecast: Sendable {
@@ -670,6 +675,7 @@ private struct OpenMeteoResponse: Decodable, Sendable {
         let windSpeed10m: Double?
         let windDirection10m: Double?
         let windGusts10m: Double?
+        let cloudCover: Int?
         let isDay: Int
 
         enum CodingKeys: String, CodingKey {
@@ -681,6 +687,7 @@ private struct OpenMeteoResponse: Decodable, Sendable {
             case windSpeed10m = "wind_speed_10m"
             case windDirection10m = "wind_direction_10m"
             case windGusts10m = "wind_gusts_10m"
+            case cloudCover = "cloud_cover"
             case isDay = "is_day"
         }
 
@@ -694,7 +701,8 @@ private struct OpenMeteoResponse: Decodable, Sendable {
                 precipitation: precipitation,
                 windSpeed: windSpeed10m,
                 windDirection: windDirection10m,
-                windGusts: windGusts10m
+                windGusts: windGusts10m,
+                cloudCover: cloudCover
             )
         }
     }

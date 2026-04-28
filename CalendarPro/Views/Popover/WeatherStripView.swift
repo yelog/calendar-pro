@@ -4,6 +4,7 @@ struct WeatherStripView: View {
     private let descriptor: WeatherDescriptor?
     let isLoading: Bool
     let requestedDate: Date
+    @State private var isExpanded = false
     @Environment(\.colorScheme) private var colorScheme
 
     init(weather: WeatherDescriptor?, isLoading: Bool = false, requestedDate: Date = Date()) {
@@ -13,26 +14,40 @@ struct WeatherStripView: View {
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            if isLoading {
-                loadingSummarySection
-                    .layoutPriority(1)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 10) {
+                if isLoading {
+                    loadingSummarySection
+                        .layoutPriority(1)
 
-                ProgressView()
-                    .controlSize(.small)
-                    .frame(width: 16, height: 16)
-            } else {
-                summarySection
-                    .layoutPriority(1)
+                    ProgressView()
+                        .controlSize(.small)
+                        .frame(width: 16, height: 16)
+                } else {
+                    summarySection
+                        .layoutPriority(1)
 
-                if !metricItems.isEmpty {
-                    metricsSection
-                        .layoutPriority(0)
+                    if !isExpanded && !compactMetricItems.isEmpty {
+                        metricsSection
+                            .layoutPriority(0)
+                    }
+
+                    if canExpand {
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(bodySecondaryColor)
+                            .frame(width: 12, height: 18)
+                            .accessibilityHidden(true)
+                    }
                 }
+            }
+
+            if isExpanded && !fullMetricItems.isEmpty {
+                expandedMetricsSection
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 7)
+        .padding(.vertical, 9)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -43,6 +58,16 @@ struct WeatherStripView: View {
                 .strokeBorder(borderColor, lineWidth: 0.5)
         }
         .help(stripHelpText)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard canExpand else { return }
+            isExpanded.toggle()
+        }
+        .transaction { transaction in
+            transaction.animation = nil
+        }
+        .accessibilityAddTraits(canExpand ? .isButton : [])
+        .accessibilityLabel(accessibilityLabel)
     }
 
     private var weather: WeatherDescriptor {
@@ -52,9 +77,9 @@ struct WeatherStripView: View {
     private var summarySection: some View {
         HStack(spacing: 10) {
             Image(systemName: weather.iconSystemName)
-                .font(.system(size: 16))
+                .font(.system(size: 17))
                 .foregroundStyle(iconColor)
-                .frame(width: 26, height: 26)
+                .frame(width: 32, height: 32)
                 .background {
                     Circle()
                         .fill(iconBackgroundColor)
@@ -67,19 +92,19 @@ struct WeatherStripView: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(displayTemperatureText)
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
 
                     Text(weather.description)
-                        .font(.system(size: 10, weight: .medium, design: .rounded))
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .foregroundStyle(bodySecondaryColor)
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
 
                 Text(detailText)
-                    .font(.system(size: 10, weight: .regular, design: .rounded))
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(bodySecondaryColor)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -121,8 +146,8 @@ struct WeatherStripView: View {
     }
 
     private var metricsSection: some View {
-        HStack(alignment: .center, spacing: 6) {
-            ForEach(metricItems) { item in
+        HStack(alignment: .center, spacing: 8) {
+            ForEach(compactMetricItems) { item in
                 WeatherMetricView(item: item, labelColor: bodySecondaryColor)
             }
         }
@@ -160,7 +185,25 @@ struct WeatherStripView: View {
     }
 
     private var stripHelpText: String {
-        isLoading ? "\(L("Weather")) \(L("Loading"))" : L("Weather data attribution")
+        if isLoading {
+            return "\(L("Weather")) \(L("Loading"))"
+        }
+
+        guard canExpand else {
+            return L("Weather data attribution")
+        }
+
+        return "\(L("Weather data attribution")) · \(isExpanded ? L("Collapse") : L("Expand"))"
+    }
+
+    private var accessibilityLabel: String {
+        if isLoading {
+            return "\(L("Weather")) \(L("Loading"))"
+        }
+
+        return [L("Weather"), weather.temperatureText, weather.description, detailText]
+            .filter { !$0.isEmpty }
+            .joined(separator: ", ")
     }
 
     private var loadingDetailText: String {
@@ -172,7 +215,7 @@ struct WeatherStripView: View {
         return LF("Forecast for %@", formattedCompactForecastDate(requestedDate))
     }
 
-    private var metricItems: [WeatherMetricItem] {
+    private var compactMetricItems: [WeatherMetricItem] {
         let candidates: [WeatherMetricItem?]
 
         if weather.isCurrentConditions {
@@ -194,12 +237,44 @@ struct WeatherStripView: View {
             ]
         }
 
-        let limit = weather.isCurrentConditions ? 3 : 2
+        let limit = 2
         return Array(candidates.compactMap { $0 }.prefix(limit))
     }
 
+    private var fullMetricItems: [WeatherMetricItem] {
+        let candidates: [WeatherMetricItem?]
+
+        if weather.isCurrentConditions {
+            candidates = [
+                apparentTemperatureMetric,
+                humidityMetric,
+                precipitationMetric,
+                windMetric,
+                windGustMetric,
+                cloudCoverMetric,
+                airQualityIndexMetric,
+                pm25Metric
+            ]
+        } else {
+            candidates = [
+                precipitationMetric,
+                windMetric,
+                windGustMetric,
+                airQualityIndexMetric,
+                pm25Metric,
+                uvMetric
+            ]
+        }
+
+        return candidates.compactMap { $0 }
+    }
+
+    private var canExpand: Bool {
+        !isLoading && fullMetricItems.count > compactMetricItems.count
+    }
+
     private var metricsSectionWidth: CGFloat {
-        weather.isCurrentConditions ? 146 : 98
+        112
     }
 
     private var displayTemperatureText: String {
@@ -277,6 +352,10 @@ struct WeatherStripView: View {
     }
 
     private var airQualityMetric: WeatherMetricItem? {
+        airQualityIndexMetric ?? pm25Metric
+    }
+
+    private var airQualityIndexMetric: WeatherMetricItem? {
         if let airQualityIndex = weather.airQualityIndex {
             return WeatherMetricItem(
                 id: "air-quality",
@@ -287,6 +366,10 @@ struct WeatherStripView: View {
             )
         }
 
+        return nil
+    }
+
+    private var pm25Metric: WeatherMetricItem? {
         guard let pm25 = weather.pm25 else {
             return nil
         }
@@ -297,6 +380,20 @@ struct WeatherStripView: View {
             value: formattedPM25(pm25),
             detail: "ug/m3",
             systemImage: "aqi.medium"
+        )
+    }
+
+    private var cloudCoverMetric: WeatherMetricItem? {
+        guard let cloudCover = weather.cloudCover else {
+            return nil
+        }
+
+        return WeatherMetricItem(
+            id: "cloud-cover",
+            title: L("Cloud cover"),
+            value: "\(cloudCover)%",
+            detail: nil,
+            systemImage: "cloud.fill"
         )
     }
 
@@ -448,6 +545,22 @@ struct WeatherStripView: View {
         formatter.dateFormat = "M/d"
         return formatter.string(from: date)
     }
+
+    private var expandedMetricsSection: some View {
+        LazyVGrid(columns: expandedMetricColumns, alignment: .leading, spacing: 10) {
+            ForEach(fullMetricItems) { item in
+                WeatherExpandedMetricView(item: item, labelColor: bodySecondaryColor)
+            }
+        }
+        .padding(.top, 2)
+    }
+
+    private var expandedMetricColumns: [GridItem] {
+        [
+            GridItem(.flexible(minimum: 120), spacing: 12),
+            GridItem(.flexible(minimum: 120), spacing: 12)
+        ]
+    }
 }
 
 private struct WeatherMetricItem: Identifiable {
@@ -458,38 +571,68 @@ private struct WeatherMetricItem: Identifiable {
     let systemImage: String
 }
 
+private struct WeatherExpandedMetricView: View {
+    let item: WeatherMetricItem
+    let labelColor: Color
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 7) {
+            Image(systemName: item.systemImage)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(labelColor)
+                .frame(width: 14)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.title)
+                    .font(.system(size: 9, weight: .semibold, design: .rounded))
+                    .foregroundStyle(labelColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+
+                HStack(alignment: .firstTextBaseline, spacing: 3) {
+                    Text(item.value)
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.78)
+
+                    if let detail = item.detail {
+                        Text(detail)
+                            .font(.system(size: 9, weight: .semibold, design: .rounded))
+                            .foregroundStyle(labelColor)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, minHeight: 34, alignment: .leading)
+        .help([item.title, item.value, item.detail].compactMap { $0 }.joined(separator: " "))
+    }
+}
+
 private struct WeatherMetricView: View {
     let item: WeatherMetricItem
     let labelColor: Color
 
     var body: some View {
-        HStack(alignment: .center, spacing: 3) {
+        HStack(alignment: .center, spacing: 5) {
             Image(systemName: item.systemImage)
-                .font(.system(size: 8, weight: .medium))
+                .font(.system(size: 9, weight: .medium))
                 .foregroundStyle(labelColor)
-                .frame(width: 9)
+                .frame(width: 10)
 
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(item.title)
-                    .font(.system(size: 7, weight: .medium, design: .rounded))
+                    .font(.system(size: 8, weight: .semibold, design: .rounded))
                     .foregroundStyle(labelColor)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.75)
+                    .minimumScaleFactor(0.8)
 
-                HStack(alignment: .firstTextBaseline, spacing: 3) {
-                    Text(item.value)
-                        .font(.system(size: 9, weight: .semibold, design: .rounded))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-
-                    if shouldShowDetail, let detail = item.detail {
-                        Text(detail)
-                            .font(.system(size: 7, weight: .medium, design: .rounded))
-                            .foregroundStyle(labelColor)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
-                    }
-                }
+                Text(compactValueText)
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -497,8 +640,13 @@ private struct WeatherMetricView: View {
         .help(helpText)
     }
 
-    private var shouldShowDetail: Bool {
-        item.id == "air-quality" || item.id == "uv"
+    private var compactValueText: String {
+        guard item.id == "air-quality" || item.id == "uv",
+              let detail = item.detail else {
+            return item.value
+        }
+
+        return "\(item.value) \(detail)"
     }
 
     private var helpText: String {

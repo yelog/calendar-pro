@@ -795,6 +795,23 @@
         }
       }
     },
+    "Cloud cover" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud cover"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "云量"
+          }
+        }
+      }
+    },
     "Collapse" : {
       "extractionState" : "stale",
       "localizations" : {
