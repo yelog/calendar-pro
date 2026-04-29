@@ -205,9 +205,11 @@ final class EventService: ObservableObject {
         
         guard !calendarsToFetch.isEmpty else { return [] }
         
-        // Fetch incomplete reminders due on the selected day only.
+        // Fetch incomplete reminders due on or before the selected day.
+        // Using nil as start date to catch recurring reminders whose original
+        // due date is before the target day.
         let incompletePredicate = eventStore.predicateForIncompleteReminders(
-            withDueDateStarting: startOfDay,
+            withDueDateStarting: nil,
             ending: endOfDay,
             calendars: calendarsToFetch
         )
@@ -324,7 +326,103 @@ final class EventService: ObservableObject {
             return false
         }
 
-        return calendar.isDate(dueDate, inSameDayAs: date)
+        guard let rules = reminder.recurrenceRules, !rules.isEmpty else {
+            return calendar.isDate(dueDate, inSameDayAs: date)
+        }
+
+        let targetStart = calendar.startOfDay(for: date)
+        let dueStart = calendar.startOfDay(for: dueDate)
+
+        guard targetStart >= dueStart else { return false }
+
+        for rule in rules {
+            if isOccurrence(of: rule, fromDate: dueStart, toDate: targetStart, calendar: calendar) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    private static func isOccurrence(
+        of rule: EKRecurrenceRule,
+        fromDate baseDate: Date,
+        toDate targetDate: Date,
+        calendar: Calendar
+    ) -> Bool {
+        let interval = max(rule.interval, 1)
+        let daysBetween = calendar.dateComponents([.day], from: baseDate, to: targetDate).day ?? 0
+
+        switch rule.frequency {
+        case .daily:
+            guard daysBetween >= 0 && daysBetween % interval == 0 else { return false }
+            if let end = rule.recurrenceEnd {
+                if end.occurrenceCount > 0 {
+                    let occurrenceNumber = daysBetween / interval + 1
+                    guard occurrenceNumber <= end.occurrenceCount else { return false }
+                } else if let endDate = end.endDate {
+                    guard targetDate <= calendar.startOfDay(for: endDate) else { return false }
+                }
+            }
+            return true
+        case .weekly:
+            let weeksBetween = calendar.dateComponents([.weekOfYear], from: baseDate, to: targetDate).weekOfYear ?? 0
+            guard weeksBetween >= 0 && weeksBetween % interval == 0 else { return false }
+            if let end = rule.recurrenceEnd {
+                if end.occurrenceCount > 0 {
+                    let occurrenceNumber = weeksBetween / interval + 1
+                    guard occurrenceNumber <= end.occurrenceCount else { return false }
+                } else if let endDate = end.endDate {
+                    guard targetDate <= calendar.startOfDay(for: endDate) else { return false }
+                }
+            }
+            if let days = rule.daysOfTheWeek, !days.isEmpty {
+                let targetWeekday = calendar.component(.weekday, from: targetDate)
+                return days.contains { $0.dayOfTheWeek.rawValue == targetWeekday }
+            }
+            return calendar.component(.weekday, from: baseDate) == calendar.component(.weekday, from: targetDate)
+        case .monthly:
+            let baseMonth = calendar.component(.month, from: baseDate)
+            let baseYear = calendar.component(.year, from: baseDate)
+            let targetMonth = calendar.component(.month, from: targetDate)
+            let targetYear = calendar.component(.year, from: targetDate)
+            let monthsBetween = (targetYear - baseYear) * 12 + (targetMonth - baseMonth)
+            guard monthsBetween >= 0 && monthsBetween % interval == 0 else { return false }
+            if let end = rule.recurrenceEnd {
+                if end.occurrenceCount > 0 {
+                    let occurrenceNumber = monthsBetween / interval + 1
+                    guard occurrenceNumber <= end.occurrenceCount else { return false }
+                } else if let endDate = end.endDate {
+                    guard targetDate <= calendar.startOfDay(for: endDate) else { return false }
+                }
+            }
+            if let days = rule.daysOfTheMonth, !days.isEmpty {
+                let targetDay = calendar.component(.day, from: targetDate)
+                return days.contains { $0.intValue == targetDay }
+            }
+            return calendar.component(.day, from: baseDate) == calendar.component(.day, from: targetDate)
+        case .yearly:
+            let baseYear = calendar.component(.year, from: baseDate)
+            let targetYear = calendar.component(.year, from: targetDate)
+            let yearsBetween = targetYear - baseYear
+            guard yearsBetween >= 0 && yearsBetween % interval == 0 else { return false }
+            if let end = rule.recurrenceEnd {
+                if end.occurrenceCount > 0 {
+                    let occurrenceNumber = yearsBetween / interval + 1
+                    guard occurrenceNumber <= end.occurrenceCount else { return false }
+                } else if let endDate = end.endDate {
+                    guard targetDate <= calendar.startOfDay(for: endDate) else { return false }
+                }
+            }
+            if let months = rule.monthsOfTheYear, !months.isEmpty {
+                let targetMonth = calendar.component(.month, from: targetDate)
+                return months.contains { $0.intValue == targetMonth }
+            }
+            return calendar.component(.month, from: baseDate) == calendar.component(.month, from: targetDate)
+                && calendar.component(.day, from: baseDate) == calendar.component(.day, from: targetDate)
+        @unknown default:
+            return false
+        }
     }
 
     func createEvent(_ request: CalendarEventCreationRequest) throws -> EKEvent {
