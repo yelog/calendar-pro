@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D4CB2A13E62AE082438C1CEA"
+               BlueprintIdentifier = "2797B956BD8181727FEB84DC"
                BuildableName = "CalendarPro.app"
                BlueprintName = "CalendarPro"
                ReferencedContainer = "container:CalendarPro.xcodeproj">
@@ -28,7 +28,7 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "C9F6FEF9999E6DD6E59ED53A"
+               BlueprintIdentifier = "A215548D77867B9B40D107BC"
                BuildableName = "CalendarProTests.xctest"
                BlueprintName = "CalendarProTests"
                ReferencedContainer = "container:CalendarPro.xcodeproj">
@@ -42,7 +42,7 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "08CC672FFC7636D1F2EB672F"
+               BlueprintIdentifier = "88A9A3F28CCB31ADCC2AEE55"
                BuildableName = "CalendarProUITests.xctest"
                BlueprintName = "CalendarProUITests"
                ReferencedContainer = "container:CalendarPro.xcodeproj">
@@ -58,7 +58,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D4CB2A13E62AE082438C1CEA"
+            BlueprintIdentifier = "2797B956BD8181727FEB84DC"
             BuildableName = "CalendarPro.app"
             BlueprintName = "CalendarPro"
             ReferencedContainer = "container:CalendarPro.xcodeproj">
@@ -69,7 +69,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "C9F6FEF9999E6DD6E59ED53A"
+               BlueprintIdentifier = "A215548D77867B9B40D107BC"
                BuildableName = "CalendarProTests.xctest"
                BlueprintName = "CalendarProTests"
                ReferencedContainer = "container:CalendarPro.xcodeproj">
@@ -79,7 +79,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "08CC672FFC7636D1F2EB672F"
+               BlueprintIdentifier = "88A9A3F28CCB31ADCC2AEE55"
                BuildableName = "CalendarProUITests.xctest"
                BlueprintName = "CalendarProUITests"
                ReferencedContainer = "container:CalendarPro.xcodeproj">
@@ -101,7 +101,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D4CB2A13E62AE082438C1CEA"
+            BlueprintIdentifier = "2797B956BD8181727FEB84DC"
             BuildableName = "CalendarPro.app"
             BlueprintName = "CalendarPro"
             ReferencedContainer = "container:CalendarPro.xcodeproj">
@@ -118,7 +118,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D4CB2A13E62AE082438C1CEA"
+            BlueprintIdentifier = "2797B956BD8181727FEB84DC"
             BuildableName = "CalendarPro.app"
             BlueprintName = "CalendarPro"
             ReferencedContainer = "container:CalendarPro.xcodeproj">

@@ -37,6 +37,10 @@ struct EventsSettingsView: View {
                         if store.menuBarPreferences.showEvents {
                             Divider()
 
+                            upcomingIndicatorSection
+
+                            Divider()
+
                             Text(L("Data Sources"))
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.secondary)
@@ -93,6 +97,20 @@ struct EventsSettingsView: View {
         )
     }
 
+    private var showUpcomingIndicatorBinding: Binding<Bool> {
+        Binding(
+            get: { store.menuBarPreferences.showUpcomingIndicator },
+            set: { store.setShowUpcomingIndicator($0) }
+        )
+    }
+
+    private var upcomingReminderMinutesBinding: Binding<Int> {
+        Binding(
+            get: { store.menuBarPreferences.upcomingReminderMinutes },
+            set: { store.setUpcomingReminderMinutes($0) }
+        )
+    }
+
     private func reminderCalendarEnabledBinding(for calendarID: String) -> Binding<Bool> {
         Binding(
             get: {
@@ -107,6 +125,34 @@ struct EventsSettingsView: View {
                 )
             }
         )
+    }
+
+    private var upcomingIndicatorSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle(L("Show Upcoming Indicator"), isOn: showUpcomingIndicatorBinding)
+                .toggleStyle(.checkbox)
+
+            Text(L("Show Upcoming Indicator Description"))
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if store.menuBarPreferences.showUpcomingIndicator {
+                HStack {
+                    Text(L("Remind Before"))
+                    Spacer()
+                    Picker(L("Remind Before"), selection: upcomingReminderMinutesBinding) {
+                        Text("5 \(L("minutes"))").tag(5)
+                        Text("10 \(L("minutes"))").tag(10)
+                        Text("15 \(L("minutes"))").tag(15)
+                        Text("30 \(L("minutes"))").tag(30)
+                        Text("60 \(L("minutes"))").tag(60)
+                    }
+                    .frame(width: 120)
+                    .labelsHidden()
+                }
+            }
+        }
     }
 
     private var calendarEventsSection: some View {

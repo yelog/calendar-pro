@@ -267,6 +267,20 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
+    func setShowUpcomingIndicator(_ enabled: Bool) {
+        var prefs = menuBarPreferences
+        prefs.showUpcomingIndicator = enabled
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setUpcomingReminderMinutes(_ minutes: Int) {
+        var prefs = menuBarPreferences
+        prefs.upcomingReminderMinutes = minutes
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
     func setReminderCalendarEnabled(_ enabled: Bool, calendarID: String, allCalendarIDs: [String] = []) {
         let hasAllCalendarIDs = !allCalendarIDs.isEmpty
         var ids = menuBarPreferences.enabledReminderCalendarIDs

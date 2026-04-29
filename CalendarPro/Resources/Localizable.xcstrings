@@ -7,448 +7,6 @@
     "·" : {
 
     },
-    "Add" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "添加"
-          }
-        }
-      }
-    },
-    "Delete" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除"
-          }
-        }
-      }
-    },
-    "Delete Event?" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete Event?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除日程？"
-          }
-        }
-      }
-    },
-    "Delete Reminder?" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete Reminder?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除提醒事项？"
-          }
-        }
-      }
-    },
-    "Edit" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "编辑"
-          }
-        }
-      }
-    },
-    "Failed to Delete Event" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to Delete Event"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除日程失败"
-          }
-        }
-      }
-    },
-    "Failed to Delete Reminder" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to Delete Reminder"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除提醒事项失败"
-          }
-        }
-      }
-    },
-    "Edit Event" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit Event"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "编辑日程"
-          }
-        }
-      }
-    },
-    "Edit Reminder" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit Reminder"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "编辑提醒事项"
-          }
-        }
-      }
-    },
-    "Event" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Event"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "日程"
-          }
-        }
-      }
-    },
-    "End" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "End"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "结束"
-          }
-        }
-      }
-    },
-    "Include Time" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Include Time"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "包含时间"
-          }
-        }
-      }
-    },
-    "New Item" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New Item"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新建"
-          }
-        }
-      }
-    },
-    "New Event" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New Event"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新建日程"
-          }
-        }
-      }
-    },
-    "New Reminder" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New Reminder"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新建提醒事项"
-          }
-        }
-      }
-    },
-    "No writable calendar is available." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No writable calendar is available."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有可写入的日历。"
-          }
-        }
-      }
-    },
-    "No writable reminder list is available." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No writable reminder list is available."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有可写入的提醒事项列表。"
-          }
-        }
-      }
-    },
-    "Open" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开"
-          }
-        }
-      }
-    },
-    "Reminder" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reminder"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提醒事项"
-          }
-        }
-      }
-    },
-    "Save" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保存"
-          }
-        }
-      }
-    },
-    "Type" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Type"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "类型"
-          }
-        }
-      }
-    },
-    "Start" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始"
-          }
-        }
-      }
-    },
-    "Title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Title"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "标题"
-          }
-        }
-      }
-    },
-    "Update" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更新"
-          }
-        }
-      }
-    },
-    "This action cannot be undone." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This action cannot be undone."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此操作无法撤销。"
-          }
-        }
-      }
-    },
-    "Title is required." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Title is required."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请输入标题。"
-          }
-        }
-      }
-    },
     "%d days before" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -534,6 +92,21 @@
         }
       }
     },
+    "5 %@" : {
+
+    },
+    "10 %@" : {
+
+    },
+    "15 %@" : {
+
+    },
+    "30 %@" : {
+
+    },
+    "60 %@" : {
+
+    },
     "About" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -598,6 +171,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已接受"
+          }
+        }
+      }
+    },
+    "Add" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加"
           }
         }
       }
@@ -1458,6 +1048,57 @@
         }
       }
     },
+    "Delete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除"
+          }
+        }
+      }
+    },
+    "Delete Event?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Event?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除日程？"
+          }
+        }
+      }
+    },
+    "Delete Reminder?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Reminder?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除提醒事项？"
+          }
+        }
+      }
+    },
     "Dense drizzle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1543,6 +1184,57 @@
         }
       }
     },
+    "Edit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑"
+          }
+        }
+      }
+    },
+    "Edit Event" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Event"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑日程"
+          }
+        }
+      }
+    },
+    "Edit Reminder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Reminder"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑提醒事项"
+          }
+        }
+      }
+    },
     "Enable" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1577,6 +1269,23 @@
         }
       }
     },
+    "End" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束"
+          }
+        }
+      }
+    },
     "English" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1607,6 +1316,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "整个系列"
+          }
+        }
+      }
+    },
+    "Event" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Event"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日程"
           }
         }
       }
@@ -1760,6 +1486,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "展开"
+          }
+        }
+      }
+    },
+    "Failed to Delete Event" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to Delete Event"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除日程失败"
+          }
+        }
+      }
+    },
+    "Failed to Delete Reminder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to Delete Reminder"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "删除提醒事项失败"
           }
         }
       }
@@ -2185,6 +1945,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "包含提醒事项"
+          }
+        }
+      }
+    },
+    "Include Time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include Time"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含时间"
           }
         }
       }
@@ -2886,6 +2663,23 @@
         }
       }
     },
+    "minutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "min"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分钟"
+          }
+        }
+      }
+    },
     "Moderate drizzle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3001,6 +2795,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "原生 macOS 菜单栏日历、日程与地区化节假日配置。"
+          }
+        }
+      }
+    },
+    "New Event" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Event"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建日程"
+          }
+        }
+      }
+    },
+    "New Item" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Item"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建"
+          }
+        }
+      }
+    },
+    "New Reminder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Reminder"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新建提醒事项"
           }
         }
       }
@@ -3175,6 +3020,40 @@
         }
       }
     },
+    "No writable calendar is available." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No writable calendar is available."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可写入的日历。"
+          }
+        }
+      }
+    },
+    "No writable reminder list is available." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No writable reminder list is available."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可写入的提醒事项列表。"
+          }
+        }
+      }
+    },
     "Notes" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3226,6 +3105,23 @@
         }
       }
     },
+    "Ongoing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ongoing"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进行中"
+          }
+        }
+      }
+    },
     "Only This Event" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3239,6 +3135,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "仅本次"
+          }
+        }
+      }
+    },
+    "Open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开"
           }
         }
       }
@@ -3532,6 +3445,40 @@
         }
       }
     },
+    "Remind Before" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remind Before"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提前提醒时间"
+          }
+        }
+      }
+    },
+    "Reminder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminder"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提醒事项"
+          }
+        }
+      }
+    },
     "Reminder Details" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3702,6 +3649,23 @@
         }
       }
     },
+    "Save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
+          }
+        }
+      }
+    },
     "Search city…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3851,6 +3815,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在面板中显示日程"
+          }
+        }
+      }
+    },
+    "Show Upcoming Indicator" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Upcoming Event Indicator"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在菜单栏显示即将到来的事项"
+          }
+        }
+      }
+    },
+    "Show Upcoming Indicator Description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display a colored dot on the menu bar when an event or reminder is upcoming or in progress"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当日程或提醒即将到来或正在进行时，在菜单栏显示彩色圆点提醒"
           }
         }
       }
@@ -4059,6 +4057,23 @@
         }
       }
     },
+    "Start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始"
+          }
+        }
+      }
+    },
     "Statutory Holidays" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4123,6 +4138,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "文字颜色"
+          }
+        }
+      }
+    },
+    "This action cannot be undone." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This action cannot be undone."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此操作无法撤销。"
           }
         }
       }
@@ -4212,6 +4244,40 @@
         }
       }
     },
+    "Title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标题"
+          }
+        }
+      }
+    },
+    "Title is required." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title is required."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入标题。"
+          }
+        }
+      }
+    },
     "Today" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4242,6 +4308,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今日"
+          }
+        }
+      }
+    },
+    "Type" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "类型"
           }
         }
       }
@@ -4395,6 +4478,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无标题"
+          }
+        }
+      }
+    },
+    "Upcoming" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upcoming"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即将到来"
+          }
+        }
+      }
+    },
+    "Update" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新"
           }
         }
       }
