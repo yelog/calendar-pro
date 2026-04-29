@@ -115,6 +115,8 @@ struct MenuBarPreferences: Codable, Equatable {
     var showWeather: Bool
     var locationMode: LocationMode = .automatic
     var manualLocation: WeatherLocation? = nil
+    var showUpcomingIndicator: Bool
+    var upcomingReminderMinutes: Int
 
     var requiresSecondRefresh: Bool {
         tokens.contains { $0.token == .time && $0.isEnabled && $0.style == .full }
@@ -192,7 +194,9 @@ struct MenuBarPreferences: Codable, Equatable {
             showAlmanac: false,
             showWeather: false,
             locationMode: .automatic,
-            manualLocation: nil
+            manualLocation: nil,
+            showUpcomingIndicator: true,
+            upcomingReminderMinutes: 15
         )
     }
 
@@ -217,7 +221,9 @@ struct MenuBarPreferences: Codable, Equatable {
         showAlmanac: false,
         showWeather: false,
         locationMode: .automatic,
-        manualLocation: nil
+        manualLocation: nil,
+        showUpcomingIndicator: true,
+        upcomingReminderMinutes: 15
     )
 }
 
@@ -240,6 +246,8 @@ extension MenuBarPreferences {
         case showWeather
         case locationMode
         case manualLocation
+        case showUpcomingIndicator
+        case upcomingReminderMinutes
     }
 
     init(from decoder: Decoder) throws {
@@ -263,7 +271,9 @@ extension MenuBarPreferences {
             showAlmanac: try container.decodeIfPresent(Bool.self, forKey: .showAlmanac) ?? false,
             showWeather: try container.decodeIfPresent(Bool.self, forKey: .showWeather) ?? false,
             locationMode: try container.decodeIfPresent(LocationMode.self, forKey: .locationMode) ?? .automatic,
-            manualLocation: try container.decodeIfPresent(WeatherLocation.self, forKey: .manualLocation)
+            manualLocation: try container.decodeIfPresent(WeatherLocation.self, forKey: .manualLocation),
+            showUpcomingIndicator: try container.decodeIfPresent(Bool.self, forKey: .showUpcomingIndicator) ?? true,
+            upcomingReminderMinutes: try container.decodeIfPresent(Int.self, forKey: .upcomingReminderMinutes) ?? 15
         )
     }
 
@@ -286,5 +296,7 @@ extension MenuBarPreferences {
         try container.encode(showWeather, forKey: .showWeather)
         try container.encode(locationMode, forKey: .locationMode)
         try container.encodeIfPresent(manualLocation, forKey: .manualLocation)
+        try container.encode(showUpcomingIndicator, forKey: .showUpcomingIndicator)
+        try container.encode(upcomingReminderMinutes, forKey: .upcomingReminderMinutes)
     }
 }

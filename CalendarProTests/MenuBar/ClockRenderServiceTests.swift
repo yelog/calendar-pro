@@ -75,7 +75,9 @@ final class ClockRenderServiceTests: XCTestCase {
             showReminders: true,
             enabledReminderCalendarIDs: [],
             showAlmanac: false,
-            showWeather: false
+            showWeather: false,
+            showUpcomingIndicator: true,
+            upcomingReminderMinutes: 15
         )
 
         let text = renderer.render(
@@ -113,7 +115,9 @@ final class ClockRenderServiceTests: XCTestCase {
             showReminders: true,
             enabledReminderCalendarIDs: [],
             showAlmanac: false,
-            showWeather: false
+            showWeather: false,
+            showUpcomingIndicator: true,
+            upcomingReminderMinutes: 15
         )
 
         let text = renderer.render(
@@ -150,7 +154,9 @@ final class ClockRenderServiceTests: XCTestCase {
             showReminders: true,
             enabledReminderCalendarIDs: [],
             showAlmanac: false,
-            showWeather: false
+            showWeather: false,
+            showUpcomingIndicator: true,
+            upcomingReminderMinutes: 15
         )
 
         let text = renderer.render(
@@ -187,7 +193,9 @@ final class ClockRenderServiceTests: XCTestCase {
             showReminders: true,
             enabledReminderCalendarIDs: [],
             showAlmanac: false,
-            showWeather: false
+            showWeather: false,
+            showUpcomingIndicator: true,
+            upcomingReminderMinutes: 15
         )
 
         let text = renderer.render(

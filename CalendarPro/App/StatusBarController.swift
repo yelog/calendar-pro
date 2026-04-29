@@ -8,6 +8,7 @@ final class StatusBarController {
     private var statusItems: [NSStatusItem] = []
     private var popoverController: PopoverController
     private let menuBarViewModel: MenuBarViewModel
+    private let upcomingEventMonitor: UpcomingEventMonitor
     private let textImageRenderer = MenuBarTextImageRenderer()
     private let settingsStore: SettingsStore
     private let eventService: EventService
@@ -27,10 +28,16 @@ final class StatusBarController {
             settingsStore: settingsStore,
             timeRefreshCoordinator: timeRefreshCoordinator
         )
+        upcomingEventMonitor = UpcomingEventMonitor(
+            eventService: eventService,
+            settingsStore: settingsStore,
+            timeRefreshCoordinator: timeRefreshCoordinator
+        )
 
         configureStatusItems()
         bindViewModel()
         menuBarViewModel.start()
+        upcomingEventMonitor.start()
         
         Task {
             await eventService.requestAccess()
@@ -65,34 +72,37 @@ final class StatusBarController {
         applyStatusImage(
             menuBarViewModel.displayText,
             style: settingsStore.menuBarPreferences.textStyle,
+            indicator: nil,
             to: button
         )
     }
 
     private func bindViewModel() {
-        Publishers.CombineLatest(
+        Publishers.CombineLatest3(
             menuBarViewModel.$displayText,
             settingsStore.$menuBarPreferences
                 .map { $0.textStyle }
-                .removeDuplicates()
+                .removeDuplicates(),
+            upcomingEventMonitor.$activeIndicator
         )
             .receive(on: RunLoop.main)
-            .sink { [weak self] text, style in
+            .sink { [weak self] text, style, indicator in
                 guard let self else { return }
                 self.statusItems.forEach {
                     if let button = $0.button {
-                        self.applyStatusImage(text, style: style, to: button)
+                        self.applyStatusImage(text, style: style, indicator: indicator, to: button)
                     }
                 }
             }
             .store(in: &cancellables)
     }
 
-    private func applyStatusImage(_ text: String, style: MenuBarTextStyle, to button: NSStatusBarButton) {
-        let renderResult = textImageRenderer.render(text: text, style: style)
+    private func applyStatusImage(_ text: String, style: MenuBarTextStyle, indicator: MenuBarEventIndicator?, to button: NSStatusBarButton) {
+        let renderResult = textImageRenderer.render(text: text, style: style, indicator: indicator)
         button.image = renderResult.image
-        button.toolTip = text
-        button.setAccessibilityLabel(text)
+        let tooltip = indicator.map { "\($0.tooltipText)\n\(text)" } ?? text
+        button.toolTip = tooltip
+        button.setAccessibilityLabel(tooltip)
     }
 
     @objc

@@ -167,21 +167,41 @@ struct MenuBarTextImageRenderResult {
 }
 
 struct MenuBarTextImageRenderer {
-    func render(text: String, style: MenuBarTextStyle) -> MenuBarTextImageRenderResult {
+    func render(text: String, style: MenuBarTextStyle, indicator: MenuBarEventIndicator? = nil) -> MenuBarTextImageRenderResult {
         let showsFilledBackground = style.usesFilledBackground && !text.isEmpty
-        let usesTemplateColor = style.foregroundColorHex == nil && !showsFilledBackground
+        let dots = indicator?.dots ?? []
+        let hasDot = !dots.isEmpty
+
+        let textColor: NSColor
+        if style.foregroundColorHex != nil {
+            textColor = foregroundColor(for: style)
+        } else if showsFilledBackground {
+            textColor = foregroundColor(for: style)
+        } else {
+            textColor = Self.menuBarAdaptiveTextColor
+        }
+
+        let usesTemplateColor = false
+
         let attributes: [NSAttributedString.Key: Any] = [
             .font: statusBarFont(for: style),
-            .foregroundColor: usesTemplateColor ? NSColor.black : foregroundColor(for: style)
+            .foregroundColor: textColor
         ]
         let attributedText = NSAttributedString(string: text, attributes: attributes)
         let textSize = attributedText.size()
+
+        let dotSize: CGFloat = 6
+        let dotSpacing: CGFloat = 4
+        let dotGap: CGFloat = 6
+        let dotsTotalWidth = hasDot
+            ? dotGap + CGFloat(dots.count) * dotSize + CGFloat(max(dots.count - 1, 0)) * dotSpacing
+            : 0
 
         let horizontalPadding: CGFloat = showsFilledBackground ? 8 : 2
         let verticalPadding: CGFloat = showsFilledBackground ? 3 : 0
         let imageHeight = max(ceil(textSize.height) + verticalPadding * 2, showsFilledBackground ? 18 : 1)
         let imageSize = NSSize(
-            width: max(ceil(textSize.width) + horizontalPadding * 2, 1),
+            width: max(ceil(textSize.width) + horizontalPadding * 2 + dotsTotalWidth, 1),
             height: imageHeight
         )
 
@@ -195,19 +215,50 @@ struct MenuBarTextImageRenderer {
                 ).fill()
             }
 
-            let drawRect = NSRect(
+            let textDrawRect = NSRect(
                 x: horizontalPadding,
                 y: (rect.height - textSize.height) / 2,
                 width: textSize.width,
                 height: textSize.height
             )
-            attributedText.draw(in: drawRect)
+            attributedText.draw(in: textDrawRect)
+
+            if hasDot {
+                var dotX = horizontalPadding + textSize.width + dotGap
+                let dotY = (rect.height - dotSize) / 2
+
+                for dot in dots {
+                    let dotRect = NSRect(x: dotX, y: dotY, width: dotSize, height: dotSize)
+
+                    let baseColor: NSColor
+                    if let parsed = NSColor(menuBarHex: dot.colorHex) {
+                        baseColor = parsed
+                    } else {
+                        baseColor = NSColor.systemBlue
+                    }
+
+                    let dotPath = NSBezierPath(ovalIn: dotRect)
+                    switch dot.status {
+                    case .ongoing:
+                        baseColor.setFill()
+                        dotPath.fill()
+                    case .upcoming:
+                        baseColor.setStroke()
+                        dotPath.lineWidth = 1.5
+                        dotPath.stroke()
+                    }
+
+                    dotX += dotSize + dotSpacing
+                }
+            }
             return true
         }
         image.isTemplate = usesTemplateColor
 
         return MenuBarTextImageRenderResult(image: image, usesTemplateColor: usesTemplateColor)
     }
+
+    private static let menuBarAdaptiveTextColor = NSColor.white.withAlphaComponent(0.92)
 
     private func statusBarFont(for style: MenuBarTextStyle) -> NSFont {
         .monospacedDigitSystemFont(

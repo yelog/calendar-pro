@@ -142,7 +142,7 @@ struct MenuBarSettingsView: View {
     }
 
     private var previewMenuBarText: some View {
-        let renderResult = textImageRenderer.render(text: previewText, style: textStyle)
+        let renderResult = textImageRenderer.render(text: previewText, style: textStyle, indicator: nil)
 
         return RoundedRectangle(cornerRadius: 8, style: .continuous)
             .fill(previewBackgroundColor)
