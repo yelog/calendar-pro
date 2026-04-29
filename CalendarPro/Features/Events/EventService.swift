@@ -178,9 +178,9 @@ final class EventService: ObservableObject {
         
         guard !calendarsToFetch.isEmpty else { return [] }
         
-        // Fetch incomplete reminders due on or before the selected day (includes overdue)
+        // Fetch incomplete reminders due on the selected day only.
         let incompletePredicate = eventStore.predicateForIncompleteReminders(
-            withDueDateStarting: nil,
+            withDueDateStarting: startOfDay,
             ending: endOfDay,
             calendars: calendarsToFetch
         )
@@ -208,17 +208,17 @@ final class EventService: ObservableObject {
         
         let (incomplete, completed) = await (incompleteResult, completedResult)
         
-        // Filter incomplete reminders: due today or overdue (has a due date before end of today)
-        let filteredIncomplete = incomplete.filter { reminder in
-            guard let components = reminder.dueDateComponents,
-                  let dueDate = calendar.date(from: components) else { return false }
-            return dueDate < endOfDay
+        let filteredIncomplete = incomplete.filter {
+            Self.reminder($0, isDueOn: date, calendar: calendar)
+        }
+        let filteredCompleted = completed.filter {
+            Self.reminder($0, isDueOn: date, calendar: calendar)
         }
         
         // Combine and deduplicate
         var seen = Set<String>()
         var result: [EKReminder] = []
-        for reminder in filteredIncomplete + completed {
+        for reminder in filteredIncomplete + filteredCompleted {
             if seen.insert(reminder.calendarItemIdentifier).inserted {
                 result.append(reminder)
             }
@@ -289,6 +289,15 @@ final class EventService: ObservableObject {
 
     var writableReminderCalendars: [EKCalendar] {
         reminderCalendars.filter(\.allowsContentModifications)
+    }
+
+    static func reminder(_ reminder: EKReminder, isDueOn date: Date, calendar: Calendar = .current) -> Bool {
+        guard let components = reminder.dueDateComponents,
+              let dueDate = calendar.date(from: components) else {
+            return false
+        }
+
+        return calendar.isDate(dueDate, inSameDayAs: date)
     }
 
     func createEvent(_ request: CalendarEventCreationRequest) throws -> EKEvent {

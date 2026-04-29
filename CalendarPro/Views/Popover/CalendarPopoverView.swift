@@ -59,7 +59,7 @@ struct CalendarPopoverView: View {
     let onSelectEvent: (EKEvent) -> Void
     let onToggleReminder: (EKReminder) -> Void
     let onOpenReminder: (EKReminder) -> Void
-    let onCreateItem: (CalendarItemCreationKind) -> Void
+    let onCreateItem: () -> Void
     let onOpenVacationGuide: () -> Void
     let onResetToToday: () -> Void
     let onQuit: () -> Void
@@ -176,7 +176,7 @@ struct CalendarPopoverView: View {
                         .foregroundStyle(.secondary)
                         .fixedSize()
 
-                    creationMenu
+                    creationButton
                 }
 
                 EventListView(
@@ -196,31 +196,16 @@ struct CalendarPopoverView: View {
     }
 
     @ViewBuilder
-    private var creationMenu: some View {
+    private var creationButton: some View {
         if canCreateEvent || canCreateReminder {
-            Menu {
-                if canCreateEvent {
-                    Button {
-                        onCreateItem(.event)
-                    } label: {
-                        Label(L("New Event"), systemImage: "calendar.badge.plus")
-                    }
-                }
-
-                if canCreateReminder {
-                    Button {
-                        onCreateItem(.reminder)
-                    } label: {
-                        Label(L("New Reminder"), systemImage: "checklist")
-                    }
-                }
+            Button {
+                onCreateItem()
             } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 11, weight: .semibold))
                     .frame(width: 22, height: 22)
                     .contentShape(Rectangle())
             }
-            .menuStyle(.button)
             .buttonStyle(.plain)
             .help(L("Add"))
             .accessibilityIdentifier("calendar-popover-add-item-button")

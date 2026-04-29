@@ -98,8 +98,8 @@ struct RootPopoverView: View {
             onOpenReminder: { reminder in
                 handleOpenReminder(reminder)
             },
-            onCreateItem: { kind in
-                handleCreateItem(kind)
+            onCreateItem: {
+                handleCreateItem()
             },
             onOpenVacationGuide: {
                 onPresentVacationGuide(viewModel.displayedMonth) { date in
@@ -370,8 +370,9 @@ struct RootPopoverView: View {
         }
     }
 
-    private func handleCreateItem(_ kind: CalendarItemCreationKind) {
+    private func handleCreateItem() {
         guard let selectedDate = viewModel.selectedDate else { return }
+        let initialKind: CalendarItemCreationKind = canCreateEvent ? .event : .reminder
 
         dismissEventDetail()
         if eventService.isAuthorized {
@@ -382,7 +383,7 @@ struct RootPopoverView: View {
         }
 
         onPresentItemComposer(
-            kind,
+            initialKind,
             selectedDate,
             eventService.writableCalendars,
             eventService.writableReminderCalendars,

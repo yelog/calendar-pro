@@ -2,7 +2,6 @@ import SwiftUI
 import EventKit
 
 struct CalendarItemComposerView: View {
-    let kind: CalendarItemCreationKind
     let selectedDate: Date
     let eventCalendars: [EKCalendar]
     let reminderCalendars: [EKCalendar]
@@ -11,8 +10,10 @@ struct CalendarItemComposerView: View {
     let onClose: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
+    @State private var selectedKind: CalendarItemCreationKind
     @State private var title: String = ""
-    @State private var selectedCalendarIdentifier: String
+    @State private var selectedEventCalendarIdentifier: String
+    @State private var selectedReminderCalendarIdentifier: String
     @State private var startDate: Date
     @State private var endDate: Date
     @State private var isAllDay: Bool = false
@@ -36,7 +37,6 @@ struct CalendarItemComposerView: View {
         onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
         onClose: @escaping () -> Void
     ) {
-        self.kind = kind
         self.selectedDate = selectedDate
         self.eventCalendars = eventCalendars
         self.reminderCalendars = reminderCalendars
@@ -46,7 +46,6 @@ struct CalendarItemComposerView: View {
 
         let eventCalendarID = eventCalendars.first?.calendarIdentifier ?? ""
         let reminderCalendarID = reminderCalendars.first?.calendarIdentifier ?? ""
-        let fallbackCalendarID = kind == .event ? eventCalendarID : reminderCalendarID
         let eventRequest = CalendarEventCreationRequest.makeDefault(
             selectedDate: selectedDate,
             calendarIdentifier: eventCalendarID
@@ -56,7 +55,9 @@ struct CalendarItemComposerView: View {
             calendarIdentifier: reminderCalendarID
         )
 
-        _selectedCalendarIdentifier = State(initialValue: fallbackCalendarID)
+        _selectedKind = State(initialValue: kind)
+        _selectedEventCalendarIdentifier = State(initialValue: eventCalendarID)
+        _selectedReminderCalendarIdentifier = State(initialValue: reminderCalendarID)
         _startDate = State(initialValue: eventRequest.startDate)
         _endDate = State(initialValue: eventRequest.endDate)
         _dueDate = State(initialValue: reminderRequest.dueDate)
@@ -76,12 +77,15 @@ struct CalendarItemComposerView: View {
                 focusedField = .title
             }
         }
+        .onChange(of: selectedKind) { _, _ in
+            validationMessage = nil
+        }
     }
 
     private var header: some View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(kind == .event ? L("New Event") : L("New Reminder"))
+                Text(L("New Item"))
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                 Text(formattedSelectedDate)
                     .font(.system(size: 11, weight: .medium, design: .rounded))
@@ -107,12 +111,23 @@ struct CalendarItemComposerView: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if availableKinds.count > 1 {
+                Picker(L("Type"), selection: $selectedKind) {
+                    ForEach(availableKinds, id: \.self) { kind in
+                        Text(kind == .event ? L("Event") : L("Reminder"))
+                            .tag(kind)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            }
+
             TextField(L("Title"), text: $title)
                 .textFieldStyle(.roundedBorder)
                 .focused($focusedField, equals: .title)
                 .accessibilityIdentifier("calendar-item-composer-title-field")
 
-            if kind == .event {
+            if selectedKind == .event {
                 eventFields
             } else {
                 reminderFields
@@ -147,7 +162,11 @@ struct CalendarItemComposerView: View {
 
     private var eventFields: some View {
         VStack(alignment: .leading, spacing: 8) {
-            calendarPicker(title: L("Calendar"), calendars: eventCalendars)
+            calendarPicker(
+                title: L("Calendar"),
+                calendars: eventCalendars,
+                selection: $selectedEventCalendarIdentifier
+            )
 
             Toggle(L("All Day"), isOn: $isAllDay)
                 .font(.system(size: 12))
@@ -175,7 +194,11 @@ struct CalendarItemComposerView: View {
 
     private var reminderFields: some View {
         VStack(alignment: .leading, spacing: 8) {
-            calendarPicker(title: L("List"), calendars: reminderCalendars)
+            calendarPicker(
+                title: L("List"),
+                calendars: reminderCalendars,
+                selection: $selectedReminderCalendarIdentifier
+            )
 
             DatePicker(L("Date"), selection: $dueDate, displayedComponents: .date)
                 .font(.system(size: 12))
@@ -214,8 +237,12 @@ struct CalendarItemComposerView: View {
         }
     }
 
-    private func calendarPicker(title: String, calendars: [EKCalendar]) -> some View {
-        Picker(title, selection: $selectedCalendarIdentifier) {
+    private func calendarPicker(
+        title: String,
+        calendars: [EKCalendar],
+        selection: Binding<String>
+    ) -> some View {
+        Picker(title, selection: selection) {
             ForEach(calendars, id: \.calendarIdentifier) { calendar in
                 Text(calendarPickerDisplayText(for: calendar))
                 .tag(calendar.calendarIdentifier)
@@ -232,6 +259,26 @@ struct CalendarItemComposerView: View {
         return "\(presentation.calendarTitle) · \(accountTitle)"
     }
 
+    private var availableKinds: [CalendarItemCreationKind] {
+        var kinds: [CalendarItemCreationKind] = []
+        if !eventCalendars.isEmpty {
+            kinds.append(.event)
+        }
+        if !reminderCalendars.isEmpty {
+            kinds.append(.reminder)
+        }
+        return kinds
+    }
+
+    private var selectedCalendarIdentifier: String {
+        switch selectedKind {
+        case .event:
+            return selectedEventCalendarIdentifier
+        case .reminder:
+            return selectedReminderCalendarIdentifier
+        }
+    }
+
     private func save() {
         let normalizedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalizedTitle.isEmpty else {
@@ -240,7 +287,7 @@ struct CalendarItemComposerView: View {
         }
 
         guard !selectedCalendarIdentifier.isEmpty else {
-            validationMessage = kind == .event
+            validationMessage = selectedKind == .event
                 ? L("No writable calendar is available.")
                 : L("No writable reminder list is available.")
             return
@@ -250,11 +297,11 @@ struct CalendarItemComposerView: View {
         validationMessage = nil
 
         do {
-            switch kind {
+            switch selectedKind {
             case .event:
                 var request = CalendarEventCreationRequest(
                     title: normalizedTitle,
-                    calendarIdentifier: selectedCalendarIdentifier,
+                    calendarIdentifier: selectedEventCalendarIdentifier,
                     startDate: startDate,
                     endDate: endDate,
                     isAllDay: isAllDay,
@@ -273,7 +320,7 @@ struct CalendarItemComposerView: View {
                 try onSaveReminder(
                     ReminderCreationRequest(
                         title: normalizedTitle,
-                        calendarIdentifier: selectedCalendarIdentifier,
+                        calendarIdentifier: selectedReminderCalendarIdentifier,
                         dueDate: dueDate,
                         includesTime: reminderIncludesTime,
                         notes: notes

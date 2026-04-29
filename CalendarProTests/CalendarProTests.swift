@@ -112,6 +112,33 @@ final class PopoverControllerTests: XCTestCase {
         XCTAssertEqual(presenter.closeCallCount, 1)
     }
 
+    func testShowingComposerSuspendsTransientPopoverUntilComposerCloses() {
+        let popover = FakePopover()
+        let presenter = FakeEventDetailWindowPresenter()
+        let controller = makeController(
+            name: #function,
+            popover: popover,
+            interactionMonitor: FakePopoverInteractionMonitor(),
+            eventDetailPresenter: presenter
+        )
+
+        controller.showItemComposer(
+            kind: .event,
+            selectedDate: Date(),
+            eventCalendars: [],
+            reminderCalendars: [],
+            onSaveEvent: { _ in },
+            onSaveReminder: { _ in },
+            onClose: {}
+        )
+
+        XCTAssertEqual(popover.behavior, .applicationDefined)
+
+        presenter.lastOnClose?()
+
+        XCTAssertEqual(popover.behavior, .transient)
+    }
+
     func testReopenAfterThirtySecondsResetsToToday() {
         let popover = FakePopover()
         let interactionMonitor = FakePopoverInteractionMonitor()
