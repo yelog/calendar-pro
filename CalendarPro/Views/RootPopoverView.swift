@@ -1,16 +1,36 @@
 import SwiftUI
 import EventKit
+import AppKit
 
 struct RootPopoverView: View {
     @ObservedObject var settingsStore: SettingsStore
     @ObservedObject var eventService: EventService
     @ObservedObject var viewModel: CalendarPopoverViewModel
     @ObservedObject var timeRefreshCoordinator: TimeRefreshCoordinator
-    let onPresentEventDetailWindow: (EKEvent, @escaping () -> Void) -> Void
-    let onPresentReminderDetailWindow: (EKReminder, @escaping (EKReminder) -> Void, @escaping () -> Void) -> Void
+    let onPresentEventDetailWindow: (
+        EKEvent,
+        @escaping (EKEvent) -> Void,
+        @escaping (EKEvent) -> Void,
+        @escaping () -> Void
+    ) -> Void
+    let onPresentReminderDetailWindow: (
+        EKReminder,
+        @escaping (EKReminder) -> Void,
+        @escaping (EKReminder) -> Void,
+        @escaping (EKReminder) -> Void,
+        @escaping () -> Void
+    ) -> Void
     let onPresentItemComposer: (
         CalendarItemCreationKind,
         Date,
+        [EKCalendar],
+        [EKCalendar],
+        @escaping (CalendarEventCreationRequest) throws -> Void,
+        @escaping (ReminderCreationRequest) throws -> Void,
+        @escaping () -> Void
+    ) -> Void
+    let onPresentItemEditor: (
+        CalendarItemComposerMode,
         [EKCalendar],
         [EKCalendar],
         @escaping (CalendarEventCreationRequest) throws -> Void,
@@ -335,9 +355,18 @@ struct RootPopoverView: View {
     private func handleEventSelection(_ event: EKEvent) {
         let shouldPresent = viewModel.toggleEventSelection(identifier: event.selectionIdentifier)
         if shouldPresent {
-            onPresentEventDetailWindow(event) {
-                viewModel.clearSelectedEvent()
-            }
+            onPresentEventDetailWindow(
+                event,
+                { event in
+                    handleEditEvent(event)
+                },
+                { event in
+                    handleDeleteEvent(event)
+                },
+                {
+                    viewModel.clearSelectedEvent()
+                }
+            )
         } else {
             onDismissEventDetailWindow()
         }
@@ -356,18 +385,104 @@ struct RootPopoverView: View {
         let item = CalendarItem.reminder(reminder)
         let shouldPresent = viewModel.toggleEventSelection(identifier: item.selectionIdentifier)
         if shouldPresent {
-            onPresentReminderDetailWindow(reminder, { [weak eventService] toggledReminder in
-                do {
-                    try eventService?.toggleReminderCompletion(toggledReminder)
-                } catch {
-                    print("Failed to toggle reminder completion: \(error)")
+            onPresentReminderDetailWindow(
+                reminder,
+                { [weak eventService] toggledReminder in
+                    do {
+                        try eventService?.toggleReminderCompletion(toggledReminder)
+                    } catch {
+                        print("Failed to toggle reminder completion: \(error)")
+                    }
+                },
+                { reminder in
+                    handleEditReminder(reminder)
+                },
+                { reminder in
+                    handleDeleteReminder(reminder)
+                },
+                {
+                    viewModel.clearSelectedEvent()
                 }
-            }) {
-                viewModel.clearSelectedEvent()
-            }
+            )
         } else {
             onDismissEventDetailWindow()
         }
+    }
+
+    private func handleEditEvent(_ event: EKEvent) {
+        guard event.calendar.allowsContentModifications else { return }
+
+        if eventService.isAuthorized {
+            eventService.fetchCalendars()
+        }
+        if eventService.remindersAuthorized {
+            eventService.fetchReminderCalendars()
+        }
+
+        onPresentItemEditor(
+            .editEvent(event),
+            eventService.writableCalendars,
+            eventService.writableReminderCalendars,
+            { request in
+                try eventService.updateEvent(event, with: request)
+                refreshEventsForCurrentSelection()
+            },
+            { _ in },
+            {
+                viewModel.clearSelectedEvent()
+            }
+        )
+    }
+
+    private func handleEditReminder(_ reminder: EKReminder) {
+        guard reminder.calendar.allowsContentModifications else { return }
+
+        if eventService.isAuthorized {
+            eventService.fetchCalendars()
+        }
+        if eventService.remindersAuthorized {
+            eventService.fetchReminderCalendars()
+        }
+
+        onPresentItemEditor(
+            .editReminder(reminder),
+            eventService.writableCalendars,
+            eventService.writableReminderCalendars,
+            { _ in },
+            { request in
+                try eventService.updateReminder(reminder, with: request)
+                refreshEventsForCurrentSelection()
+            },
+            {
+                viewModel.clearSelectedEvent()
+            }
+        )
+    }
+
+    private func handleDeleteEvent(_ event: EKEvent) {
+        do {
+            try eventService.deleteEvent(event)
+            dismissEventDetail()
+            refreshEventsForCurrentSelection()
+        } catch {
+            presentDeletionError(title: L("Failed to Delete Event"), error: error)
+        }
+    }
+
+    private func handleDeleteReminder(_ reminder: EKReminder) {
+        do {
+            try eventService.deleteReminder(reminder)
+            dismissEventDetail()
+            refreshEventsForCurrentSelection()
+        } catch {
+            presentDeletionError(title: L("Failed to Delete Reminder"), error: error)
+        }
+    }
+
+    private func presentDeletionError(title: String, error: Error) {
+        let alert = NSAlert(error: error)
+        alert.messageText = title
+        alert.runModal()
     }
 
     private func handleCreateItem() {

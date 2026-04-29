@@ -1,9 +1,12 @@
 import SwiftUI
 import EventKit
+import AppKit
 
 struct ReminderDetailWindowView: View {
     let reminder: EKReminder
     let onToggle: (EKReminder) -> Void
+    let onEdit: (EKReminder) -> Void
+    let onDelete: (EKReminder) -> Void
     let onClose: () -> Void
     @Environment(\.colorScheme) private var colorScheme
 
@@ -12,7 +15,16 @@ struct ReminderDetailWindowView: View {
             header
             summaryCard
             detailScrollView
-            FooterActions(reminder: reminder)
+            FooterActions(
+                reminder: reminder,
+                canModify: reminder.calendar.allowsContentModifications,
+                onEdit: {
+                    onEdit(reminder)
+                },
+                onDelete: {
+                    onDelete(reminder)
+                }
+            )
         }
         .padding(PopoverSurfaceMetrics.outerPadding)
         .frame(width: PopoverSurfaceMetrics.width, alignment: .topLeading)
@@ -496,27 +508,64 @@ private struct ReminderEmptyDetailState: View {
 
 private struct FooterActions: View {
     let reminder: EKReminder
+    let canModify: Bool
+    let onEdit: () -> Void
+    let onDelete: () -> Void
 
     var body: some View {
-        Button {
-            let item = CalendarItem.reminder(reminder)
-            guard let url = item.remindersAppURL else {
-                if let fallback = URL(string: "x-apple-reminderkit://") {
-                    NSWorkspace.shared.open(fallback)
+        HStack(spacing: 8) {
+            if canModify {
+                footerButton(title: L("Edit"), systemImage: "pencil", action: onEdit)
+                footerButton(title: L("Delete"), systemImage: "trash", isDestructive: true) {
+                    confirmDelete()
                 }
-                return
             }
-            NSWorkspace.shared.open(url)
-        } label: {
+
+            footerButton(title: L("Open"), systemImage: "list.bullet.rectangle.portrait", action: openInReminders)
+        }
+    }
+
+    private func confirmDelete() {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = L("Delete Reminder?")
+        alert.informativeText = L("This action cannot be undone.")
+        alert.addButton(withTitle: L("Delete"))
+        alert.addButton(withTitle: L("Cancel"))
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            onDelete()
+        }
+    }
+
+    private func openInReminders() {
+        let item = CalendarItem.reminder(reminder)
+        guard let url = item.remindersAppURL else {
+            if let fallback = URL(string: "x-apple-reminderkit://") {
+                NSWorkspace.shared.open(fallback)
+            }
+            return
+        }
+        NSWorkspace.shared.open(url)
+    }
+
+    private func footerButton(
+        title: String,
+        systemImage: String,
+        isDestructive: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
             HStack(spacing: 6) {
-                Image(systemName: "list.bullet.rectangle.portrait")
+                Image(systemName: systemImage)
                     .font(.system(size: 11, weight: .semibold))
-                Text(L("Open in Reminders"))
+                Text(title)
                     .font(.system(size: 12, weight: .medium))
             }
-            .foregroundColor(.secondary)
+            .foregroundColor(isDestructive ? .red : .secondary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
+            .contentShape(Rectangle())
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(Color(nsColor: .controlBackgroundColor).opacity(0.6))

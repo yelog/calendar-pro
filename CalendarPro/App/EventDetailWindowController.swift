@@ -4,11 +4,34 @@ import EventKit
 
 @MainActor
 protocol EventDetailWindowPresenting: AnyObject {
-    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onJoinMeeting: (() -> Void)?, onClose: @escaping () -> Void)
-    func show(reminder: EKReminder, anchoredTo anchorWindow: NSWindow?, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void)
+    func show(
+        event: EKEvent,
+        anchoredTo anchorWindow: NSWindow?,
+        onEdit: @escaping (EKEvent) -> Void,
+        onDelete: @escaping (EKEvent) -> Void,
+        onJoinMeeting: (() -> Void)?,
+        onClose: @escaping () -> Void
+    )
+    func show(
+        reminder: EKReminder,
+        anchoredTo anchorWindow: NSWindow?,
+        onToggle: @escaping (EKReminder) -> Void,
+        onEdit: @escaping (EKReminder) -> Void,
+        onDelete: @escaping (EKReminder) -> Void,
+        onClose: @escaping () -> Void
+    )
     func showComposer(
         kind: CalendarItemCreationKind,
         selectedDate: Date,
+        eventCalendars: [EKCalendar],
+        reminderCalendars: [EKCalendar],
+        anchoredTo anchorWindow: NSWindow?,
+        onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
+        onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
+        onClose: @escaping () -> Void
+    )
+    func showEditor(
+        mode: CalendarItemComposerMode,
         eventCalendars: [EKCalendar],
         reminderCalendars: [EKCalendar],
         anchoredTo anchorWindow: NSWindow?,
@@ -42,13 +65,21 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     private var panelMode: PanelMode?
     private var onClose: (() -> Void)?
 
-    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onJoinMeeting: (() -> Void)? = nil, onClose: @escaping () -> Void) {
-        self.onClose = onClose
-
+    func show(
+        event: EKEvent,
+        anchoredTo anchorWindow: NSWindow?,
+        onEdit: @escaping (EKEvent) -> Void,
+        onDelete: @escaping (EKEvent) -> Void,
+        onJoinMeeting: (() -> Void)? = nil,
+        onClose: @escaping () -> Void
+    ) {
         let panel = makePanelIfNeeded(mode: .detail)
+        self.onClose = onClose
         let hostingController = NSHostingController(
             rootView: EventDetailWindowView(
                 event: event,
+                onEdit: onEdit,
+                onDelete: onDelete,
                 onClose: { [weak self] in
                     self?.close()
                 },
@@ -62,12 +93,23 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow)
     }
 
-    func show(reminder: EKReminder, anchoredTo anchorWindow: NSWindow?, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void) {
-        self.onClose = onClose
-
+    func show(
+        reminder: EKReminder,
+        anchoredTo anchorWindow: NSWindow?,
+        onToggle: @escaping (EKReminder) -> Void,
+        onEdit: @escaping (EKReminder) -> Void,
+        onDelete: @escaping (EKReminder) -> Void,
+        onClose: @escaping () -> Void
+    ) {
         let panel = makePanelIfNeeded(mode: .detail)
+        self.onClose = onClose
         let hostingController = NSHostingController(
-            rootView: ReminderDetailWindowView(reminder: reminder, onToggle: onToggle) { [weak self] in
+            rootView: ReminderDetailWindowView(
+                reminder: reminder,
+                onToggle: onToggle,
+                onEdit: onEdit,
+                onDelete: onDelete
+            ) { [weak self] in
                 self?.close()
             }
         )
@@ -85,13 +127,37 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
         onClose: @escaping () -> Void
     ) {
-        self.onClose = onClose
-
         let panel = makePanelIfNeeded(mode: .composer)
+        self.onClose = onClose
         let hostingController = NSHostingController(
             rootView: CalendarItemComposerView(
-                kind: kind,
-                selectedDate: selectedDate,
+                mode: .create(kind: kind, selectedDate: selectedDate),
+                eventCalendars: eventCalendars,
+                reminderCalendars: reminderCalendars,
+                onSaveEvent: onSaveEvent,
+                onSaveReminder: onSaveReminder
+            ) { [weak self] in
+                self?.close()
+            }
+        )
+
+        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, activatesForTextInput: true)
+    }
+
+    func showEditor(
+        mode: CalendarItemComposerMode,
+        eventCalendars: [EKCalendar],
+        reminderCalendars: [EKCalendar],
+        anchoredTo anchorWindow: NSWindow?,
+        onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
+        onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
+        onClose: @escaping () -> Void
+    ) {
+        let panel = makePanelIfNeeded(mode: .composer)
+        self.onClose = onClose
+        let hostingController = NSHostingController(
+            rootView: CalendarItemComposerView(
+                mode: mode,
                 eventCalendars: eventCalendars,
                 reminderCalendars: reminderCalendars,
                 onSaveEvent: onSaveEvent,

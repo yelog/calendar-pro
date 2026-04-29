@@ -71,6 +71,59 @@ final class EventServiceTests: XCTestCase {
         XCTAssertTrue(request.includesTime)
     }
 
+    func testEditingEventRequestPreservesExistingValues() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let startDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 29, hour: 9))!
+        let endDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 29, hour: 10))!
+        let store = EKEventStore()
+        let event = EKEvent(eventStore: store)
+        event.calendar = EKCalendar(for: .event, eventStore: store)
+        event.title = "Planning"
+        event.startDate = startDate
+        event.endDate = endDate
+        event.isAllDay = false
+        event.notes = "Room 1"
+
+        let request = CalendarEventCreationRequest.makeEditing(event)
+
+        XCTAssertEqual(request.title, "Planning")
+        XCTAssertEqual(request.calendarIdentifier, event.calendar.calendarIdentifier)
+        XCTAssertEqual(request.startDate, startDate)
+        XCTAssertEqual(request.endDate, endDate)
+        XCTAssertFalse(request.isAllDay)
+        XCTAssertEqual(request.notes, "Room 1")
+    }
+
+    func testEditingReminderRequestPreservesDueTimeAndNotes() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let store = EKEventStore()
+        let reminder = EKReminder(eventStore: store)
+        reminder.calendar = EKCalendar(for: .reminder, eventStore: store)
+        reminder.title = "test todo"
+        reminder.notes = "Follow up"
+        reminder.dueDateComponents = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 4,
+            day: 29,
+            hour: 14,
+            minute: 0
+        )
+
+        let request = ReminderCreationRequest.makeEditing(reminder, calendar: calendar)
+
+        XCTAssertEqual(request.title, "test todo")
+        XCTAssertEqual(request.calendarIdentifier, reminder.calendar.calendarIdentifier)
+        XCTAssertEqual(calendar.component(.day, from: request.dueDate), 29)
+        XCTAssertEqual(calendar.component(.hour, from: request.dueDate), 14)
+        XCTAssertEqual(calendar.component(.minute, from: request.dueDate), 0)
+        XCTAssertTrue(request.includesTime)
+        XCTAssertEqual(request.notes, "Follow up")
+    }
+
     func testReminderDueDateMatchingRejectsPreviousDayReminder() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!

@@ -148,20 +148,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 eventService: eventService,
                 viewModel: uiTestPopoverViewModel,
                 timeRefreshCoordinator: uiTestTimeRefreshCoordinator,
-                onPresentEventDetailWindow: { [weak self] event, onClose in
+                onPresentEventDetailWindow: { [weak self] event, onEdit, onDelete, onClose in
                     self?.uiTestVacationGuideWindowController.close()
                     self?.uiTestEventDetailWindowController.show(
                         event: event,
                         anchoredTo: self?.uiTestWindow,
+                        onEdit: onEdit,
+                        onDelete: onDelete,
                         onClose: onClose
                     )
                 },
-                onPresentReminderDetailWindow: { [weak self] reminder, onToggle, onClose in
+                onPresentReminderDetailWindow: { [weak self] reminder, onToggle, onEdit, onDelete, onClose in
                     self?.uiTestVacationGuideWindowController.close()
                     self?.uiTestEventDetailWindowController.show(
                         reminder: reminder,
                         anchoredTo: self?.uiTestWindow,
                         onToggle: onToggle,
+                        onEdit: onEdit,
+                        onDelete: onDelete,
                         onClose: onClose
                     )
                 },
@@ -170,6 +174,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     self?.uiTestEventDetailWindowController.showComposer(
                         kind: kind,
                         selectedDate: selectedDate,
+                        eventCalendars: eventCalendars,
+                        reminderCalendars: reminderCalendars,
+                        anchoredTo: self?.uiTestWindow,
+                        onSaveEvent: onSaveEvent,
+                        onSaveReminder: onSaveReminder,
+                        onClose: onClose
+                    )
+                },
+                onPresentItemEditor: { [weak self] mode, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
+                    self?.uiTestVacationGuideWindowController.close()
+                    self?.uiTestEventDetailWindowController.showEditor(
+                        mode: mode,
                         eventCalendars: eventCalendars,
                         reminderCalendars: reminderCalendars,
                         anchoredTo: self?.uiTestWindow,

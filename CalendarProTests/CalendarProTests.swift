@@ -31,9 +31,14 @@ final class PopoverControllerTests: XCTestCase {
         let event = makeEvent()
         var didInvokeClose = false
 
-        controller.showEventDetailWindow(for: event) {
-            didInvokeClose = true
-        }
+        controller.showEventDetailWindow(
+            for: event,
+            onEdit: { _ in },
+            onDelete: { _ in },
+            onClose: {
+                didInvokeClose = true
+            }
+        )
 
         XCTAssertEqual(presenter.showCallCount, 1)
         XCTAssertTrue(presenter.lastEvent === event)
@@ -125,6 +130,35 @@ final class PopoverControllerTests: XCTestCase {
         controller.showItemComposer(
             kind: .event,
             selectedDate: Date(),
+            eventCalendars: [],
+            reminderCalendars: [],
+            onSaveEvent: { _ in },
+            onSaveReminder: { _ in },
+            onClose: {}
+        )
+
+        XCTAssertEqual(popover.behavior, .applicationDefined)
+
+        presenter.lastOnClose?()
+
+        XCTAssertEqual(popover.behavior, .transient)
+    }
+
+    func testShowingEditorSuspendsTransientPopoverUntilEditorCloses() {
+        let popover = FakePopover()
+        let presenter = FakeEventDetailWindowPresenter()
+        let controller = makeController(
+            name: #function,
+            popover: popover,
+            interactionMonitor: FakePopoverInteractionMonitor(),
+            eventDetailPresenter: presenter
+        )
+        let event = EKEvent(eventStore: EKEventStore())
+        event.startDate = Date()
+        event.endDate = Date()
+
+        controller.showItemEditor(
+            mode: .editEvent(event),
             eventCalendars: [],
             reminderCalendars: [],
             onSaveEvent: { _ in },
@@ -369,14 +403,28 @@ private final class FakeEventDetailWindowPresenter: EventDetailWindowPresenting 
     private(set) var lastAnchorWindow: NSWindow?
     private(set) var lastOnClose: (() -> Void)?
 
-    func show(event: EKEvent, anchoredTo anchorWindow: NSWindow?, onJoinMeeting: (() -> Void)? = nil, onClose: @escaping () -> Void) {
+    func show(
+        event: EKEvent,
+        anchoredTo anchorWindow: NSWindow?,
+        onEdit: @escaping (EKEvent) -> Void,
+        onDelete: @escaping (EKEvent) -> Void,
+        onJoinMeeting: (() -> Void)? = nil,
+        onClose: @escaping () -> Void
+    ) {
         showCallCount += 1
         lastEvent = event
         lastAnchorWindow = anchorWindow
         lastOnClose = onClose
     }
 
-    func show(reminder: EKReminder, anchoredTo anchorWindow: NSWindow?, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void) {
+    func show(
+        reminder: EKReminder,
+        anchoredTo anchorWindow: NSWindow?,
+        onToggle: @escaping (EKReminder) -> Void,
+        onEdit: @escaping (EKReminder) -> Void,
+        onDelete: @escaping (EKReminder) -> Void,
+        onClose: @escaping () -> Void
+    ) {
         showCallCount += 1
         lastOnClose = onClose
     }
@@ -384,6 +432,20 @@ private final class FakeEventDetailWindowPresenter: EventDetailWindowPresenting 
     func showComposer(
         kind: CalendarItemCreationKind,
         selectedDate: Date,
+        eventCalendars: [EKCalendar],
+        reminderCalendars: [EKCalendar],
+        anchoredTo anchorWindow: NSWindow?,
+        onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
+        onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
+        onClose: @escaping () -> Void
+    ) {
+        showCallCount += 1
+        lastAnchorWindow = anchorWindow
+        lastOnClose = onClose
+    }
+
+    func showEditor(
+        mode: CalendarItemComposerMode,
         eventCalendars: [EKCalendar],
         reminderCalendars: [EKCalendar],
         anchoredTo anchorWindow: NSWindow?,

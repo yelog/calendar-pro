@@ -153,16 +153,32 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                 eventService: eventService,
                 viewModel: viewModel,
                 timeRefreshCoordinator: timeRefreshCoordinator,
-                onPresentEventDetailWindow: { [weak self] event, onClose in
-                    self?.showEventDetailWindow(for: event, onClose: onClose)
+                onPresentEventDetailWindow: { [weak self] event, onEdit, onDelete, onClose in
+                    self?.showEventDetailWindow(for: event, onEdit: onEdit, onDelete: onDelete, onClose: onClose)
                 },
-                onPresentReminderDetailWindow: { [weak self] reminder, onToggle, onClose in
-                    self?.showReminderDetailWindow(for: reminder, onToggle: onToggle, onClose: onClose)
+                onPresentReminderDetailWindow: { [weak self] reminder, onToggle, onEdit, onDelete, onClose in
+                    self?.showReminderDetailWindow(
+                        for: reminder,
+                        onToggle: onToggle,
+                        onEdit: onEdit,
+                        onDelete: onDelete,
+                        onClose: onClose
+                    )
                 },
                 onPresentItemComposer: { [weak self] kind, selectedDate, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
                     self?.showItemComposer(
                         kind: kind,
                         selectedDate: selectedDate,
+                        eventCalendars: eventCalendars,
+                        reminderCalendars: reminderCalendars,
+                        onSaveEvent: onSaveEvent,
+                        onSaveReminder: onSaveReminder,
+                        onClose: onClose
+                    )
+                },
+                onPresentItemEditor: { [weak self] mode, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
+                    self?.showItemEditor(
+                        mode: mode,
                         eventCalendars: eventCalendars,
                         reminderCalendars: reminderCalendars,
                         onSaveEvent: onSaveEvent,
@@ -216,11 +232,18 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         viewModel.popoverDidClose()
     }
 
-    func showEventDetailWindow(for event: EKEvent, onClose: @escaping () -> Void) {
+    func showEventDetailWindow(
+        for event: EKEvent,
+        onEdit: @escaping (EKEvent) -> Void,
+        onDelete: @escaping (EKEvent) -> Void,
+        onClose: @escaping () -> Void
+    ) {
         closeVacationGuideWindow()
         eventDetailPresenter.show(
             event: event,
             anchoredTo: popover.contentViewController?.view.window,
+            onEdit: onEdit,
+            onDelete: onDelete,
             onJoinMeeting: { [weak self] in
                 self?.closePopover()
             },
@@ -228,12 +251,20 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         )
     }
 
-    func showReminderDetailWindow(for reminder: EKReminder, onToggle: @escaping (EKReminder) -> Void, onClose: @escaping () -> Void) {
+    func showReminderDetailWindow(
+        for reminder: EKReminder,
+        onToggle: @escaping (EKReminder) -> Void,
+        onEdit: @escaping (EKReminder) -> Void,
+        onDelete: @escaping (EKReminder) -> Void,
+        onClose: @escaping () -> Void
+    ) {
         closeVacationGuideWindow()
         eventDetailPresenter.show(
             reminder: reminder,
             anchoredTo: popover.contentViewController?.view.window,
             onToggle: onToggle,
+            onEdit: onEdit,
+            onDelete: onDelete,
             onClose: onClose
         )
     }
@@ -252,6 +283,30 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         eventDetailPresenter.showComposer(
             kind: kind,
             selectedDate: selectedDate,
+            eventCalendars: eventCalendars,
+            reminderCalendars: reminderCalendars,
+            anchoredTo: popover.contentViewController?.view.window,
+            onSaveEvent: onSaveEvent,
+            onSaveReminder: onSaveReminder,
+            onClose: { [weak self] in
+                onClose()
+                self?.restoreTransientPopoverBehaviorIfNeeded()
+            }
+        )
+    }
+
+    func showItemEditor(
+        mode: CalendarItemComposerMode,
+        eventCalendars: [EKCalendar],
+        reminderCalendars: [EKCalendar],
+        onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
+        onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
+        onClose: @escaping () -> Void
+    ) {
+        closeVacationGuideWindow()
+        suspendTransientPopoverBehaviorForComposer()
+        eventDetailPresenter.showEditor(
+            mode: mode,
             eventCalendars: eventCalendars,
             reminderCalendars: reminderCalendars,
             anchoredTo: popover.contentViewController?.view.window,
