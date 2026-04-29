@@ -39,6 +39,17 @@ struct CalendarEventCreationRequest: Equatable {
             notes: nil
         )
     }
+
+    static func makeEditing(_ event: EKEvent) -> CalendarEventCreationRequest {
+        CalendarEventCreationRequest(
+            title: event.title ?? "",
+            calendarIdentifier: event.calendar.calendarIdentifier,
+            startDate: event.startDate,
+            endDate: event.endDate,
+            isAllDay: event.isAllDay,
+            notes: event.notes
+        )
+    }
 }
 
 struct ReminderCreationRequest: Equatable {
@@ -69,6 +80,22 @@ struct ReminderCreationRequest: Equatable {
             dueDate: dueDate,
             includesTime: true,
             notes: nil
+        )
+    }
+
+    static func makeEditing(_ reminder: EKReminder, calendar: Calendar = .autoupdatingCurrent) -> ReminderCreationRequest {
+        let components = reminder.dueDateComponents
+        let dueDate = components.flatMap { calendar.date(from: $0) } ?? Date()
+        let includesTime = components?.hour != nil
+            || components?.minute != nil
+            || components?.second != nil
+
+        return ReminderCreationRequest(
+            title: reminder.title ?? "",
+            calendarIdentifier: reminder.calendar.calendarIdentifier,
+            dueDate: dueDate,
+            includesTime: includesTime,
+            notes: reminder.notes
         )
     }
 }
@@ -330,6 +357,46 @@ final class EventService: ObservableObject {
         return event
     }
 
+    func updateEvent(_ event: EKEvent, with request: CalendarEventCreationRequest) throws {
+        guard isAuthorized else {
+            throw NSError(
+                domain: "CalendarPro.EventUpdate",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: L("Calendar Access Required")]
+            )
+        }
+
+        guard let calendar = calendar(withIdentifier: request.calendarIdentifier),
+              calendar.allowsContentModifications else {
+            throw NSError(
+                domain: "CalendarPro.EventUpdate",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: L("No writable calendar is available.")]
+            )
+        }
+
+        event.calendar = calendar
+        event.title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        event.startDate = request.startDate
+        event.endDate = max(request.endDate, request.startDate)
+        event.isAllDay = request.isAllDay
+        event.notes = normalizedOptionalText(request.notes)
+
+        try eventStore.save(event, span: .thisEvent, commit: true)
+    }
+
+    func deleteEvent(_ event: EKEvent) throws {
+        guard isAuthorized else {
+            throw NSError(
+                domain: "CalendarPro.EventDelete",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: L("Calendar Access Required")]
+            )
+        }
+
+        try eventStore.remove(event, span: .thisEvent, commit: true)
+    }
+
     func createReminder(_ request: ReminderCreationRequest) throws -> EKReminder {
         guard remindersAuthorized else {
             throw NSError(
@@ -356,6 +423,44 @@ final class EventService: ObservableObject {
 
         try eventStore.save(reminder, commit: true)
         return reminder
+    }
+
+    func updateReminder(_ reminder: EKReminder, with request: ReminderCreationRequest) throws {
+        guard remindersAuthorized else {
+            throw NSError(
+                domain: "CalendarPro.ReminderUpdate",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: L("Reminders Access Required")]
+            )
+        }
+
+        guard let calendar = reminderCalendar(withIdentifier: request.calendarIdentifier),
+              calendar.allowsContentModifications else {
+            throw NSError(
+                domain: "CalendarPro.ReminderUpdate",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: L("No writable reminder list is available.")]
+            )
+        }
+
+        reminder.calendar = calendar
+        reminder.title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        reminder.notes = normalizedOptionalText(request.notes)
+        reminder.dueDateComponents = dueDateComponents(for: request.dueDate, includesTime: request.includesTime)
+
+        try eventStore.save(reminder, commit: true)
+    }
+
+    func deleteReminder(_ reminder: EKReminder) throws {
+        guard remindersAuthorized else {
+            throw NSError(
+                domain: "CalendarPro.ReminderDelete",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: L("Reminders Access Required")]
+            )
+        }
+
+        try eventStore.remove(reminder, commit: true)
     }
 
     private func dueDateComponents(for date: Date, includesTime: Bool) -> DateComponents {

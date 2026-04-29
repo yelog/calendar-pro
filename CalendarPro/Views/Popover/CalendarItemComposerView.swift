@@ -1,7 +1,14 @@
 import SwiftUI
 import EventKit
 
+enum CalendarItemComposerMode {
+    case create(kind: CalendarItemCreationKind, selectedDate: Date)
+    case editEvent(EKEvent)
+    case editReminder(EKReminder)
+}
+
 struct CalendarItemComposerView: View {
+    let mode: CalendarItemComposerMode
     let selectedDate: Date
     let eventCalendars: [EKCalendar]
     let reminderCalendars: [EKCalendar]
@@ -29,38 +36,37 @@ struct CalendarItemComposerView: View {
     }
 
     init(
-        kind: CalendarItemCreationKind,
-        selectedDate: Date,
+        mode: CalendarItemComposerMode,
         eventCalendars: [EKCalendar],
         reminderCalendars: [EKCalendar],
         onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
         onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
         onClose: @escaping () -> Void
     ) {
-        self.selectedDate = selectedDate
+        self.mode = mode
         self.eventCalendars = eventCalendars
         self.reminderCalendars = reminderCalendars
         self.onSaveEvent = onSaveEvent
         self.onSaveReminder = onSaveReminder
         self.onClose = onClose
 
-        let eventCalendarID = eventCalendars.first?.calendarIdentifier ?? ""
-        let reminderCalendarID = reminderCalendars.first?.calendarIdentifier ?? ""
-        let eventRequest = CalendarEventCreationRequest.makeDefault(
-            selectedDate: selectedDate,
-            calendarIdentifier: eventCalendarID
+        let initialValues = Self.initialValues(
+            for: mode,
+            eventCalendars: eventCalendars,
+            reminderCalendars: reminderCalendars
         )
-        let reminderRequest = ReminderCreationRequest.makeDefault(
-            selectedDate: selectedDate,
-            calendarIdentifier: reminderCalendarID
-        )
+        self.selectedDate = initialValues.selectedDate
 
-        _selectedKind = State(initialValue: kind)
-        _selectedEventCalendarIdentifier = State(initialValue: eventCalendarID)
-        _selectedReminderCalendarIdentifier = State(initialValue: reminderCalendarID)
-        _startDate = State(initialValue: eventRequest.startDate)
-        _endDate = State(initialValue: eventRequest.endDate)
-        _dueDate = State(initialValue: reminderRequest.dueDate)
+        _selectedKind = State(initialValue: initialValues.kind)
+        _title = State(initialValue: initialValues.title)
+        _selectedEventCalendarIdentifier = State(initialValue: initialValues.eventCalendarIdentifier)
+        _selectedReminderCalendarIdentifier = State(initialValue: initialValues.reminderCalendarIdentifier)
+        _startDate = State(initialValue: initialValues.startDate)
+        _endDate = State(initialValue: initialValues.endDate)
+        _isAllDay = State(initialValue: initialValues.isAllDay)
+        _dueDate = State(initialValue: initialValues.dueDate)
+        _reminderIncludesTime = State(initialValue: initialValues.reminderIncludesTime)
+        _notes = State(initialValue: initialValues.notes)
     }
 
     var body: some View {
@@ -85,7 +91,7 @@ struct CalendarItemComposerView: View {
     private var header: some View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(L("New Item"))
+                Text(headerTitle)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                 Text(formattedSelectedDate)
                     .font(.system(size: 11, weight: .medium, design: .rounded))
@@ -111,7 +117,7 @@ struct CalendarItemComposerView: View {
 
     private var content: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if availableKinds.count > 1 {
+            if showsKindPicker {
                 Picker(L("Type"), selection: $selectedKind) {
                     ForEach(availableKinds, id: \.self) { kind in
                         Text(kind == .event ? L("Event") : L("Reminder"))
@@ -228,7 +234,7 @@ struct CalendarItemComposerView: View {
                         .scaleEffect(0.65)
                         .frame(width: 42)
                 } else {
-                    Text(L("Save"))
+                    Text(saveButtonTitle)
                         .frame(minWidth: 42)
                 }
             }
@@ -260,6 +266,10 @@ struct CalendarItemComposerView: View {
     }
 
     private var availableKinds: [CalendarItemCreationKind] {
+        if isEditing {
+            return [selectedKind]
+        }
+
         var kinds: [CalendarItemCreationKind] = []
         if !eventCalendars.isEmpty {
             kinds.append(.event)
@@ -270,12 +280,129 @@ struct CalendarItemComposerView: View {
         return kinds
     }
 
+    private var isEditing: Bool {
+        switch mode {
+        case .create:
+            return false
+        case .editEvent, .editReminder:
+            return true
+        }
+    }
+
+    private var showsKindPicker: Bool {
+        !isEditing && availableKinds.count > 1
+    }
+
+    private var headerTitle: String {
+        switch mode {
+        case .create:
+            return L("New Item")
+        case .editEvent:
+            return L("Edit Event")
+        case .editReminder:
+            return L("Edit Reminder")
+        }
+    }
+
+    private var saveButtonTitle: String {
+        isEditing ? L("Update") : L("Save")
+    }
+
     private var selectedCalendarIdentifier: String {
         switch selectedKind {
         case .event:
             return selectedEventCalendarIdentifier
         case .reminder:
             return selectedReminderCalendarIdentifier
+        }
+    }
+
+    private struct InitialValues {
+        let kind: CalendarItemCreationKind
+        let selectedDate: Date
+        let title: String
+        let eventCalendarIdentifier: String
+        let reminderCalendarIdentifier: String
+        let startDate: Date
+        let endDate: Date
+        let isAllDay: Bool
+        let dueDate: Date
+        let reminderIncludesTime: Bool
+        let notes: String
+    }
+
+    private static func initialValues(
+        for mode: CalendarItemComposerMode,
+        eventCalendars: [EKCalendar],
+        reminderCalendars: [EKCalendar]
+    ) -> InitialValues {
+        let eventCalendarID = eventCalendars.first?.calendarIdentifier ?? ""
+        let reminderCalendarID = reminderCalendars.first?.calendarIdentifier ?? ""
+
+        switch mode {
+        case .create(let kind, let selectedDate):
+            let eventRequest = CalendarEventCreationRequest.makeDefault(
+                selectedDate: selectedDate,
+                calendarIdentifier: eventCalendarID
+            )
+            let reminderRequest = ReminderCreationRequest.makeDefault(
+                selectedDate: selectedDate,
+                calendarIdentifier: reminderCalendarID
+            )
+
+            return InitialValues(
+                kind: kind,
+                selectedDate: selectedDate,
+                title: "",
+                eventCalendarIdentifier: eventCalendarID,
+                reminderCalendarIdentifier: reminderCalendarID,
+                startDate: eventRequest.startDate,
+                endDate: eventRequest.endDate,
+                isAllDay: eventRequest.isAllDay,
+                dueDate: reminderRequest.dueDate,
+                reminderIncludesTime: reminderRequest.includesTime,
+                notes: ""
+            )
+        case .editEvent(let event):
+            let eventRequest = CalendarEventCreationRequest.makeEditing(event)
+            let reminderRequest = ReminderCreationRequest.makeDefault(
+                selectedDate: event.startDate,
+                calendarIdentifier: reminderCalendarID
+            )
+
+            return InitialValues(
+                kind: .event,
+                selectedDate: event.startDate,
+                title: eventRequest.title,
+                eventCalendarIdentifier: eventRequest.calendarIdentifier,
+                reminderCalendarIdentifier: reminderCalendarID,
+                startDate: eventRequest.startDate,
+                endDate: eventRequest.endDate,
+                isAllDay: eventRequest.isAllDay,
+                dueDate: reminderRequest.dueDate,
+                reminderIncludesTime: reminderRequest.includesTime,
+                notes: eventRequest.notes ?? ""
+            )
+        case .editReminder(let reminder):
+            let reminderRequest = ReminderCreationRequest.makeEditing(reminder)
+            let eventRequest = CalendarEventCreationRequest.makeDefault(
+                selectedDate: reminderRequest.dueDate,
+                calendarIdentifier: eventCalendarID
+            )
+
+            return InitialValues(
+                kind: .reminder,
+                selectedDate: reminderRequest.dueDate,
+                title: reminderRequest.title,
+                eventCalendarIdentifier: eventCalendarID,
+                reminderCalendarIdentifier: reminderRequest.calendarIdentifier,
+                startDate: eventRequest.startDate,
+                endDate: eventRequest.endDate,
+                isAllDay: eventRequest.isAllDay,
+                dueDate: reminderRequest.dueDate,
+                reminderIncludesTime: reminderRequest.includesTime,
+                notes: reminderRequest.notes ?? ""
+            )
         }
     }
 

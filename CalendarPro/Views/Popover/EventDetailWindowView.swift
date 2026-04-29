@@ -1,8 +1,11 @@
 import SwiftUI
 import EventKit
+import AppKit
 
 struct EventDetailWindowView: View {
     let event: EKEvent
+    let onEdit: (EKEvent) -> Void
+    let onDelete: (EKEvent) -> Void
     let onClose: () -> Void
     let onPreferredHeightChange: ((CGFloat) -> Void)?
     let onJoinMeeting: (() -> Void)?
@@ -19,8 +22,17 @@ struct EventDetailWindowView: View {
     @State private var detailContentHeight: CGFloat = 0
     @State private var lastReportedPreferredHeight: CGFloat = 0
 
-    init(event: EKEvent, onClose: @escaping () -> Void, onPreferredHeightChange: ((CGFloat) -> Void)? = nil, onJoinMeeting: (() -> Void)? = nil) {
+    init(
+        event: EKEvent,
+        onEdit: @escaping (EKEvent) -> Void,
+        onDelete: @escaping (EKEvent) -> Void,
+        onClose: @escaping () -> Void,
+        onPreferredHeightChange: ((CGFloat) -> Void)? = nil,
+        onJoinMeeting: (() -> Void)? = nil
+    ) {
         self.event = event
+        self.onEdit = onEdit
+        self.onDelete = onDelete
         self.onClose = onClose
         self.onPreferredHeightChange = onPreferredHeightChange
         self.onJoinMeeting = onJoinMeeting
@@ -40,7 +52,16 @@ struct EventDetailWindowView: View {
                 )
             }
             detailScrollView
-            FooterActions(event: event)
+            FooterActions(
+                event: event,
+                canModify: event.calendar.allowsContentModifications,
+                onEdit: {
+                    onEdit(event)
+                },
+                onDelete: {
+                    onDelete(event)
+                }
+            )
         }
         .padding(PopoverSurfaceMetrics.outerPadding)
         .frame(width: PopoverSurfaceMetrics.width, alignment: .topLeading)
@@ -1020,20 +1041,62 @@ private struct MeetingActionButton: View {
 
 private struct FooterActions: View {
     let event: EKEvent
+    let canModify: Bool
+    let onEdit: () -> Void
+    let onDelete: () -> Void
 
     var body: some View {
-        Button {
-            openInCalendar()
-        } label: {
+        HStack(spacing: 8) {
+            if canModify {
+                footerButton(title: L("Edit"), systemImage: "pencil", action: onEdit)
+                footerButton(title: L("Delete"), systemImage: "trash", isDestructive: true) {
+                    confirmDelete()
+                }
+            }
+
+            footerButton(title: L("Open"), systemImage: "calendar", action: openInCalendar)
+        }
+    }
+
+    private func confirmDelete() {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = L("Delete Event?")
+        alert.informativeText = L("This action cannot be undone.")
+        alert.addButton(withTitle: L("Delete"))
+        alert.addButton(withTitle: L("Cancel"))
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            onDelete()
+        }
+    }
+
+    private func openInCalendar() {
+        let workspace = NSWorkspace.shared
+        if let appURL = workspace.urlForApplication(
+            withBundleIdentifier: "com.apple.iCal"
+        ) {
+            workspace.openApplication(at: appURL, configuration: .init())
+        }
+    }
+
+    private func footerButton(
+        title: String,
+        systemImage: String,
+        isDestructive: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
             HStack(spacing: 6) {
-                Image(systemName: "calendar")
+                Image(systemName: systemImage)
                     .font(.system(size: 11, weight: .semibold))
-                Text(L("Open in Calendar"))
+                Text(title)
                     .font(.system(size: 12, weight: .medium))
             }
-            .foregroundColor(.secondary)
+            .foregroundColor(isDestructive ? .red : .secondary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
+            .contentShape(Rectangle())
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(Color(nsColor: .controlBackgroundColor).opacity(0.6))
@@ -1044,15 +1107,6 @@ private struct FooterActions: View {
             )
         }
         .buttonStyle(.plain)
-    }
-
-    private func openInCalendar() {
-        let workspace = NSWorkspace.shared
-        if let appURL = workspace.urlForApplication(
-            withBundleIdentifier: "com.apple.iCal"
-        ) {
-            workspace.openApplication(at: appURL, configuration: .init())
-        }
     }
 }
 
