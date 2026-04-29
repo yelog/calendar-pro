@@ -140,11 +140,44 @@ final class PopoverControllerTests: XCTestCase {
         XCTAssertNil(viewModel.lastClosedTime)
     }
 
+    func testShowingPopoverAfterDayChangeSyncsCurrentDaySelection() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let currentTime = PopoverMutableBox(calendar.date(from: DateComponents(year: 2030, month: 6, day: 15, hour: 8, minute: 10))!)
+        let timeRefreshCoordinator = TimeRefreshCoordinator(
+            now: { currentTime.value },
+            calendarProvider: { calendar },
+            notificationCenter: NotificationCenter(),
+            workspaceNotificationCenter: NotificationCenter()
+        )
+        let viewModel = CalendarPopoverViewModel(
+            displayedMonth: currentTime.value,
+            now: { timeRefreshCoordinator.currentDate }
+        )
+        viewModel.selectCurrentDate()
+        currentTime.value = calendar.date(from: DateComponents(year: 2030, month: 6, day: 16, hour: 8, minute: 10))!
+        let popover = FakePopover()
+        let controller = makeController(
+            name: #function,
+            popover: popover,
+            interactionMonitor: FakePopoverInteractionMonitor(),
+            timeRefreshCoordinator: timeRefreshCoordinator,
+            viewModel: viewModel
+        )
+
+        controller.toggle(relativeTo: NSButton())
+
+        XCTAssertTrue(popover.isShown)
+        XCTAssertNotNil(viewModel.selectedDate)
+        XCTAssertTrue(calendar.isDate(viewModel.selectedDate!, inSameDayAs: currentTime.value))
+    }
+
     private func makeController(
         name: String,
         popover: PopoverPresenting,
         interactionMonitor: PopoverInteractionMonitoring,
         eventDetailPresenter: EventDetailWindowPresenting = FakeEventDetailWindowPresenter(),
+        timeRefreshCoordinator: TimeRefreshCoordinator = TimeRefreshCoordinator(),
         viewModel: CalendarPopoverViewModel? = nil
     ) -> PopoverController {
         let userDefaults = UserDefaults(suiteName: name)!
@@ -157,6 +190,7 @@ final class PopoverControllerTests: XCTestCase {
             popover: popover,
             interactionMonitor: interactionMonitor,
             eventDetailPresenter: eventDetailPresenter,
+            timeRefreshCoordinator: timeRefreshCoordinator,
             viewModel: viewModel ?? CalendarPopoverViewModel()
         )
     }
@@ -246,6 +280,14 @@ private final class FakePopover: NSObject, PopoverPresenting {
         isShown = false
         closeCallCount += 1
         delegate?.popoverDidClose?(Notification(name: NSPopover.didCloseNotification, object: self))
+    }
+}
+
+private final class PopoverMutableBox<Value> {
+    var value: Value
+
+    init(_ value: Value) {
+        self.value = value
     }
 }
 

@@ -15,6 +15,7 @@ final class CalendarPopoverViewModel: ObservableObject {
     @Published var lastClosedTime: Date?
     private let autoResetInterval: TimeInterval
     private let now: () -> Date
+    private var followsCurrentDaySelection = false
 
     init(
         displayedMonth: Date? = nil,
@@ -80,14 +81,20 @@ final class CalendarPopoverViewModel: ObservableObject {
         selectionMode = .calendar
     }
 
-    func selectDate(_ date: Date) {
+    func selectDate(_ date: Date, followsCurrentDay: Bool = false) {
         selectedDate = date
         selectedEventIdentifier = nil
+        followsCurrentDaySelection = followsCurrentDay
+    }
+
+    func selectCurrentDate() {
+        selectDate(now(), followsCurrentDay: true)
     }
 
     func clearSelectedDate() {
         selectedDate = nil
         selectedEventIdentifier = nil
+        followsCurrentDaySelection = false
     }
 
     func selectEvent(identifier: String) {
@@ -131,9 +138,27 @@ final class CalendarPopoverViewModel: ObservableObject {
         let interval = currentDate.timeIntervalSince(closedTime)
         if interval > autoResetInterval {
             resetToToday()
-            selectDate(currentDate)
+            selectDate(currentDate, followsCurrentDay: true)
             lastClosedTime = nil
         }
+    }
+
+    func syncCurrentDaySelectionIfNeeded(calendar: Calendar) {
+        let currentDate = now()
+
+        guard let selectedDate else {
+            showMonth(containing: currentDate, calendar: calendar)
+            selectDate(currentDate, followsCurrentDay: true)
+            return
+        }
+
+        guard followsCurrentDaySelection,
+              !calendar.isDate(selectedDate, inSameDayAs: currentDate) else {
+            return
+        }
+
+        showMonth(containing: currentDate, calendar: calendar)
+        selectDate(currentDate, followsCurrentDay: true)
     }
 
     func weekdaySymbols(using calendar: Calendar) -> [String] {

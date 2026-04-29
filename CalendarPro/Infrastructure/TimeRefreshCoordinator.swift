@@ -11,11 +11,13 @@ enum RefreshGranularity: Equatable {
 final class TimeRefreshCoordinator: ObservableObject {
     @Published private(set) var currentDate: Date
     @Published private(set) var granularity: RefreshGranularity
+    @Published private(set) var dayChangeRevision = 0
 
     private let now: () -> Date
     private let calendarProvider: () -> Calendar
     private let notificationCenter: NotificationCenter
     private let workspaceNotificationCenter: NotificationCenter
+    private var lastKnownStartOfDay: Date
 
     private var timerCancellable: AnyCancellable?
     private var eventCancellables = Set<AnyCancellable>()
@@ -34,7 +36,9 @@ final class TimeRefreshCoordinator: ObservableObject {
         self.calendarProvider = calendarProvider
         self.notificationCenter = notificationCenter
         self.workspaceNotificationCenter = workspaceNotificationCenter
-        currentDate = now()
+        let initialDate = now()
+        currentDate = initialDate
+        lastKnownStartOfDay = calendarProvider().startOfDay(for: initialDate)
 
         bindSignificantTimeEvents()
     }
@@ -61,7 +65,9 @@ final class TimeRefreshCoordinator: ObservableObject {
     }
 
     func refreshNow() {
-        currentDate = now()
+        let refreshedDate = now()
+        updateDayChangeRevisionIfNeeded(for: refreshedDate)
+        currentDate = refreshedDate
     }
 
     static func delayUntilNextMinuteBoundary(from date: Date, calendar: Calendar) -> TimeInterval {
@@ -111,6 +117,14 @@ final class TimeRefreshCoordinator: ObservableObject {
         if isRunning {
             scheduleTimer()
         }
+    }
+
+    private func updateDayChangeRevisionIfNeeded(for date: Date) {
+        let startOfDay = calendarProvider().startOfDay(for: date)
+        guard startOfDay != lastKnownStartOfDay else { return }
+
+        lastKnownStartOfDay = startOfDay
+        dayChangeRevision += 1
     }
 
     private func scheduleTimer() {

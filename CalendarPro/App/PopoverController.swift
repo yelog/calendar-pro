@@ -190,6 +190,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private func showPopover(relativeTo button: NSView) {
         timeRefreshCoordinator.refreshNow()
         viewModel.checkAndResetIfNeeded()
+        viewModel.syncCurrentDaySelectionIfNeeded(calendar: .autoupdatingCurrent)
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         interactionMonitor.start { [weak self] in
             self?.closePopover()

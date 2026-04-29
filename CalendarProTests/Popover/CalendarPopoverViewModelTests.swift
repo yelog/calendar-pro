@@ -307,6 +307,52 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.lastClosedTime)
     }
 
+    func testSyncCurrentDaySelectionAfterDayChangeMovesOldTodayToNewToday() {
+        let currentDate = MutableBox(makeDate(year: 2030, month: 6, day: 15))
+        let viewModel = CalendarPopoverViewModel(
+            displayedMonth: currentDate.value,
+            now: { currentDate.value }
+        )
+        viewModel.selectCurrentDate()
+
+        currentDate.value = makeDate(year: 2030, month: 6, day: 16)
+        viewModel.syncCurrentDaySelectionIfNeeded(calendar: .gregorianMondayFirst)
+
+        XCTAssertNotNil(viewModel.selectedDate)
+        XCTAssertTrue(Calendar.gregorianMondayFirst.isDate(viewModel.selectedDate!, inSameDayAs: currentDate.value))
+        XCTAssertTrue(Calendar.gregorianMondayFirst.isDate(viewModel.displayedMonth, equalTo: currentDate.value, toGranularity: .month))
+    }
+
+    func testSyncCurrentDaySelectionAfterDayChangeKeepsUserSelectedHistoricalDate() {
+        let currentDate = MutableBox(makeDate(year: 2030, month: 6, day: 15))
+        let historicalDate = makeDate(year: 2030, month: 6, day: 10)
+        let viewModel = CalendarPopoverViewModel(
+            displayedMonth: currentDate.value,
+            now: { currentDate.value }
+        )
+        viewModel.selectDate(historicalDate)
+
+        currentDate.value = makeDate(year: 2030, month: 6, day: 16)
+        viewModel.syncCurrentDaySelectionIfNeeded(calendar: .gregorianMondayFirst)
+
+        XCTAssertNotNil(viewModel.selectedDate)
+        XCTAssertTrue(Calendar.gregorianMondayFirst.isDate(viewModel.selectedDate!, inSameDayAs: historicalDate))
+    }
+
+    func testSyncCurrentDaySelectionAfterDayChangeSelectsTodayWhenSelectionIsEmpty() {
+        let currentDate = MutableBox(makeDate(year: 2030, month: 6, day: 15))
+        let viewModel = CalendarPopoverViewModel(
+            displayedMonth: makeDate(year: 2030, month: 5, day: 1),
+            now: { currentDate.value }
+        )
+
+        viewModel.syncCurrentDaySelectionIfNeeded(calendar: .gregorianMondayFirst)
+
+        XCTAssertNotNil(viewModel.selectedDate)
+        XCTAssertTrue(Calendar.gregorianMondayFirst.isDate(viewModel.selectedDate!, inSameDayAs: currentDate.value))
+        XCTAssertTrue(Calendar.gregorianMondayFirst.isDate(viewModel.displayedMonth, equalTo: currentDate.value, toGranularity: .month))
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         DateComponents(
             calendar: Calendar.gregorianMondayFirst,

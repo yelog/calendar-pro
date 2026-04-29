@@ -111,8 +111,7 @@ struct RootPopoverView: View {
             onResetToToday: {
                 dismissEventDetail()
                 viewModel.resetToToday()
-                let today = timeRefreshCoordinator.currentDate
-                viewModel.selectDate(today)
+                viewModel.selectDate(timeRefreshCoordinator.currentDate, followsCurrentDay: true)
             },
             onQuit: onQuit
         )
@@ -172,6 +171,11 @@ struct RootPopoverView: View {
         .onReceive(timeRefreshCoordinator.$currentDate) { currentDate in
             guard shouldAutoRefreshWeather(at: currentDate) else { return }
             refreshWeather(for: viewModel.selectedDate ?? currentDate)
+        }
+        .onChange(of: timeRefreshCoordinator.dayChangeRevision) { _, _ in
+            viewModel.syncCurrentDaySelectionIfNeeded(calendar: displayCalendar)
+            refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+            refreshInfoStrips()
         }
         .onDisappear {
             weatherTask?.cancel()
@@ -305,7 +309,7 @@ struct RootPopoverView: View {
         if let selectedDate = viewModel.selectedDate {
             loadEvents(for: selectedDate)
         } else if selectingTodayIfNeeded {
-            viewModel.selectDate(timeRefreshCoordinator.currentDate)
+            viewModel.selectDate(timeRefreshCoordinator.currentDate, followsCurrentDay: true)
         }
     }
 
