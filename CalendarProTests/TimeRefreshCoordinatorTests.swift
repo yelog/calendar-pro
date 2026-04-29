@@ -57,6 +57,47 @@ final class TimeRefreshCoordinatorTests: XCTestCase {
 
         XCTAssertEqual(coordinator.currentDate, currentTime.value)
     }
+
+    func testWorkspaceWakeNotificationAcrossDayIncrementsDayChangeRevision() async {
+        let notificationCenter = NotificationCenter()
+        let workspaceNotificationCenter = NotificationCenter()
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let currentTime = MutableBox(calendar.date(from: DateComponents(year: 2026, month: 4, day: 28, hour: 23, minute: 50))!)
+        let coordinator = TimeRefreshCoordinator(
+            now: { currentTime.value },
+            calendarProvider: { calendar },
+            notificationCenter: notificationCenter,
+            workspaceNotificationCenter: workspaceNotificationCenter
+        )
+
+        XCTAssertEqual(coordinator.dayChangeRevision, 0)
+
+        currentTime.value = calendar.date(from: DateComponents(year: 2026, month: 4, day: 29, hour: 8, minute: 10))!
+        workspaceNotificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+        await Task.yield()
+
+        XCTAssertEqual(coordinator.currentDate, currentTime.value)
+        XCTAssertEqual(coordinator.dayChangeRevision, 1)
+    }
+
+    func testRefreshWithinSameDayDoesNotIncrementDayChangeRevision() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let currentTime = MutableBox(calendar.date(from: DateComponents(year: 2026, month: 4, day: 28, hour: 8, minute: 10))!)
+        let coordinator = TimeRefreshCoordinator(
+            now: { currentTime.value },
+            calendarProvider: { calendar },
+            notificationCenter: NotificationCenter(),
+            workspaceNotificationCenter: NotificationCenter()
+        )
+
+        currentTime.value = calendar.date(from: DateComponents(year: 2026, month: 4, day: 28, hour: 23, minute: 50))!
+        coordinator.refreshNow()
+
+        XCTAssertEqual(coordinator.currentDate, currentTime.value)
+        XCTAssertEqual(coordinator.dayChangeRevision, 0)
+    }
 }
 
 private final class MutableBox<Value> {
