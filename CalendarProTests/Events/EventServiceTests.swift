@@ -1,4 +1,5 @@
 import XCTest
+import EventKit
 @testable import CalendarPro
 
 @MainActor
@@ -68,5 +69,45 @@ final class EventServiceTests: XCTestCase {
         XCTAssertEqual(calendar.component(.hour, from: request.dueDate), 15)
         XCTAssertEqual(calendar.component(.minute, from: request.dueDate), 0)
         XCTAssertTrue(request.includesTime)
+    }
+
+    func testReminderDueDateMatchingRejectsPreviousDayReminder() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let selectedDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 29))!
+
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = "test todo"
+        reminder.dueDateComponents = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 4,
+            day: 28,
+            hour: 14,
+            minute: 0
+        )
+
+        XCTAssertFalse(EventService.reminder(reminder, isDueOn: selectedDate, calendar: calendar))
+    }
+
+    func testReminderDueDateMatchingAcceptsSelectedDayReminder() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let selectedDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 29))!
+
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = "test todo"
+        reminder.dueDateComponents = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 4,
+            day: 29,
+            hour: 14,
+            minute: 0
+        )
+
+        XCTAssertTrue(EventService.reminder(reminder, isDueOn: selectedDate, calendar: calendar))
     }
 }

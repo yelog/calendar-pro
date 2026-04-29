@@ -101,6 +101,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private let vacationGuidePresenter: VacationGuideWindowPresenting
     private let timeRefreshCoordinator: TimeRefreshCoordinator
     private let viewModel: CalendarPopoverViewModel
+    private var isComposerPresented = false
 
     init(
         settingsStore: SettingsStore,
@@ -211,6 +212,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
 
     func popoverDidClose(_ notification: Notification) {
         interactionMonitor.stop()
+        restoreTransientPopoverBehaviorIfNeeded()
         viewModel.popoverDidClose()
     }
 
@@ -246,6 +248,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         onClose: @escaping () -> Void
     ) {
         closeVacationGuideWindow()
+        suspendTransientPopoverBehaviorForComposer()
         eventDetailPresenter.showComposer(
             kind: kind,
             selectedDate: selectedDate,
@@ -254,7 +257,10 @@ final class PopoverController: NSObject, NSPopoverDelegate {
             anchoredTo: popover.contentViewController?.view.window,
             onSaveEvent: onSaveEvent,
             onSaveReminder: onSaveReminder,
-            onClose: onClose
+            onClose: { [weak self] in
+                onClose()
+                self?.restoreTransientPopoverBehaviorIfNeeded()
+            }
         )
     }
 
@@ -280,5 +286,16 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         closePopover()
         closeEventDetailWindow()
         NSApp.terminate(nil)
+    }
+
+    private func suspendTransientPopoverBehaviorForComposer() {
+        isComposerPresented = true
+        popover.behavior = .applicationDefined
+    }
+
+    private func restoreTransientPopoverBehaviorIfNeeded() {
+        guard isComposerPresented else { return }
+        isComposerPresented = false
+        popover.behavior = .transient
     }
 }
