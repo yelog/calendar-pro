@@ -163,4 +163,192 @@ final class EventServiceTests: XCTestCase {
 
         XCTAssertTrue(EventService.reminder(reminder, isDueOn: selectedDate, calendar: calendar))
     }
+
+    func testDailyRecurringReminderMatchesFutureDate() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let originalDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 1))!
+        let targetDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 15))!
+
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = "daily task"
+        reminder.dueDateComponents = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 9,
+            minute: 0
+        )
+        reminder.recurrenceRules = [EKRecurrenceRule(
+            recurrenceWith: .daily,
+            interval: 1,
+            end: nil
+        )]
+
+        XCTAssertTrue(EventService.reminder(reminder, isDueOn: targetDate, calendar: calendar))
+    }
+
+    func testDailyRecurringReminderDoesNotMatchBeforeOriginalDate() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let originalDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 15))!
+        let targetDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 10))!
+
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = "daily task"
+        reminder.dueDateComponents = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 4,
+            day: 15,
+            hour: 9,
+            minute: 0
+        )
+        reminder.recurrenceRules = [EKRecurrenceRule(
+            recurrenceWith: .daily,
+            interval: 1,
+            end: nil
+        )]
+
+        XCTAssertFalse(EventService.reminder(reminder, isDueOn: targetDate, calendar: calendar))
+    }
+
+    func testEveryOtherDayRecurringReminderMatchesCorrectDays() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let targetDateMatch = calendar.date(from: DateComponents(year: 2026, month: 4, day: 11))!
+        let targetDateNoMatch = calendar.date(from: DateComponents(year: 2026, month: 4, day: 12))!
+
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = "every other day"
+        reminder.dueDateComponents = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 9,
+            minute: 0
+        )
+        reminder.recurrenceRules = [EKRecurrenceRule(
+            recurrenceWith: .daily,
+            interval: 2,
+            end: nil
+        )]
+
+        XCTAssertTrue(EventService.reminder(reminder, isDueOn: targetDateMatch, calendar: calendar))
+        XCTAssertFalse(EventService.reminder(reminder, isDueOn: targetDateNoMatch, calendar: calendar))
+    }
+
+    func testWeeklyRecurringReminderMatchesCorrectDay() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let targetDateMatch = calendar.date(from: DateComponents(year: 2026, month: 4, day: 29))!
+        let targetDateNoMatch = calendar.date(from: DateComponents(year: 2026, month: 4, day: 30))!
+
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = "weekly task"
+        reminder.dueDateComponents = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 4,
+            day: 22,
+            hour: 9,
+            minute: 0
+        )
+        reminder.recurrenceRules = [EKRecurrenceRule(
+            recurrenceWith: .weekly,
+            interval: 1,
+            end: nil
+        )]
+
+        XCTAssertTrue(EventService.reminder(reminder, isDueOn: targetDateMatch, calendar: calendar))
+        XCTAssertFalse(EventService.reminder(reminder, isDueOn: targetDateNoMatch, calendar: calendar))
+    }
+
+    func testMonthlyRecurringReminderMatchesCorrectDay() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let targetDateMatch = calendar.date(from: DateComponents(year: 2026, month: 5, day: 15))!
+        let targetDateNoMatch = calendar.date(from: DateComponents(year: 2026, month: 5, day: 16))!
+
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = "monthly task"
+        reminder.dueDateComponents = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 1,
+            day: 15,
+            hour: 9,
+            minute: 0
+        )
+        reminder.recurrenceRules = [EKRecurrenceRule(
+            recurrenceWith: .monthly,
+            interval: 1,
+            end: nil
+        )]
+
+        XCTAssertTrue(EventService.reminder(reminder, isDueOn: targetDateMatch, calendar: calendar))
+        XCTAssertFalse(EventService.reminder(reminder, isDueOn: targetDateNoMatch, calendar: calendar))
+    }
+
+    func testRecurringReminderWithOccurrenceCountEnd() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let withinCount = calendar.date(from: DateComponents(year: 2026, month: 4, day: 5))!
+        let beyondCount = calendar.date(from: DateComponents(year: 2026, month: 4, day: 6))!
+
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = "limited daily"
+        reminder.dueDateComponents = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 9,
+            minute: 0
+        )
+        reminder.recurrenceRules = [EKRecurrenceRule(
+            recurrenceWith: .daily,
+            interval: 1,
+            end: EKRecurrenceEnd(occurrenceCount: 5)
+        )]
+
+        XCTAssertTrue(EventService.reminder(reminder, isDueOn: withinCount, calendar: calendar))
+        XCTAssertFalse(EventService.reminder(reminder, isDueOn: beyondCount, calendar: calendar))
+    }
+
+    func testRecurringReminderWithEndDateBoundary() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let onEndDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 10))!
+        let afterEndDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 11))!
+        let endDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 10))!
+
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.title = "ending daily"
+        reminder.dueDateComponents = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 9,
+            minute: 0
+        )
+        reminder.recurrenceRules = [EKRecurrenceRule(
+            recurrenceWith: .daily,
+            interval: 1,
+            end: EKRecurrenceEnd(end: endDate)
+        )]
+
+        XCTAssertTrue(EventService.reminder(reminder, isDueOn: onEndDate, calendar: calendar))
+        XCTAssertFalse(EventService.reminder(reminder, isDueOn: afterEndDate, calendar: calendar))
+    }
 }
