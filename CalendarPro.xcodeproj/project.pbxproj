@@ -1230,7 +1230,7 @@
 				INFOPLIST_KEY_NSRemindersUsageDescription = "用于显示您的提醒事项";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 0.1.4-beta.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarPro;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1312,7 +1312,7 @@
 				INFOPLIST_KEY_NSRemindersUsageDescription = "用于显示您的提醒事项";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 0.1.4-beta.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yelog.CalendarPro;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
