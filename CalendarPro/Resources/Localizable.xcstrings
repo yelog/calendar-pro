@@ -92,6 +92,9 @@
         }
       }
     },
+    "%lld" : {
+
+    },
     "5 %@" : {
 
     },
@@ -4597,6 +4600,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更新"
+          }
+        }
+      }
+    },
+    "Use 24-hour time, for example 09:30." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use 24-hour time, for example 09:30."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请使用 24 小时时间，例如 09:30。"
           }
         }
       }
