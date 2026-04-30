@@ -19,6 +19,7 @@ struct EventCardView: View {
     let showsDisclosure: Bool
     let timelineState: EventCardTimelineState
     var onToggleReminder: ((EKReminder) -> Void)?
+    @Environment(\.colorScheme) private var colorScheme
 
     init(item: CalendarItem, isSelected: Bool = false, showsDisclosure: Bool = true, timelineState: EventCardTimelineState = .regular, onToggleReminder: ((EKReminder) -> Void)? = nil) {
         self.item = item
@@ -34,13 +35,6 @@ struct EventCardView: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
-            if timelineState == .ongoing && !item.isCanceled {
-                RoundedRectangle(cornerRadius: 2, style: .continuous)
-                    .fill(Color(nsColor: item.color))
-                    .frame(width: 3)
-                    .padding(.vertical, 2)
-            }
-
             if item.isReminder {
                 reminderCheckbox
                     .padding(.top, 2)
@@ -87,9 +81,18 @@ struct EventCardView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, 8)
+        .padding(.leading, 12)
+        .padding(.trailing, 8)
         .padding(.vertical, 8)
-        .background(backgroundColor)
+        .background {
+            ZStack {
+                baseCardColor
+                backgroundTintColor
+            }
+        }
+        .overlay(alignment: .leading) {
+            calendarColorRail
+        }
         .overlay {
             RoundedRectangle(cornerRadius: 10)
                 .strokeBorder(borderColor, lineWidth: 1)
@@ -123,20 +126,20 @@ struct EventCardView: View {
         return start
     }
 
-    private var backgroundColor: Color {
+    private var backgroundTintColor: Color {
         if item.isCanceled {
             return Color.red.opacity(isSelected ? 0.08 : 0.05)
         }
         if isSelected {
-            return Color.accentColor.opacity(0.12)
+            return itemAccentColor.opacity(colorScheme == .dark ? 0.22 : 0.14)
         }
         if timelineState == .ongoing {
-            return Color.accentColor.opacity(0.08)
+            return itemAccentColor.opacity(colorScheme == .dark ? 0.16 : 0.1)
         }
         if timelineState == .past {
-            return Color(nsColor: .controlBackgroundColor).opacity(0.75)
+            return Color(nsColor: .windowBackgroundColor).opacity(0.18)
         }
-        return Color(nsColor: .controlBackgroundColor)
+        return itemAccentColor.opacity(colorScheme == .dark ? 0.08 : 0.055)
     }
 
     private var borderColor: Color {
@@ -144,12 +147,12 @@ struct EventCardView: View {
             return Color.red.opacity(isSelected ? 0.32 : 0.2)
         }
         if isSelected {
-            return Color.accentColor.opacity(0.35)
+            return itemAccentColor.opacity(colorScheme == .dark ? 0.55 : 0.42)
         }
         if timelineState == .ongoing {
-            return Color.accentColor.opacity(0.24)
+            return itemAccentColor.opacity(colorScheme == .dark ? 0.42 : 0.3)
         }
-        return Color.primary.opacity(0.05)
+        return itemAccentColor.opacity(colorScheme == .dark ? 0.18 : 0.14)
     }
 
     private var contentOpacity: Double {
@@ -163,8 +166,32 @@ struct EventCardView: View {
     }
 
     private var indicatorColor: Color {
-        let color = Color(nsColor: item.color)
-        return item.isCanceled ? color.opacity(0.4) : color
+        item.isCanceled ? itemAccentColor.opacity(0.4) : itemAccentColor
+    }
+
+    private var itemAccentColor: Color {
+        Color(nsColor: item.color)
+    }
+
+    private var baseCardColor: Color {
+        Color(nsColor: .controlBackgroundColor)
+    }
+
+    private var calendarColorRail: some View {
+        RoundedRectangle(cornerRadius: 2, style: .continuous)
+            .fill(railColor)
+            .frame(width: 4)
+            .padding(.vertical, 6)
+    }
+
+    private var railColor: Color {
+        if item.isCanceled {
+            return itemAccentColor.opacity(0.45)
+        }
+        if timelineState == .past, !isSelected {
+            return itemAccentColor.opacity(0.62)
+        }
+        return itemAccentColor
     }
 
     private var timeTextColor: Color {
@@ -189,7 +216,7 @@ struct EventCardView: View {
         if item.isCanceled {
             return Color(nsColor: .tertiaryLabelColor)
         }
-        return isSelected ? Color.accentColor : Color(nsColor: .tertiaryLabelColor)
+        return isSelected ? itemAccentColor : Color(nsColor: .tertiaryLabelColor)
     }
 
     private var metadataItems: [EventCardMetadata] {
@@ -227,7 +254,7 @@ struct EventCardView: View {
         } label: {
             Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
                 .font(.system(size: 14))
-                .foregroundStyle(item.isCompleted ? Color(nsColor: item.color) : .secondary)
+                .foregroundStyle(item.isCompleted ? itemAccentColor : .secondary)
         }
         .buttonStyle(.plain)
     }
