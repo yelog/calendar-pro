@@ -181,7 +181,9 @@ struct MenuBarTextImageRenderer {
             textColor = Self.menuBarAdaptiveTextColor
         }
 
-        let usesTemplateColor = false
+        let usesTemplateColor = style.foregroundColorHex == nil
+            && !showsFilledBackground
+            && !hasDot
 
         let attributes: [NSAttributedString.Key: Any] = [
             .font: statusBarFont(for: style),

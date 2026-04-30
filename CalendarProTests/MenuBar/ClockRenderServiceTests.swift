@@ -43,6 +43,24 @@ final class ClockRenderServiceTests: XCTestCase {
         XCTAssertGreaterThan(result.image.size.height, 0)
     }
 
+    func testTextImageRendererUsesOriginalImageForCalendarColorIndicator() {
+        let renderer = MenuBarTextImageRenderer()
+        let indicator = MenuBarEventIndicator(
+            dots: [
+                MenuBarEventIndicatorDot(colorHex: "#34C759", status: .ongoing)
+            ],
+            tooltipText: "会议",
+            count: 1
+        )
+
+        let plainResult = renderer.render(text: "10:30 Tue 04/22", style: .default)
+        let indicatorResult = renderer.render(text: "10:30 Tue 04/22", style: .default, indicator: indicator)
+
+        XCTAssertFalse(indicatorResult.usesTemplateColor)
+        XCTAssertFalse(indicatorResult.image.isTemplate)
+        XCTAssertGreaterThan(indicatorResult.image.size.width, plainResult.image.size.width)
+    }
+
     func testRendererRespectsTokenOrderAndShortStyles() {
         let renderer = ClockRenderService()
         let text = renderer.render(
