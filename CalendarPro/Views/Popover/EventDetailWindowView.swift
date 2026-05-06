@@ -40,6 +40,23 @@ struct EventDetailWindowView: View {
     }
 
     var body: some View {
+        ZStack {
+            content
+
+            if showsParticipationScopeDialog {
+                participationScopeOverlay
+            }
+        }
+        .alert(L("Unable to Update Response"), isPresented: showsResponseError) {
+            Button(L("OK")) {
+                responseErrorMessage = nil
+            }
+        } message: {
+            Text(responseErrorMessage ?? L("Unable to Update Response Description"))
+        }
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
             header
             summaryCard
@@ -72,30 +89,78 @@ struct EventDetailWindowView: View {
                 reportPreferredHeightIfNeeded()
             }
         )
-        .confirmationDialog(L("Apply Response"), isPresented: $showsParticipationScopeDialog, titleVisibility: .visible) {
-            if let pendingParticipationChoice {
-                Button(L("Only This Event")) {
-                    applyParticipationChoice(pendingParticipationChoice, span: .thisEvent)
+        .disabled(showsParticipationScopeDialog)
+    }
+
+    private var participationScopeOverlay: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: PopoverSurfaceMetrics.cornerRadius, style: .continuous)
+                .fill(Color.black.opacity(colorScheme == .dark ? 0.42 : 0.24))
+                .ignoresSafeArea()
+                .onTapGesture {
+                    dismissParticipationScopeDialog()
                 }
 
-                Button(L("Entire Series")) {
-                    applyParticipationChoice(pendingParticipationChoice, span: .futureEvents)
-                }
-            }
+            VStack(alignment: .leading, spacing: 12) {
+                Text(L("Apply Response"))
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
 
-            Button(L("Cancel"), role: .cancel) {
-                pendingParticipationChoice = nil
+                Text(L("Choose whether to update only this event or the whole series."))
+                    .font(.system(size: 13))
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                VStack(spacing: 8) {
+                    if let pendingParticipationChoice {
+                        participationScopeButton(title: L("Only This Event"), isPrimary: true) {
+                            applyParticipationChoice(pendingParticipationChoice, span: .thisEvent)
+                        }
+
+                        participationScopeButton(title: L("Entire Series")) {
+                            applyParticipationChoice(pendingParticipationChoice, span: .futureEvents)
+                        }
+                    }
+
+                    participationScopeButton(title: L("Cancel")) {
+                        dismissParticipationScopeDialog()
+                    }
+                }
+                .padding(.top, 4)
             }
-        } message: {
-            Text(L("Choose whether to update only this event or the whole series."))
+            .padding(18)
+            .frame(width: min(PopoverSurfaceMetrics.width - 56, 300), alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color(nsColor: .windowBackgroundColor))
+                    .shadow(color: .black.opacity(0.22), radius: 18, x: 0, y: 8)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color(nsColor: .separatorColor).opacity(0.2), lineWidth: 1)
+            )
         }
-        .alert(L("Unable to Update Response"), isPresented: showsResponseError) {
-            Button(L("OK")) {
-                responseErrorMessage = nil
-            }
-        } message: {
-            Text(responseErrorMessage ?? L("Unable to Update Response Description"))
+        .transition(.opacity.combined(with: .scale(scale: 0.98)))
+        .zIndex(1)
+    }
+
+    private func participationScopeButton(
+        title: String,
+        isPrimary: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 13, weight: .semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 9)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(isPrimary ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
+                )
+                .foregroundStyle(isPrimary ? .white : .primary)
         }
+        .buttonStyle(.plain)
     }
 
     private var meetingActions: [MeetingAction] {
@@ -392,15 +457,18 @@ struct EventDetailWindowView: View {
         applyParticipationChoice(choice, span: .thisEvent)
     }
 
+    private func dismissParticipationScopeDialog() {
+        pendingParticipationChoice = nil
+        showsParticipationScopeDialog = false
+    }
+
     private func applyParticipationChoice(_ choice: EventParticipationChoice, span: EKSpan) {
         do {
             try event.updateCurrentUserParticipationChoice(choice, span: span)
             displayedParticipationChoice = choice
-            pendingParticipationChoice = nil
-            showsParticipationScopeDialog = false
+            dismissParticipationScopeDialog()
         } catch {
-            pendingParticipationChoice = nil
-            showsParticipationScopeDialog = false
+            dismissParticipationScopeDialog()
             responseErrorMessage = error.localizedDescription.nilIfEmpty ?? L("Unable to Update Response Description")
         }
     }
