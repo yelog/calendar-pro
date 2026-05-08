@@ -881,6 +881,23 @@
         }
       }
     },
+    "Commemorative Festivals" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commemorative Festivals"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "纪念节日"
+          }
+        }
+      }
+    },
     "Configure Holiday Data" : {
       "extractionState" : "stale",
       "localizations" : {

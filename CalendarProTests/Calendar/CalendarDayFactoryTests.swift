@@ -24,6 +24,32 @@ final class CalendarDayFactoryTests: XCTestCase {
         XCTAssertTrue(nationalDay.badges.contains { $0.kind == .publicHoliday })
     }
 
+    func testMonthGridDecoratesMainlandGregorianObservanceFestival() throws {
+        var preferences = MenuBarPreferences.default
+        preferences.activeRegionIDs = ["mainland-cn"]
+        let factory = CalendarDayFactory.makePreview()
+        let days = try factory.makeMonthGrid(for: makeDate(year: 2026, month: 5, day: 1), preferences: preferences)
+
+        let mothersDay = try XCTUnwrap(days.first { $0.solarText == "10" && $0.isInDisplayedMonth })
+
+        XCTAssertTrue(mothersDay.badges.contains { $0.kind == .festival && $0.text == "母亲节" })
+    }
+
+    func testMonthGridFiltersMainlandGregorianObservanceFestivalWhenSetDisabled() throws {
+        var preferences = MenuBarPreferences.default
+        preferences.activeRegionIDs = ["mainland-cn"]
+        preferences.enabledHolidayIDs = [
+            "statutory-holidays",
+            "adjustment-workdays"
+        ]
+        let factory = CalendarDayFactory.makePreview()
+        let days = try factory.makeMonthGrid(for: makeDate(year: 2026, month: 5, day: 1), preferences: preferences)
+
+        let mothersDay = try XCTUnwrap(days.first { $0.solarText == "10" && $0.isInDisplayedMonth })
+
+        XCTAssertFalse(mothersDay.badges.contains { $0.text == "母亲节" })
+    }
+
     func testDayFactoryShowsSolarTermTextOnSolarTermDay() throws {
         let factory = CalendarDayFactory.makePreview()
         let day = try factory.makeDay(

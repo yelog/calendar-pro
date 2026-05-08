@@ -28,6 +28,44 @@ final class MainlandCNProviderTests: XCTestCase {
         )
     }
 
+    func testMainlandProviderGeneratesGregorianObservanceFestivals() throws {
+        let provider = MainlandCNProvider()
+        let holidays = try provider.holidays(forYear: 2026)
+
+        XCTAssertTrue(
+            holidays.contains {
+                Calendar.gregorianMondayFirst.isDate($0.date, inSameDayAs: makeDate(year: 2026, month: 5, day: 10))
+                    && $0.name == "母亲节"
+                    && $0.kind == .festival
+                    && $0.holidaySetID == MainlandCNProvider.commemorativeFestivalSetID
+                    && $0.source == .calculatedGregorian
+            }
+        )
+
+        XCTAssertTrue(
+            holidays.contains {
+                Calendar.gregorianMondayFirst.isDate($0.date, inSameDayAs: makeDate(year: 2026, month: 6, day: 21))
+                    && $0.name == "父亲节"
+                    && $0.kind == .festival
+                    && $0.holidaySetID == MainlandCNProvider.commemorativeFestivalSetID
+                    && $0.source == .calculatedGregorian
+            }
+        )
+    }
+
+    func testMainlandProviderGeneratesGregorianObservanceFestivalsBeyondBundledYears() throws {
+        let provider = MainlandCNProvider()
+        let holidays = try provider.holidays(forYear: 2027)
+
+        XCTAssertTrue(
+            holidays.contains {
+                Calendar.gregorianMondayFirst.isDate($0.date, inSameDayAs: makeDate(year: 2027, month: 5, day: 9))
+                    && $0.name == "母亲节"
+                    && $0.kind == .festival
+            }
+        )
+    }
+
     func testMainlandProviderPrefersCachedRemoteDataWhenAvailable() throws {
         let cacheURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("CalendarProTests", isDirectory: true)

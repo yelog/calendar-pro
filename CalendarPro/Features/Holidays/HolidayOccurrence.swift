@@ -37,6 +37,7 @@ enum HolidaySource: String, Codable {
     case bundledJSON
     case remoteFeed
     case calculatedLunar
+    case calculatedGregorian
 }
 
 struct HolidayOccurrence: Equatable, Identifiable {
