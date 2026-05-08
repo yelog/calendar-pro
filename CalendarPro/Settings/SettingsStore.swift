@@ -40,6 +40,7 @@ final class SettingsStore: ObservableObject {
             menuBarPreferences = .default
         }
 
+        migrateMenuBarPreferencesIfNeeded()
         syncLaunchAtLoginState()
 
         if !launchAtLoginEnabled {
@@ -128,6 +129,22 @@ final class SettingsStore: ObservableObject {
     func resetMenuBarTextStyle() {
         var prefs = menuBarPreferences
         prefs.textStyle = .default
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    private func migrateMenuBarPreferencesIfNeeded() {
+        guard !menuBarPreferences.enabledHolidayIDs.isEmpty else { return }
+        guard !menuBarPreferences.enabledHolidayIDs.contains(MainlandCNProvider.commemorativeFestivalSetID) else { return }
+
+        let mainlandSetIDs = [
+            MainlandCNProvider.statutoryHolidaySetID,
+            MainlandCNProvider.adjustmentWorkdaySetID
+        ]
+        guard menuBarPreferences.enabledHolidayIDs.contains(where: mainlandSetIDs.contains) else { return }
+
+        var prefs = menuBarPreferences
+        prefs.enabledHolidayIDs.append(MainlandCNProvider.commemorativeFestivalSetID)
         menuBarPreferences = prefs
         persistMenuBarPreferences()
     }

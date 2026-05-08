@@ -10,6 +10,16 @@ final class RegionSettingsViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.availableRegions.contains { $0.id == "hong-kong" && !$0.isEnabled })
     }
 
+    func testRegionSettingsIncludesMainlandCommemorativeFestivalSet() {
+        let viewModel = RegionSettingsViewModel.preview
+        let mainland = viewModel.availableRegions.first { $0.id == "mainland-cn" }
+
+        XCTAssertEqual(
+            mainland?.holidaySets.first(where: { $0.id == MainlandCNProvider.commemorativeFestivalSetID })?.isEnabled,
+            true
+        )
+    }
+
     func testTogglingHolidaySetUpdatesViewModelState() {
         let suiteName = #function
         let userDefaults = UserDefaults(suiteName: suiteName)!

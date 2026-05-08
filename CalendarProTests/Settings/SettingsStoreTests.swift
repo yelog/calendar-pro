@@ -24,6 +24,45 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertFalse(reloaded.menuBarPreferences.tokens.first(where: { $0.token == .weekday })?.isEnabled ?? true)
     }
 
+    func testMigratesExplicitMainlandHolidaySelectionToIncludeCommemorativeFestivals() throws {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        var preferences = MenuBarPreferences.default
+        preferences.activeRegionIDs = ["mainland-cn"]
+        preferences.enabledHolidayIDs = [
+            "statutory-holidays",
+            "adjustment-workdays"
+        ]
+        try userDefaults.setEncodedMenuBarPreferences(preferences)
+
+        let store = makeStore(userDefaults: userDefaults)
+
+        XCTAssertEqual(
+            store.menuBarPreferences.enabledHolidayIDs,
+            [
+                "statutory-holidays",
+                "adjustment-workdays",
+                MainlandCNProvider.commemorativeFestivalSetID
+            ]
+        )
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertEqual(reloaded.menuBarPreferences.enabledHolidayIDs, store.menuBarPreferences.enabledHolidayIDs)
+    }
+
+    func testMainlandHolidayMigrationPreservesExplicitOptOutWhenAllMainlandSetsWereDisabled() throws {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        var preferences = MenuBarPreferences.default
+        preferences.activeRegionIDs = ["mainland-cn"]
+        preferences.enabledHolidayIDs = ["public-holidays"]
+        try userDefaults.setEncodedMenuBarPreferences(preferences)
+
+        let store = makeStore(userDefaults: userDefaults)
+
+        XCTAssertFalse(store.menuBarPreferences.enabledHolidayIDs.contains(MainlandCNProvider.commemorativeFestivalSetID))
+    }
+
     func testSetShowEvents() {
         let userDefaults = makeIsolatedUserDefaults()
         let store = makeStore(userDefaults: userDefaults)
@@ -350,5 +389,12 @@ private enum StubError: LocalizedError {
 
     var errorDescription: String? {
         "stub operation failed"
+    }
+}
+
+private extension UserDefaults {
+    func setEncodedMenuBarPreferences(_ preferences: MenuBarPreferences) throws {
+        let data = try JSONEncoder().encode(preferences)
+        set(data, forKey: "menuBarPreferences")
     }
 }
