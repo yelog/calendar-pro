@@ -7,13 +7,13 @@
         <language>zh-CN</language>
 
         <item>
-            <title>Version 0.1.4</title>
-            <pubDate>Wed, 06 May 2026 07:22:28 +0000</pubDate>
-            <sparkle:version>01499</sparkle:version>
-            <sparkle:shortVersionString>0.1.4</sparkle:shortVersionString>
+            <title>Version 0.1.5</title>
+            <pubDate>Fri, 08 May 2026 12:50:19 +0000</pubDate>
+            <sparkle:version>01599</sparkle:version>
+            <sparkle:shortVersionString>0.1.5</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description>&lt;h2&gt;CalendarPro 0.1.4&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;replace DatePicker with custom date and time pickers&lt;/li&gt;&lt;li&gt;show calendar colors in event cards&lt;/li&gt;&lt;li&gt;add upcoming event indicator dot on menu bar&lt;/li&gt;&lt;li&gt;support editing and deleting calendar items&lt;/li&gt;&lt;li&gt;add calendar item creation&lt;/li&gt;&lt;li&gt;add expandable weather details&lt;/li&gt;&lt;li&gt;add detailed weather metrics and city search&lt;/li&gt;&lt;li&gt;support date-aware forecasts for selected calendar dates&lt;/li&gt;&lt;li&gt;add current weather display with location fallback&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;show participation scope prompt in detail window&lt;/li&gt;&lt;li&gt;preserve calendar colors in event indicator&lt;/li&gt;&lt;li&gt;show recurring reminders on occurrence dates&lt;/li&gt;&lt;li&gt;stabilize item composer and reminder filtering&lt;/li&gt;&lt;li&gt;sync selected date after cross-day wake&lt;/li&gt;&lt;li&gt;dismiss popover when joining a meeting&lt;/li&gt;&lt;li&gt;optimize refresh scheduling and stale state handling&lt;/li&gt;&lt;li&gt;prevent stale weather when switching dates&lt;/li&gt;&lt;/ul&gt;</description>
-            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.1.4/CalendarPro-0.1.4-universal.dmg" length="7099508" type="application/octet-stream" sparkle:edSignature="EWXsBY7BIzqb9qVIo8wB49ehcFmqsxh0xNtxfeJPbMuEooYSM9F6+izhf2RaBXFmraAmNZvtKP9XVfQMW4F6Dg==" />
+            <description>&lt;h2&gt;CalendarPro 0.1.5&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add gregorian commemorative festivals&lt;/li&gt;&lt;li&gt;replace DatePicker with custom date and time pickers&lt;/li&gt;&lt;li&gt;show calendar colors in event cards&lt;/li&gt;&lt;li&gt;add upcoming event indicator dot on menu bar&lt;/li&gt;&lt;li&gt;support editing and deleting calendar items&lt;/li&gt;&lt;li&gt;add calendar item creation&lt;/li&gt;&lt;li&gt;add expandable weather details&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;show participation scope prompt in detail window&lt;/li&gt;&lt;li&gt;preserve calendar colors in event indicator&lt;/li&gt;&lt;li&gt;show recurring reminders on occurrence dates&lt;/li&gt;&lt;li&gt;stabilize item composer and reminder filtering&lt;/li&gt;&lt;li&gt;sync selected date after cross-day wake&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.1.5/CalendarPro-0.1.5-universal.dmg" length="7106628" type="application/octet-stream" sparkle:edSignature="aVTiwQcguMBQU+OlTbKuuoj5NASiuUyE6D54CvqjXA8U9t7euHTbyIAGypHzOd7Z7qk4ZsNN4qRo2IFy3894DQ==" />
         </item>
         <item>
             <title>Version 0.1.4-beta.1</title>
