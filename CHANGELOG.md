@@ -5,6 +5,24 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-05-08
+
+### Added
+- add gregorian commemorative festivals
+- replace DatePicker with custom date and time pickers
+- show calendar colors in event cards
+- add upcoming event indicator dot on menu bar
+- support editing and deleting calendar items
+- add calendar item creation
+- add expandable weather details
+
+### Fixed
+- show participation scope prompt in detail window
+- preserve calendar colors in event indicator
+- show recurring reminders on occurrence dates
+- stabilize item composer and reminder filtering
+- sync selected date after cross-day wake
+
 ## [0.1.4] - 2026-05-06
 
 ### Added
