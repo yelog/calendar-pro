@@ -100,6 +100,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private let eventDetailPresenter: EventDetailWindowPresenting
     private let vacationGuidePresenter: VacationGuideWindowPresenting
     private let timeRefreshCoordinator: TimeRefreshCoordinator
+    private let pomodoroTimer: PomodoroTimerController
     private let viewModel: CalendarPopoverViewModel
     private var isComposerPresented = false
 
@@ -111,6 +112,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         eventDetailPresenter: EventDetailWindowPresenting = EventDetailWindowController(),
         vacationGuidePresenter: VacationGuideWindowPresenting = VacationGuideWindowController(),
         timeRefreshCoordinator: TimeRefreshCoordinator = TimeRefreshCoordinator(),
+        pomodoroTimer: PomodoroTimerController = PomodoroTimerController(),
         viewModel: CalendarPopoverViewModel? = nil
     ) {
         self.popover = popover
@@ -120,6 +122,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         self.eventDetailPresenter = eventDetailPresenter
         self.vacationGuidePresenter = vacationGuidePresenter
         self.timeRefreshCoordinator = timeRefreshCoordinator
+        self.pomodoroTimer = pomodoroTimer
         self.viewModel = viewModel ?? CalendarPopoverViewModel(now: { timeRefreshCoordinator.currentDate })
         super.init()
 
@@ -153,6 +156,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                 eventService: eventService,
                 viewModel: viewModel,
                 timeRefreshCoordinator: timeRefreshCoordinator,
+                pomodoroTimer: pomodoroTimer,
                 onPresentEventDetailWindow: { [weak self] event, onEdit, onDelete, onClose in
                     self?.showEventDetailWindow(for: event, onEdit: onEdit, onDelete: onDelete, onClose: onClose)
                 },

@@ -3,6 +3,7 @@ import SwiftUI
 enum SettingsSidebarItem: String, CaseIterable, Identifiable {
     case general
     case menuBar
+    case pomodoro
     case events
     case region
     case about
@@ -13,6 +14,7 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
         switch self {
         case .general: return "gearshape"
         case .menuBar: return "menubar.rectangle"
+        case .pomodoro: return "timer"
         case .events: return "calendar.badge.clock"
         case .region: return "globe"
         case .about: return "info.circle.fill"
@@ -23,6 +25,7 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
         switch self {
         case .general: return L("General")
         case .menuBar: return L("Menu Bar")
+        case .pomodoro: return L("Pomodoro")
         case .events: return L("Events")
         case .region: return L("Regions and Holidays")
         case .about: return L("About")
@@ -35,6 +38,8 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
             return L("View Current Summary")
         case .menuBar:
             return L("Adjust Menu Bar Text")
+        case .pomodoro:
+            return L("Focus rhythm and statistics")
         case .events:
             return L("Manage Calendar Sources")
         case .region:
@@ -50,6 +55,8 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
             return L("General Detail Description")
         case .menuBar:
             return L("Menu Bar Detail Description")
+        case .pomodoro:
+            return L("Pomodoro Detail Description")
         case .events:
             return L("Events Detail Description")
         case .region:
@@ -63,12 +70,14 @@ enum SettingsSidebarItem: String, CaseIterable, Identifiable {
 struct SettingsRootView: View {
     @ObservedObject var store: SettingsStore
     @ObservedObject var eventService: EventService
+    @ObservedObject var pomodoroStatsStore: PomodoroStatsStore
     @StateObject private var regionViewModel: RegionSettingsViewModel
     @State private var selectedItem: SettingsSidebarItem = .general
 
-    init(store: SettingsStore, eventService: EventService) {
+    init(store: SettingsStore, eventService: EventService, pomodoroStatsStore: PomodoroStatsStore) {
         self.store = store
         self.eventService = eventService
+        self.pomodoroStatsStore = pomodoroStatsStore
         _regionViewModel = StateObject(
             wrappedValue: RegionSettingsViewModel(
                 store: store,
@@ -174,6 +183,8 @@ struct SettingsRootView: View {
             GeneralSettingsView(store: store)
         case .menuBar:
             MenuBarSettingsView(store: store)
+        case .pomodoro:
+            PomodoroSettingsView(store: store, statsStore: pomodoroStatsStore)
         case .events:
             EventsSettingsView(store: store, eventService: eventService)
         case .region:

@@ -281,7 +281,7 @@ private struct WeatherLocationSettings: View {
     }
 }
 
-private struct GeneralSettingsSection<Content: View>: View {
+struct GeneralSettingsSection<Content: View>: View {
     let title: String
     @ViewBuilder let content: Content
 
@@ -311,7 +311,7 @@ private struct GeneralSettingsSection<Content: View>: View {
     }
 }
 
-private struct GeneralSettingsRow<Control: View, Detail: View>: View {
+struct GeneralSettingsRow<Control: View, Detail: View>: View {
     let title: String
     let description: String
     @ViewBuilder let control: Control

@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     let settingsStore = SettingsStore()
     let eventService = EventService()
+    let pomodoroStatsStore = PomodoroStatsStore()
 
     private var statusBarController: StatusBarController?
     private var uiTestWindow: NSWindow?
@@ -19,6 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let uiTestVacationGuideWindowController = VacationGuideWindowController()
     private let uiTestPopoverViewModel = CalendarPopoverViewModel()
     private let uiTestTimeRefreshCoordinator = TimeRefreshCoordinator()
+    private let uiTestPomodoroTimer = PomodoroTimerController()
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
@@ -32,7 +34,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if isUITestPopoverMode {
             presentUITestWindow()
         } else {
-            statusBarController = StatusBarController(settingsStore: settingsStore, eventService: eventService)
+            statusBarController = StatusBarController(
+                settingsStore: settingsStore,
+                eventService: eventService,
+                pomodoroStatsStore: pomodoroStatsStore
+            )
         }
 
         // 初始化 Sparkle 自动更新
@@ -52,7 +58,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
 
         let hostingController = NSHostingController(
-            rootView: SettingsRootView(store: settingsStore, eventService: eventService)
+            rootView: SettingsRootView(
+                store: settingsStore,
+                eventService: eventService,
+                pomodoroStatsStore: pomodoroStatsStore
+            )
         )
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: SettingsWindowConfiguration.defaultSize),
@@ -148,6 +158,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 eventService: eventService,
                 viewModel: uiTestPopoverViewModel,
                 timeRefreshCoordinator: uiTestTimeRefreshCoordinator,
+                pomodoroTimer: uiTestPomodoroTimer,
                 onPresentEventDetailWindow: { [weak self] event, onEdit, onDelete, onClose in
                     self?.uiTestVacationGuideWindowController.close()
                     self?.uiTestEventDetailWindowController.show(
@@ -212,7 +223,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             )
         )
         if #available(macOS 13.0, *) {
-            hostingController.sizingOptions = .preferredContentSize
+            hostingController.sizingOptions = NSHostingSizingOptions.preferredContentSize
         }
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 340, height: 400),

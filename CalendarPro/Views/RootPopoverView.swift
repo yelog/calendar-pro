@@ -7,6 +7,7 @@ struct RootPopoverView: View {
     @ObservedObject var eventService: EventService
     @ObservedObject var viewModel: CalendarPopoverViewModel
     @ObservedObject var timeRefreshCoordinator: TimeRefreshCoordinator
+    @ObservedObject var pomodoroTimer: PomodoroTimerController
     let onPresentEventDetailWindow: (
         EKEvent,
         @escaping (EKEvent) -> Void,
@@ -79,6 +80,8 @@ struct RootPopoverView: View {
             weather: weatherDescriptor,
             isLoadingWeather: isLoadingWeather,
             showWeather: settingsStore.menuBarPreferences.showWeather,
+            pomodoroState: pomodoroTimer.state,
+            pomodoroPreferences: settingsStore.pomodoroPreferences,
             showVacationGuideButton: showVacationGuideButton,
             isVacationGuideEnabled: isVacationGuideEnabled,
             vacationGuideDisabledReason: vacationGuideDisabledReason,
@@ -132,6 +135,21 @@ struct RootPopoverView: View {
                 dismissEventDetail()
                 viewModel.resetToToday()
                 viewModel.selectDate(timeRefreshCoordinator.currentDate, followsCurrentDay: true)
+            },
+            onStartPomodoroFocus: {
+                pomodoroTimer.startFocus()
+            },
+            onPausePomodoro: {
+                pomodoroTimer.pause()
+            },
+            onResumePomodoro: {
+                pomodoroTimer.resume()
+            },
+            onSkipPomodoro: {
+                pomodoroTimer.skip()
+            },
+            onEndPomodoro: {
+                pomodoroTimer.end()
             },
             onQuit: onQuit
         )

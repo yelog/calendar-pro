@@ -43,6 +43,8 @@ struct CalendarPopoverView: View {
     let weather: WeatherDescriptor?
     let isLoadingWeather: Bool
     let showWeather: Bool
+    let pomodoroState: PomodoroTimerController.State
+    let pomodoroPreferences: PomodoroPreferences
     let showVacationGuideButton: Bool
     let isVacationGuideEnabled: Bool
     let vacationGuideDisabledReason: String?
@@ -62,6 +64,11 @@ struct CalendarPopoverView: View {
     let onCreateItem: () -> Void
     let onOpenVacationGuide: () -> Void
     let onResetToToday: () -> Void
+    let onStartPomodoroFocus: () -> Void
+    let onPausePomodoro: () -> Void
+    let onResumePomodoro: () -> Void
+    let onSkipPomodoro: () -> Void
+    let onEndPomodoro: () -> Void
     let onQuit: () -> Void
 
     var body: some View {
@@ -122,6 +129,17 @@ struct CalendarPopoverView: View {
             )
 
             infoStripsSection
+
+            if pomodoroPreferences.isEnabled {
+                PomodoroStripView(
+                    state: pomodoroState,
+                    onStartFocus: onStartPomodoroFocus,
+                    onPause: onPausePomodoro,
+                    onResume: onResumePomodoro,
+                    onSkip: onSkipPomodoro,
+                    onEnd: onEndPomodoro
+                )
+            }
 
             eventsSection
 

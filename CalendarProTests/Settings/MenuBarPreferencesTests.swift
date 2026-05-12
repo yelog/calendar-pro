@@ -2,6 +2,34 @@ import XCTest
 @testable import CalendarPro
 
 final class MenuBarPreferencesTests: XCTestCase {
+    @MainActor
+    func testDefaultPomodoroPreferencesAreDisabledWithCountdownStyle() {
+        XCTAssertFalse(PomodoroPreferences.default.isEnabled)
+        XCTAssertEqual(PomodoroPreferences.default.menuBarStyle, .countdown)
+
+        let suiteName = "MenuBarPreferencesTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let store = SettingsStore(userDefaults: defaults, launchAtLoginController: MockLaunchAtLoginController())
+        XCTAssertEqual(store.pomodoroPreferences, .default)
+    }
+
+    @MainActor
+    func testPomodoroPreferencesPersistInSettingsStore() {
+        let suiteName = "MenuBarPreferencesTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let store = SettingsStore(userDefaults: defaults, launchAtLoginController: MockLaunchAtLoginController())
+        store.setPomodoroEnabled(false)
+        store.setPomodoroMenuBarStyle(.pie)
+
+        let reloaded = SettingsStore(userDefaults: defaults, launchAtLoginController: MockLaunchAtLoginController())
+        XCTAssertFalse(reloaded.pomodoroPreferences.isEnabled)
+        XCTAssertEqual(reloaded.pomodoroPreferences.menuBarStyle, .pie)
+    }
+
     func testDefaultShowEventsIsTrue() {
         let prefs = MenuBarPreferences.default
         XCTAssertTrue(prefs.showEvents)
@@ -142,4 +170,9 @@ final class MenuBarPreferencesTests: XCTestCase {
             "#FFFFFF"
         )
     }
+}
+
+private final class MockLaunchAtLoginController: LaunchAtLoginControlling {
+    func status() -> LaunchAtLoginStatus { .enabled }
+    func setEnabled(_ enabled: Bool) throws {}
 }

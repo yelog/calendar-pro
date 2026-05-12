@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 final class SettingsStore: ObservableObject {
     @Published var menuBarPreferences: MenuBarPreferences
+    @Published var pomodoroPreferences: PomodoroPreferences
     @Published var appLanguage: AppLanguage
     @Published private(set) var holidayDataRevision: Int = 0
     @Published private(set) var launchAtLoginStatus: LaunchAtLoginStatus = .disabled
@@ -15,6 +16,7 @@ final class SettingsStore: ObservableObject {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private let menuBarPreferencesKey = "menuBarPreferences"
+    private let pomodoroPreferencesKey = "pomodoroPreferences"
     private let appLanguageKey = "appLanguage"
 
     init(
@@ -38,6 +40,15 @@ final class SettingsStore: ObservableObject {
             menuBarPreferences = decoded
         } else {
             menuBarPreferences = .default
+        }
+
+        if
+            let data = userDefaults.data(forKey: pomodoroPreferencesKey),
+            let decoded = try? decoder.decode(PomodoroPreferences.self, from: data)
+        {
+            pomodoroPreferences = decoded
+        } else {
+            pomodoroPreferences = .default
         }
 
         migrateMenuBarPreferencesIfNeeded()
@@ -131,6 +142,20 @@ final class SettingsStore: ObservableObject {
         prefs.textStyle = .default
         menuBarPreferences = prefs
         persistMenuBarPreferences()
+    }
+
+    func setPomodoroEnabled(_ enabled: Bool) {
+        var prefs = pomodoroPreferences
+        prefs.isEnabled = enabled
+        pomodoroPreferences = prefs
+        persistPomodoroPreferences()
+    }
+
+    func setPomodoroMenuBarStyle(_ style: PomodoroMenuBarStyle) {
+        var prefs = pomodoroPreferences
+        prefs.menuBarStyle = style
+        pomodoroPreferences = prefs
+        persistPomodoroPreferences()
     }
 
     private func migrateMenuBarPreferencesIfNeeded() {
@@ -345,6 +370,11 @@ final class SettingsStore: ObservableObject {
     private func persistMenuBarPreferences() {
         guard let data = try? encoder.encode(menuBarPreferences) else { return }
         userDefaults.set(data, forKey: menuBarPreferencesKey)
+    }
+
+    private func persistPomodoroPreferences() {
+        guard let data = try? encoder.encode(pomodoroPreferences) else { return }
+        userDefaults.set(data, forKey: pomodoroPreferencesKey)
     }
 
     private func syncLaunchAtLoginState() {

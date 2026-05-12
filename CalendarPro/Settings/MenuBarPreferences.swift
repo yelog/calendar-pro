@@ -29,6 +29,21 @@ enum WeekStart: String, Codable, CaseIterable {
     case monday
 }
 
+enum PomodoroMenuBarStyle: String, Codable, CaseIterable, Identifiable {
+    case countdown
+    case progress
+    case pie
+
+    var id: String { rawValue }
+}
+
+struct PomodoroPreferences: Codable, Equatable {
+    var isEnabled: Bool
+    var menuBarStyle: PomodoroMenuBarStyle
+
+    static let `default` = PomodoroPreferences(isEnabled: false, menuBarStyle: .countdown)
+}
+
 struct DisplayTokenPreference: Codable, Equatable, Identifiable {
     var token: DisplayTokenKind
     var isEnabled: Bool

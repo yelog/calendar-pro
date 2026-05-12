@@ -13,16 +13,25 @@ final class StatusBarController {
     private let settingsStore: SettingsStore
     private let eventService: EventService
     private let timeRefreshCoordinator = TimeRefreshCoordinator()
+    private let pomodoroStatsStore: PomodoroStatsStore
+    private let pomodoroTimer: PomodoroTimerController
 
     private var cancellables = Set<AnyCancellable>()
 
-    init(settingsStore: SettingsStore, eventService: EventService) {
+    init(
+        settingsStore: SettingsStore,
+        eventService: EventService,
+        pomodoroStatsStore: PomodoroStatsStore = PomodoroStatsStore()
+    ) {
         self.settingsStore = settingsStore
         self.eventService = eventService
+        self.pomodoroStatsStore = pomodoroStatsStore
+        pomodoroTimer = PomodoroTimerController(statsStore: pomodoroStatsStore)
         popoverController = PopoverController(
             settingsStore: settingsStore,
             eventService: eventService,
-            timeRefreshCoordinator: timeRefreshCoordinator
+            timeRefreshCoordinator: timeRefreshCoordinator,
+            pomodoroTimer: pomodoroTimer
         )
         menuBarViewModel = MenuBarViewModel(
             settingsStore: settingsStore,
@@ -78,31 +87,96 @@ final class StatusBarController {
     }
 
     private func bindViewModel() {
-        Publishers.CombineLatest3(
-            menuBarViewModel.$displayText,
-            settingsStore.$menuBarPreferences
-                .map { $0.textStyle }
-                .removeDuplicates(),
-            upcomingEventMonitor.$activeIndicator
+        let menuBarStylePublisher = settingsStore.$menuBarPreferences
+            .map { $0.textStyle }
+            .removeDuplicates()
+
+        Publishers.CombineLatest(
+            Publishers.CombineLatest4(
+                menuBarViewModel.$displayText,
+                menuBarStylePublisher,
+                upcomingEventMonitor.$activeIndicator,
+                pomodoroTimer.$state
+            ),
+            settingsStore.$pomodoroPreferences.removeDuplicates()
         )
             .receive(on: RunLoop.main)
-            .sink { [weak self] text, style, indicator in
+            .sink { [weak self] combined, pomodoroPreferences in
                 guard let self else { return }
+                let (text, style, indicator, pomodoroState) = combined
+                let displayText = self.displayText(text, pomodoroState: pomodoroState, pomodoroPreferences: pomodoroPreferences)
                 self.statusItems.forEach {
                     if let button = $0.button {
-                        self.applyStatusImage(text, style: style, indicator: indicator, to: button)
+                        self.applyStatusImage(
+                            displayText,
+                            style: style,
+                            indicator: indicator,
+                            pomodoroState: pomodoroState,
+                            pomodoroPreferences: pomodoroPreferences,
+                            to: button
+                        )
                     }
+                }
+            }
+            .store(in: &cancellables)
+
+        settingsStore.$pomodoroPreferences
+            .map(\.isEnabled)
+            .removeDuplicates()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] isEnabled in
+                if !isEnabled {
+                    self?.pomodoroTimer.end()
                 }
             }
             .store(in: &cancellables)
     }
 
-    private func applyStatusImage(_ text: String, style: MenuBarTextStyle, indicator: MenuBarEventIndicator?, to button: NSStatusBarButton) {
+    private func displayText(
+        _ text: String,
+        pomodoroState: PomodoroTimerController.State,
+        pomodoroPreferences: PomodoroPreferences
+    ) -> String {
+        guard let suffix = PomodoroMenuBarFormatter.suffix(for: pomodoroState, preferences: pomodoroPreferences) else { return text }
+        return "\(text)  \(suffix)"
+    }
+
+    private func applyStatusImage(
+        _ text: String,
+        style: MenuBarTextStyle,
+        indicator: MenuBarEventIndicator?,
+        pomodoroState: PomodoroTimerController.State = .idle,
+        pomodoroPreferences: PomodoroPreferences = .default,
+        to button: NSStatusBarButton
+    ) {
         let renderResult = textImageRenderer.render(text: text, style: style, indicator: indicator)
         button.image = renderResult.image
-        let tooltip = indicator.map { "\($0.tooltipText)\n\(text)" } ?? text
+        let tooltip = tooltipText(
+            text: text,
+            indicator: indicator,
+            pomodoroState: pomodoroState,
+            pomodoroPreferences: pomodoroPreferences
+        )
         button.toolTip = tooltip
         button.setAccessibilityLabel(tooltip)
+    }
+
+    private func tooltipText(
+        text: String,
+        indicator: MenuBarEventIndicator?,
+        pomodoroState: PomodoroTimerController.State,
+        pomodoroPreferences: PomodoroPreferences
+    ) -> String {
+        var lines: [String] = []
+        if let indicator {
+            lines.append(indicator.tooltipText)
+        }
+        if pomodoroPreferences.isEnabled,
+           let pomodoroTooltip = PomodoroMenuBarFormatter.tooltip(for: pomodoroState) {
+            lines.append(pomodoroTooltip)
+        }
+        lines.append(text)
+        return lines.joined(separator: "\n")
     }
 
     @objc
