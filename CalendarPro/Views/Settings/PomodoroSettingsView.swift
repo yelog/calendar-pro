@@ -3,6 +3,19 @@ import SwiftUI
 struct PomodoroSettingsView: View {
     @ObservedObject var store: SettingsStore
     @ObservedObject var statsStore: PomodoroStatsStore
+    let reminderService: PomodoroReminderServicing
+
+    @State private var notificationStatus: PomodoroNotificationAuthorizationStatus = .notDetermined
+
+    init(
+        store: SettingsStore,
+        statsStore: PomodoroStatsStore,
+        reminderService: PomodoroReminderServicing = PomodoroReminderService()
+    ) {
+        self.store = store
+        self.statsStore = statsStore
+        self.reminderService = reminderService
+    }
 
     private var todaySummary: PomodoroStatsSummary { statsStore.summary(forRecentDays: 1) }
     private var sevenDaySummary: PomodoroStatsSummary { statsStore.summary(forRecentDays: 7) }
@@ -43,6 +56,46 @@ struct PomodoroSettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
+                GeneralSettingsSection(L("Phase End Reminders")) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        GeneralSettingsRow(
+                            title: L("Send System Notifications"),
+                            description: notificationDescription
+                        ) {
+                            Toggle("", isOn: notificationBinding)
+                                .labelsHidden()
+                                .disabled(!store.pomodoroPreferences.isEnabled)
+                        }
+
+                        if store.pomodoroPreferences.reminders.notificationsEnabled {
+                            HStack(spacing: 10) {
+                                Text(notificationStatusText)
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(notificationStatusColor)
+
+                                if notificationStatus == .notDetermined || notificationStatus == .denied {
+                                    Button(L("Request Notification Permission")) {
+                                        requestNotificationPermission()
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                                    .disabled(!store.pomodoroPreferences.isEnabled)
+                                }
+                            }
+                        }
+
+                        GeneralSettingsRow(
+                            title: L("Play Reminder Sound"),
+                            description: L("Play Reminder Sound Description")
+                        ) {
+                            Toggle("", isOn: soundBinding)
+                                .labelsHidden()
+                                .disabled(!store.pomodoroPreferences.isEnabled)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
                 GeneralSettingsSection(L("Statistics")) {
                     VStack(alignment: .leading, spacing: 16) {
                         todayCards
@@ -58,6 +111,9 @@ struct PomodoroSettingsView: View {
             .padding(.horizontal, 30)
             .padding(.vertical, 24)
         }
+        .task {
+            await refreshNotificationStatus()
+        }
     }
 
     private var enabledBinding: Binding<Bool> {
@@ -72,6 +128,67 @@ struct PomodoroSettingsView: View {
             get: { store.pomodoroPreferences.menuBarStyle },
             set: { store.setPomodoroMenuBarStyle($0) }
         )
+    }
+
+    private var notificationBinding: Binding<Bool> {
+        Binding(
+            get: { store.pomodoroPreferences.reminders.notificationsEnabled },
+            set: { enabled in
+                store.setPomodoroNotificationsEnabled(enabled)
+                if enabled {
+                    requestNotificationPermission()
+                }
+            }
+        )
+    }
+
+    private var soundBinding: Binding<Bool> {
+        Binding(
+            get: { store.pomodoroPreferences.reminders.soundEnabled },
+            set: { store.setPomodoroSoundEnabled($0) }
+        )
+    }
+
+    private var notificationDescription: String {
+        if notificationStatus == .denied {
+            return L("Notification Permission Denied Description")
+        }
+        return L("Send System Notifications Description")
+    }
+
+    private var notificationStatusText: String {
+        switch notificationStatus {
+        case .notDetermined:
+            return L("Notification Permission Not Determined")
+        case .denied:
+            return L("Notification Permission Denied")
+        case .authorized, .provisional, .ephemeral:
+            return L("Notification Permission Granted")
+        case .unknown:
+            return L("Notification Permission Unknown")
+        }
+    }
+
+    private var notificationStatusColor: Color {
+        switch notificationStatus {
+        case .denied, .unknown:
+            return .orange
+        case .authorized, .provisional, .ephemeral:
+            return .green
+        case .notDetermined:
+            return .secondary
+        }
+    }
+
+    private func refreshNotificationStatus() async {
+        notificationStatus = await reminderService.authorizationStatus()
+    }
+
+    private func requestNotificationPermission() {
+        Task { @MainActor in
+            _ = await reminderService.requestAuthorization()
+            await refreshNotificationStatus()
+        }
     }
 
     private var menuBarPreview: some View {

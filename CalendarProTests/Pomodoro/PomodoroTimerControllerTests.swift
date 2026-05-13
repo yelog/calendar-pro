@@ -56,6 +56,20 @@ final class PomodoroTimerControllerTests: XCTestCase {
         XCTAssertEqual(statsStore.summary(forRecentDays: 1).completedFocusMinutes, 25)
     }
 
+    func testNaturalFocusCompletionSendsReminder() async {
+        let clock = PomodoroTimerTestClock(Date(timeIntervalSince1970: 0))
+        let reminderService = SpyPomodoroReminderService()
+        let controller = makeController(now: { clock.value }, reminderService: reminderService)
+
+        controller.startFocus()
+        clock.value = clock.value.addingTimeInterval(TimeInterval(PomodoroTimerController.focusDuration))
+        controller.refresh()
+        await Task.yield()
+
+        XCTAssertEqual(reminderService.sentReminders.map(\.kind), [.focusCompleted(nextPhase: .shortBreak)])
+        XCTAssertEqual(reminderService.sentReminders.first?.preferences, .default)
+    }
+
     func testFourthFocusRoundStartsLongBreakAndResetsRoundCycle() {
         let clock = PomodoroTimerTestClock(Date(timeIntervalSince1970: 0))
         let controller = makeController(now: { clock.value })
@@ -88,6 +102,24 @@ final class PomodoroTimerControllerTests: XCTestCase {
         XCTAssertEqual(controller.state.phase, .focus)
         XCTAssertEqual(controller.state.remainingSeconds, PomodoroTimerController.focusDuration)
         XCTAssertEqual(controller.state.completedFocusCount, 1)
+    }
+
+    func testNaturalBreakCompletionSendsReminder() async {
+        let clock = PomodoroTimerTestClock(Date(timeIntervalSince1970: 0))
+        let reminderService = SpyPomodoroReminderService()
+        let controller = makeController(now: { clock.value }, reminderService: reminderService)
+
+        controller.startFocus()
+        clock.value = clock.value.addingTimeInterval(TimeInterval(PomodoroTimerController.focusDuration))
+        controller.refresh()
+        clock.value = clock.value.addingTimeInterval(TimeInterval(PomodoroTimerController.shortBreakDuration))
+        controller.refresh()
+        await Task.yield()
+
+        XCTAssertEqual(
+            reminderService.sentReminders.map(\.kind),
+            [.focusCompleted(nextPhase: .shortBreak), .breakCompleted]
+        )
     }
 
     func testPauseAndResumePreserveRemainingSeconds() {
@@ -126,6 +158,17 @@ final class PomodoroTimerControllerTests: XCTestCase {
 
         XCTAssertEqual(statsStore.summary(forRecentDays: 1).focusSkippedCount, 1)
         XCTAssertEqual(statsStore.summary(forRecentDays: 1).completedFocusCount, 0)
+    }
+
+    func testSkipDoesNotSendReminder() async {
+        let reminderService = SpyPomodoroReminderService()
+        let controller = makeController(reminderService: reminderService)
+
+        controller.startFocus()
+        controller.skip()
+        await Task.yield()
+
+        XCTAssertTrue(reminderService.sentReminders.isEmpty)
     }
 
     func testSkipBreakAdvancesToFocus() {
@@ -170,11 +213,30 @@ final class PomodoroTimerControllerTests: XCTestCase {
         XCTAssertEqual(statsStore.summary(forRecentDays: 1).completedFocusCount, 0)
     }
 
+    func testEndDoesNotSendReminder() async {
+        let reminderService = SpyPomodoroReminderService()
+        let controller = makeController(reminderService: reminderService)
+
+        controller.startFocus()
+        controller.end()
+        await Task.yield()
+
+        XCTAssertTrue(reminderService.sentReminders.isEmpty)
+    }
+
     private func makeController(
         now: @escaping () -> Date = Date.init,
-        statsStore: PomodoroStatsStore? = nil
+        statsStore: PomodoroStatsStore? = nil,
+        reminderService: PomodoroReminderServicing? = nil,
+        reminderPreferences: @escaping () -> PomodoroReminderPreferences = { .default }
     ) -> PomodoroTimerController {
-        PomodoroTimerController(now: now, startsTimer: false, statsStore: statsStore)
+        PomodoroTimerController(
+            now: now,
+            startsTimer: false,
+            statsStore: statsStore,
+            reminderService: reminderService,
+            reminderPreferences: reminderPreferences
+        )
     }
 
     private func makeStatsStore(now: @escaping () -> Date = Date.init) -> PomodoroStatsStore {
@@ -182,6 +244,22 @@ final class PomodoroTimerControllerTests: XCTestCase {
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return PomodoroStatsStore(userDefaults: defaults, now: now)
+    }
+}
+
+private final class SpyPomodoroReminderService: PomodoroReminderServicing {
+    private(set) var sentReminders: [(kind: PomodoroReminderKind, preferences: PomodoroReminderPreferences)] = []
+
+    func authorizationStatus() async -> PomodoroNotificationAuthorizationStatus {
+        .authorized
+    }
+
+    func requestAuthorization() async -> Bool {
+        true
+    }
+
+    func sendReminder(_ kind: PomodoroReminderKind, preferences: PomodoroReminderPreferences) async {
+        sentReminders.append((kind, preferences))
     }
 }
 

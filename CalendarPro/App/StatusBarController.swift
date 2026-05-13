@@ -14,6 +14,7 @@ final class StatusBarController {
     private let eventService: EventService
     private let timeRefreshCoordinator = TimeRefreshCoordinator()
     private let pomodoroStatsStore: PomodoroStatsStore
+    private let pomodoroReminderService = PomodoroReminderService()
     private let pomodoroTimer: PomodoroTimerController
 
     private var cancellables = Set<AnyCancellable>()
@@ -26,7 +27,11 @@ final class StatusBarController {
         self.settingsStore = settingsStore
         self.eventService = eventService
         self.pomodoroStatsStore = pomodoroStatsStore
-        pomodoroTimer = PomodoroTimerController(statsStore: pomodoroStatsStore)
+        pomodoroTimer = PomodoroTimerController(
+            statsStore: pomodoroStatsStore,
+            reminderService: pomodoroReminderService,
+            reminderPreferences: { settingsStore.pomodoroPreferences.reminders }
+        )
         popoverController = PopoverController(
             settingsStore: settingsStore,
             eventService: eventService,

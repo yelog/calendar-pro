@@ -51,17 +51,23 @@ final class PomodoroTimerController: ObservableObject {
     private let now: () -> Date
     private let startsTimer: Bool
     private let statsStore: PomodoroStatsStore?
+    private let reminderService: PomodoroReminderServicing?
+    private let reminderPreferences: () -> PomodoroReminderPreferences
     private var endDate: Date?
     private var timerCancellable: AnyCancellable?
 
     init(
         now: @escaping () -> Date = Date.init,
         startsTimer: Bool = true,
-        statsStore: PomodoroStatsStore? = nil
+        statsStore: PomodoroStatsStore? = nil,
+        reminderService: PomodoroReminderServicing? = nil,
+        reminderPreferences: @escaping () -> PomodoroReminderPreferences = { .default }
     ) {
         self.now = now
         self.startsTimer = startsTimer
         self.statsStore = statsStore
+        self.reminderService = reminderService
+        self.reminderPreferences = reminderPreferences
     }
 
     func startFocus() {
@@ -131,11 +137,22 @@ final class PomodoroTimerController: ObservableObject {
             let completed = state.completedFocusCount + 1
             if completed >= Self.focusesBeforeLongBreak {
                 begin(.longBreak, duration: Self.longBreakDuration, completedFocusCount: 0)
+                sendReminderIfNeeded(.focusCompleted(nextPhase: .longBreak), reason: reason)
             } else {
                 begin(.shortBreak, duration: Self.shortBreakDuration, completedFocusCount: completed)
+                sendReminderIfNeeded(.focusCompleted(nextPhase: .shortBreak), reason: reason)
             }
         case .shortBreak, .longBreak:
             begin(.focus, duration: Self.focusDuration, completedFocusCount: state.completedFocusCount)
+            sendReminderIfNeeded(.breakCompleted, reason: reason)
+        }
+    }
+
+    private func sendReminderIfNeeded(_ kind: PomodoroReminderKind, reason: TransitionReason) {
+        guard reason == .naturalCompletion, let reminderService else { return }
+        let preferences = reminderPreferences()
+        Task { @MainActor in
+            await reminderService.sendReminder(kind, preferences: preferences)
         }
     }
 

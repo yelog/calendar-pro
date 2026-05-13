@@ -6,6 +6,8 @@ final class MenuBarPreferencesTests: XCTestCase {
     func testDefaultPomodoroPreferencesAreDisabledWithCountdownStyle() {
         XCTAssertFalse(PomodoroPreferences.default.isEnabled)
         XCTAssertEqual(PomodoroPreferences.default.menuBarStyle, .countdown)
+        XCTAssertTrue(PomodoroPreferences.default.reminders.notificationsEnabled)
+        XCTAssertTrue(PomodoroPreferences.default.reminders.soundEnabled)
 
         let suiteName = "MenuBarPreferencesTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -24,10 +26,14 @@ final class MenuBarPreferencesTests: XCTestCase {
         let store = SettingsStore(userDefaults: defaults, launchAtLoginController: MockLaunchAtLoginController())
         store.setPomodoroEnabled(false)
         store.setPomodoroMenuBarStyle(.pie)
+        store.setPomodoroNotificationsEnabled(false)
+        store.setPomodoroSoundEnabled(false)
 
         let reloaded = SettingsStore(userDefaults: defaults, launchAtLoginController: MockLaunchAtLoginController())
         XCTAssertFalse(reloaded.pomodoroPreferences.isEnabled)
         XCTAssertEqual(reloaded.pomodoroPreferences.menuBarStyle, .pie)
+        XCTAssertFalse(reloaded.pomodoroPreferences.reminders.notificationsEnabled)
+        XCTAssertFalse(reloaded.pomodoroPreferences.reminders.soundEnabled)
     }
 
     func testDefaultShowEventsIsTrue() {

@@ -3474,6 +3474,91 @@
         }
       }
     },
+    "Notification Permission Denied" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are blocked in System Settings."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知已在系统设置中被关闭。"
+          }
+        }
+      }
+    },
+    "Notification Permission Denied Description" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable CalendarPro notifications in System Settings, or keep sound reminders on as a fallback."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在系统设置中允许 CalendarPro 通知，或保留声音提醒作为兜底。"
+          }
+        }
+      }
+    },
+    "Notification Permission Granted" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are allowed."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知权限已开启。"
+          }
+        }
+      }
+    },
+    "Notification Permission Not Determined" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission has not been requested yet."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未请求通知权限。"
+          }
+        }
+      }
+    },
+    "Notification Permission Unknown" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification permission status is unknown."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知权限状态未知。"
+          }
+        }
+      }
+    },
     "OFF" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3695,6 +3780,23 @@
         }
       }
     },
+    "Phase End Reminders" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phase End Reminders"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阶段结束提醒"
+          }
+        }
+      }
+    },
     "Pie" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3708,6 +3810,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "饼图"
+          }
+        }
+      }
+    },
+    "Play Reminder Sound" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play Reminder Sound"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "播放提示音"
+          }
+        }
+      }
+    },
+    "Play Reminder Sound Description" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play one gentle sound when a Pomodoro phase ends."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "番茄阶段结束时播放一声温和提示音。"
           }
         }
       }
@@ -3729,6 +3865,40 @@
         }
       }
     },
+    "Pomodoro Break Completed Notification Body" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your break is over. You can start focusing again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息结束，可以开始下一轮专注了。"
+          }
+        }
+      }
+    },
+    "Pomodoro Break Completed Notification Title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Break Finished"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息结束"
+          }
+        }
+      }
+    },
     "Pomodoro Detail Description" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3742,6 +3912,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "调整专注状态显示方式，并查看本地专注趋势。"
+          }
+        }
+      }
+    },
+    "Pomodoro Focus Completed Notification Title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Focus Complete"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "专注完成"
           }
         }
       }
@@ -3763,6 +3950,23 @@
         }
       }
     },
+    "Pomodoro Long Break Notification Body" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Four pomodoros completed. Take a 15-minute break."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已完成 4 个番茄，休息 15 分钟。"
+          }
+        }
+      }
+    },
     "Pomodoro Menu Bar Style Description" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3776,6 +3980,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "倒计时最清晰；进度条和饼图更适合想减少菜单栏干扰的使用方式。"
+          }
+        }
+      }
+    },
+    "Pomodoro Short Break Notification Body" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time for a 5-minute break. The next round starts automatically."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息 5 分钟，下一轮会自动开始。"
           }
         }
       }
@@ -4188,6 +4409,23 @@
         }
       }
     },
+    "Request Notification Permission" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request Permission"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请求通知权限"
+          }
+        }
+      }
+    },
     "Reset Font Style" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4303,6 +4541,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择年份"
+          }
+        }
+      }
+    },
+    "Send System Notifications" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send System Notifications"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送系统通知"
+          }
+        }
+      }
+    },
+    "Send System Notifications Description" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show a macOS notification when focus or break time ends."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "专注或休息结束时显示 macOS 通知。"
           }
         }
       }

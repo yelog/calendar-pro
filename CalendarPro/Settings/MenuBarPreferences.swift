@@ -40,8 +40,23 @@ enum PomodoroMenuBarStyle: String, Codable, CaseIterable, Identifiable {
 struct PomodoroPreferences: Codable, Equatable {
     var isEnabled: Bool
     var menuBarStyle: PomodoroMenuBarStyle
+    var reminders: PomodoroReminderPreferences
 
-    static let `default` = PomodoroPreferences(isEnabled: false, menuBarStyle: .countdown)
+    static let `default` = PomodoroPreferences(
+        isEnabled: false,
+        menuBarStyle: .countdown,
+        reminders: .default
+    )
+}
+
+struct PomodoroReminderPreferences: Codable, Equatable {
+    var notificationsEnabled: Bool
+    var soundEnabled: Bool
+
+    static let `default` = PomodoroReminderPreferences(
+        notificationsEnabled: true,
+        soundEnabled: true
+    )
 }
 
 struct DisplayTokenPreference: Codable, Equatable, Identifiable {

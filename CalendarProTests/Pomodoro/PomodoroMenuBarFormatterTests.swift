@@ -9,7 +9,7 @@ final class PomodoroMenuBarFormatterTests: XCTestCase {
 
     func testDisabledPreferencesReturnNoSuffix() {
         let state = makeState(phase: .focus, remainingSeconds: 90)
-        let preferences = PomodoroPreferences(isEnabled: false, menuBarStyle: .countdown)
+        let preferences = PomodoroPreferences(isEnabled: false, menuBarStyle: .countdown, reminders: .default)
 
         XCTAssertNil(PomodoroMenuBarFormatter.suffix(for: state, preferences: preferences))
     }
@@ -38,7 +38,7 @@ final class PomodoroMenuBarFormatterTests: XCTestCase {
             remainingSeconds: PomodoroTimerController.focusDuration / 2,
             totalSeconds: PomodoroTimerController.focusDuration
         )
-        let preferences = PomodoroPreferences(isEnabled: true, menuBarStyle: .progress)
+        let preferences = PomodoroPreferences(isEnabled: true, menuBarStyle: .progress, reminders: .default)
 
         XCTAssertEqual(PomodoroMenuBarFormatter.suffix(for: state, preferences: preferences), "🍅▰▰▱▱ 13m")
     }
@@ -49,7 +49,7 @@ final class PomodoroMenuBarFormatterTests: XCTestCase {
             remainingSeconds: PomodoroTimerController.shortBreakDuration / 2,
             totalSeconds: PomodoroTimerController.shortBreakDuration
         )
-        let preferences = PomodoroPreferences(isEnabled: true, menuBarStyle: .pie)
+        let preferences = PomodoroPreferences(isEnabled: true, menuBarStyle: .pie, reminders: .default)
 
         XCTAssertEqual(PomodoroMenuBarFormatter.suffix(for: state, preferences: preferences), "◕ 3m")
     }

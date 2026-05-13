@@ -158,6 +158,20 @@ final class SettingsStore: ObservableObject {
         persistPomodoroPreferences()
     }
 
+    func setPomodoroNotificationsEnabled(_ enabled: Bool) {
+        var prefs = pomodoroPreferences
+        prefs.reminders.notificationsEnabled = enabled
+        pomodoroPreferences = prefs
+        persistPomodoroPreferences()
+    }
+
+    func setPomodoroSoundEnabled(_ enabled: Bool) {
+        var prefs = pomodoroPreferences
+        prefs.reminders.soundEnabled = enabled
+        pomodoroPreferences = prefs
+        persistPomodoroPreferences()
+    }
+
     private func migrateMenuBarPreferencesIfNeeded() {
         guard !menuBarPreferences.enabledHolidayIDs.isEmpty else { return }
         guard !menuBarPreferences.enabledHolidayIDs.contains(MainlandCNProvider.commemorativeFestivalSetID) else { return }
