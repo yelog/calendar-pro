@@ -231,7 +231,7 @@ struct EventListView: View {
         static let timeLaneWidth: CGFloat = 46
         static let railLaneWidth: CGFloat = 12
         static let laneSpacing: CGFloat = 6
-        static let contentSpacing: CGFloat = 6
+        static let contentSpacing: CGFloat = 8
         static let timelineColumnWidth: CGFloat = timeLaneWidth + laneSpacing + railLaneWidth
         static let markerDotSize: CGFloat = 8
         static let markerChipHeight: CGFloat = 18
@@ -287,7 +287,7 @@ struct EventListView: View {
     }
 
     private var timelineContent: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             ForEach(Array(timelineSnapshot.timedGroups.enumerated()), id: \.element.id) { index, group in
                 timedGroupView(
                     group,
@@ -334,7 +334,7 @@ struct EventListView: View {
         isLast: Bool,
         markerPosition: EventTimelineMarkerPosition?
     ) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             if markerPosition == .beforeGroup {
                 nowMarkerView
             }
@@ -342,7 +342,7 @@ struct EventListView: View {
             HStack(alignment: .top, spacing: Metrics.contentSpacing) {
                 timelineColumn(for: group, isFirst: isFirst)
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     ForEach(group.items) { item in
                         itemButton(item, timelineState: timelineState(for: item))
                     }
@@ -357,7 +357,7 @@ struct EventListView: View {
     }
 
     private func timelineColumn(for group: EventTimelineGroup, isFirst: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: Metrics.laneSpacing) {
                 Text(group.displayTime)
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
@@ -432,12 +432,12 @@ struct EventListView: View {
     }
 
     private func auxiliarySection(title: String, items: [CalendarItem]) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 ForEach(items) { item in
                     itemButton(item, timelineState: .regular)
                 }

@@ -34,38 +34,39 @@ struct EventCardView: View {
     }
     
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: 10) {
             if item.isReminder {
                 reminderCheckbox
-                    .padding(.top, 2)
+                    .padding(.top, 1)
             } else {
                 Circle()
                     .fill(indicatorColor)
-                    .frame(width: 6, height: 6)
-                    .padding(.top, 4)
+                    .frame(width: 5, height: 5)
+                    .padding(.top, 6)
             }
 
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(alignment: .top, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .center, spacing: 8) {
                     Text(timeRangeText)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
                         .foregroundStyle(timeTextColor)
 
                     Spacer(minLength: 8)
 
                     if showsDisclosure, !metadataItems.isEmpty {
-                        HStack(spacing: 5) {
+                        HStack(spacing: 6) {
                             ForEach(Array(metadataItems.enumerated()), id: \.offset) { _, metadata in
                                 metadataView(metadata)
                             }
                         }
+                        .opacity(metadataOpacity)
                         .fixedSize(horizontal: true, vertical: false)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text(item.title)
-                    .font(.system(size: 13, weight: .regular))
+                    .font(.system(size: 13, weight: .medium))
                     .lineLimit(2)
                     .strikethrough(item.isCompleted || item.isCanceled)
                     .foregroundStyle(titleColor)
@@ -73,7 +74,7 @@ struct EventCardView: View {
 
                 if let secondaryText {
                     Text(secondaryText)
-                        .font(.system(size: 10))
+                        .font(.system(size: 10, weight: .regular))
                         .foregroundStyle(secondaryTextColor)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -81,9 +82,9 @@ struct EventCardView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.leading, 12)
-        .padding(.trailing, 8)
-        .padding(.vertical, 8)
+        .padding(.leading, 14)
+        .padding(.trailing, 12)
+        .padding(.vertical, 10)
         .background {
             ZStack {
                 baseCardColor
@@ -216,7 +217,11 @@ struct EventCardView: View {
         if item.isCanceled {
             return Color(nsColor: .tertiaryLabelColor)
         }
-        return isSelected ? itemAccentColor : Color(nsColor: .tertiaryLabelColor)
+        return isSelected ? itemAccentColor.opacity(0.9) : Color(nsColor: .tertiaryLabelColor)
+    }
+
+    private var metadataOpacity: Double {
+        isSelected ? 0.9 : 0.72
     }
 
     private var metadataItems: [EventCardMetadata] {
@@ -345,7 +350,7 @@ enum EventParticipationBadgeStyle {
     var iconFrameSize: CGFloat {
         switch self {
         case .compactIcon:
-            return 18
+            return 16
         case .detail:
             return 0
         }
