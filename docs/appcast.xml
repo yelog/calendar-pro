@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.1.6</title>
+            <pubDate>Thu, 14 May 2026 03:47:51 +0000</pubDate>
+            <sparkle:version>01699</sparkle:version>
+            <sparkle:shortVersionString>0.1.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.1.6&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add phase end reminders&lt;/li&gt;&lt;li&gt;add timer settings and statistics&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Changed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;refine calendar menu hierarchy&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.1.6/CalendarPro-0.1.6-universal.dmg" length="7263460" type="application/octet-stream" sparkle:edSignature="hvVmqV4aS+ZEW+E4m4WMcA3tYDM0jTriq75MOKjd0VCDNpYr83yWFKXjkAHB1Anwhqr7PJG1Ou10CN0TRRgRDA==" />
+        </item>
+        <item>
             <title>Version 0.1.5</title>
             <pubDate>Fri, 08 May 2026 12:50:19 +0000</pubDate>
             <sparkle:version>01599</sparkle:version>
