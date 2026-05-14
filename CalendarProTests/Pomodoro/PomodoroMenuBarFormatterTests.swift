@@ -16,20 +16,23 @@ final class PomodoroMenuBarFormatterTests: XCTestCase {
 
     func testFocusStateReturnsTomatoCountdownSuffix() {
         let state = makeState(phase: .focus, remainingSeconds: 18 * 60 + 42)
+        let preferences = PomodoroPreferences(isEnabled: true, menuBarStyle: .countdown, reminders: .default)
 
-        XCTAssertEqual(PomodoroMenuBarFormatter.suffix(for: state), "🍅18:42")
+        XCTAssertEqual(PomodoroMenuBarFormatter.suffix(for: state, preferences: preferences), "🍅18:42")
     }
 
     func testBreakStateReturnsLocalizedChineseSuffix() {
         let state = makeState(phase: .shortBreak, remainingSeconds: 4 * 60 + 31)
+        let preferences = PomodoroPreferences(isEnabled: true, menuBarStyle: .countdown, reminders: .default)
 
-        XCTAssertEqual(PomodoroMenuBarFormatter.suffix(for: state, languageCode: "zh"), "休04:31")
+        XCTAssertEqual(PomodoroMenuBarFormatter.suffix(for: state, preferences: preferences, languageCode: "zh"), "休04:31")
     }
 
     func testBreakStateReturnsEnglishSuffix() {
         let state = makeState(phase: .longBreak, remainingSeconds: 14 * 60 + 3)
+        let preferences = PomodoroPreferences(isEnabled: true, menuBarStyle: .countdown, reminders: .default)
 
-        XCTAssertEqual(PomodoroMenuBarFormatter.suffix(for: state, languageCode: "en"), "Br 14:03")
+        XCTAssertEqual(PomodoroMenuBarFormatter.suffix(for: state, preferences: preferences, languageCode: "en"), "Br 14:03")
     }
 
     func testProgressStyleReturnsProgressBarSuffix() {
