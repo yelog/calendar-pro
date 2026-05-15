@@ -195,8 +195,10 @@ struct MenuBarTextImageRenderer {
         let dotSize: CGFloat = 6
         let dotSpacing: CGFloat = 4
         let dotGap: CGFloat = 6
+        let dotRowSpacing: CGFloat = 2
+        let dotColumnCount = dots.count > 1 ? Int(ceil(Double(dots.count) / 2.0)) : dots.count
         let dotsTotalWidth = hasDot
-            ? dotGap + CGFloat(dots.count) * dotSize + CGFloat(max(dots.count - 1, 0)) * dotSpacing
+            ? dotGap + CGFloat(dotColumnCount) * dotSize + CGFloat(max(dotColumnCount - 1, 0)) * dotSpacing
             : 0
 
         let horizontalPadding: CGFloat = showsFilledBackground ? 8 : 2
@@ -226,10 +228,16 @@ struct MenuBarTextImageRenderer {
             attributedText.draw(in: textDrawRect)
 
             if hasDot {
-                var dotX = horizontalPadding + textSize.width + dotGap
-                let dotY = (rect.height - dotSize) / 2
+                let dotStartX = horizontalPadding + textSize.width + dotGap
+                let usesTwoRows = dots.count > 1
+                let dotBlockHeight = usesTwoRows ? dotSize * 2 + dotRowSpacing : dotSize
+                let dotStartY = (rect.height - dotBlockHeight) / 2
 
-                for dot in dots {
+                for (index, dot) in dots.enumerated() {
+                    let column = usesTwoRows ? index / 2 : 0
+                    let row = usesTwoRows ? index % 2 : 0
+                    let dotX = dotStartX + CGFloat(column) * (dotSize + dotSpacing)
+                    let dotY = dotStartY + (usesTwoRows ? CGFloat(1 - row) * (dotSize + dotRowSpacing) : 0)
                     let dotRect = NSRect(x: dotX, y: dotY, width: dotSize, height: dotSize)
 
                     let baseColor: NSColor
@@ -249,8 +257,6 @@ struct MenuBarTextImageRenderer {
                         dotPath.lineWidth = 1.5
                         dotPath.stroke()
                     }
-
-                    dotX += dotSize + dotSpacing
                 }
             }
             return true

@@ -61,6 +61,50 @@ final class ClockRenderServiceTests: XCTestCase {
         XCTAssertGreaterThan(indicatorResult.image.size.width, plainResult.image.size.width)
     }
 
+    func testTextImageRendererUsesCompactTwoRowLayoutForMultipleIndicators() {
+        let renderer = MenuBarTextImageRenderer()
+        let text = "10:30 Tue 04/22"
+        let oneDotResult = renderer.render(
+            text: text,
+            style: .default,
+            indicator: MenuBarEventIndicator(
+                dots: [MenuBarEventIndicatorDot(colorHex: "#34C759", status: .ongoing)],
+                tooltipText: "会议",
+                count: 1
+            )
+        )
+        let twoDotResult = renderer.render(
+            text: text,
+            style: .default,
+            indicator: MenuBarEventIndicator(
+                dots: [
+                    MenuBarEventIndicatorDot(colorHex: "#34C759", status: .ongoing),
+                    MenuBarEventIndicatorDot(colorHex: "#007AFF", status: .upcoming)
+                ],
+                tooltipText: "会议\n评审",
+                count: 2
+            )
+        )
+        let threeDotResult = renderer.render(
+            text: text,
+            style: .default,
+            indicator: MenuBarEventIndicator(
+                dots: [
+                    MenuBarEventIndicatorDot(colorHex: "#34C759", status: .ongoing),
+                    MenuBarEventIndicatorDot(colorHex: "#007AFF", status: .upcoming),
+                    MenuBarEventIndicatorDot(colorHex: "#FF9500", status: .upcoming)
+                ],
+                tooltipText: "会议\n评审\n同步",
+                count: 3
+            )
+        )
+
+        XCTAssertFalse(twoDotResult.usesTemplateColor)
+        XCTAssertFalse(twoDotResult.image.isTemplate)
+        XCTAssertEqual(twoDotResult.image.size.width, oneDotResult.image.size.width, accuracy: 0.5)
+        XCTAssertLessThan(threeDotResult.image.size.width, oneDotResult.image.size.width + 20)
+    }
+
     func testRendererRespectsTokenOrderAndShortStyles() {
         let renderer = ClockRenderService()
         let text = renderer.render(
