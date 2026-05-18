@@ -235,8 +235,9 @@ struct CalendarPopoverView: View {
         if shouldShowWeatherStrip || shouldShowAlmanacStrip {
             Divider()
                 .padding(.horizontal, -PopoverSurfaceMetrics.outerPadding)
+                .opacity(0.55)
 
-            VStack(spacing: 6) {
+            VStack(spacing: 5) {
                 if shouldShowWeatherStrip {
                     WeatherStripView(
                         weather: weather,

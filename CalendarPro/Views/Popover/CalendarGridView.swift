@@ -19,7 +19,7 @@ struct CalendarGridView: View {
                 }
             }
 
-            LazyVGrid(columns: gridColumns, spacing: 6) {
+            LazyVGrid(columns: gridColumns, spacing: 5) {
                 ForEach(monthDays) { day in
                     CalendarDayCellView(day: day, highlightWeekends: highlightWeekends)
                         .onTapGesture {
@@ -38,7 +38,7 @@ struct CalendarGridView: View {
     }
 
     private var gridColumns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
+        Array(repeating: GridItem(.flexible(), spacing: 5), count: 7)
     }
 }
 
@@ -67,19 +67,19 @@ private struct CalendarDayCellView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
-        .frame(maxWidth: .infinity, minHeight: 34)
-        .padding(.vertical, 2)
+        .frame(maxWidth: .infinity, minHeight: 36)
+        .padding(.vertical, 3)
         .padding(.horizontal, 4)
         .background {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
                 .fill(cellBackgroundColor)
         }
         .overlay {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
                 .strokeBorder(cellBorderColor, lineWidth: cellBorderWidth)
         }
         .shadow(color: cellShadowColor, radius: cellShadowRadius, y: cellShadowRadius == 0 ? 0 : 1)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
         .overlay(alignment: .topTrailing) {
             HStack(spacing: 2) {
                 if day.isToday {
@@ -89,7 +89,7 @@ private struct CalendarDayCellView: View {
                     badgeView(indicator)
                 }
             }
-            .offset(x: 4, y: -4)
+            .offset(x: 3, y: -5)
         }
         .contentShape(Rectangle())
         .onHover { hovering in
@@ -101,10 +101,9 @@ private struct CalendarDayCellView: View {
 
     private func badgeView(_ badgeIndicator: BadgeIndicator) -> some View {
         Text(badgeIndicator.text)
-            .font(.system(size: 7, weight: .semibold, design: .rounded))
+            .font(.system(size: 7.5, weight: .bold, design: .rounded))
             .foregroundStyle(badgeIndicator.foreground)
-            .padding(.horizontal, 3)
-            .padding(.vertical, 1)
+            .frame(minWidth: 16, minHeight: 16)
             .background {
                 Capsule()
                     .fill(badgeIndicator.fill)
@@ -116,17 +115,28 @@ private struct CalendarDayCellView: View {
     }
 
     private var todayBadgeView: some View {
-        Circle()
-            .fill(colorScheme == .dark ? Color(red: 0.94, green: 0.74, blue: 0.22) : Color(red: 0.86, green: 0.55, blue: 0.08))
-            .frame(width: 6, height: 6)
+        Text(todayMarkerText)
+            .font(.system(size: 7.5, weight: .bold, design: .rounded))
+            .foregroundStyle(todayBadgeForegroundColor)
+            .frame(minWidth: 16, minHeight: 16)
+            .background {
+                Capsule()
+                    .fill(todayBadgeFillColor)
+            }
+            .overlay {
+                Capsule()
+                    .strokeBorder(todayBadgeBorderColor, lineWidth: 0.5)
+            }
             .accessibilityLabel(Text(L("Today")))
     }
 
     private var cellBackgroundColor: Color {
         if day.isSelected {
-            return colorScheme == .dark
-                ? Color(red: 0.48, green: 0.38, blue: 0.10).opacity(0.54)
-                : Color(red: 1.0, green: 0.93, blue: 0.70).opacity(0.62)
+            return selectedBackgroundColor
+        }
+
+        if day.isToday {
+            return todayBackgroundColor
         }
 
         if isHovered {
@@ -146,9 +156,7 @@ private struct CalendarDayCellView: View {
         }
 
         if day.isToday {
-            return colorScheme == .dark
-                ? Color(red: 0.94, green: 0.74, blue: 0.22).opacity(0.42)
-                : Color(red: 0.86, green: 0.55, blue: 0.08).opacity(0.32)
+            return todayBorderColor
         }
 
         return semanticStyle?.border ?? .clear
@@ -156,7 +164,7 @@ private struct CalendarDayCellView: View {
 
     private var cellBorderWidth: CGFloat {
         if day.isSelected {
-            return 1.2
+            return 1.35
         }
 
         if day.isToday || isHovered || semanticStyle != nil {
@@ -167,17 +175,58 @@ private struct CalendarDayCellView: View {
     }
 
     private var cellShadowColor: Color {
-        day.isSelected && colorScheme == .dark ? selectionBorderColor.opacity(0.14) : .clear
+        guard day.isSelected else { return .clear }
+        return colorScheme == .dark
+            ? selectionBorderColor.opacity(0.16)
+            : Color.black.opacity(0.045)
     }
 
     private var cellShadowRadius: CGFloat {
-        day.isSelected && colorScheme == .dark ? 6 : 0
+        day.isSelected ? 4 : 0
+    }
+
+    private var selectedBackgroundColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.54, green: 0.42, blue: 0.08).opacity(0.68)
+            : Color(red: 1.0, green: 0.90, blue: 0.55).opacity(0.88)
+    }
+
+    private var todayBackgroundColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.48, green: 0.34, blue: 0.06).opacity(0.32)
+            : Color(red: 1.0, green: 0.92, blue: 0.62).opacity(0.30)
     }
 
     private var selectionBorderColor: Color {
         colorScheme == .dark
-            ? Color(red: 0.9, green: 0.75, blue: 0.25).opacity(0.72)
-            : Color(red: 0.9, green: 0.67, blue: 0.12).opacity(0.72)
+            ? Color(red: 0.98, green: 0.78, blue: 0.22).opacity(0.82)
+            : Color(red: 0.90, green: 0.61, blue: 0.07).opacity(0.86)
+    }
+
+    private var todayBorderColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.94, green: 0.74, blue: 0.22).opacity(0.58)
+            : Color(red: 0.86, green: 0.55, blue: 0.08).opacity(0.48)
+    }
+
+    private var todayBadgeFillColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.95, green: 0.58, blue: 0.12).opacity(0.92)
+            : Color(red: 0.95, green: 0.55, blue: 0.08)
+    }
+
+    private var todayBadgeForegroundColor: Color {
+        colorScheme == .dark ? Color.black.opacity(0.82) : .white
+    }
+
+    private var todayBadgeBorderColor: Color {
+        colorScheme == .dark
+            ? Color.white.opacity(0.18)
+            : Color(red: 0.72, green: 0.36, blue: 0.03).opacity(0.26)
+    }
+
+    private var todayMarkerText: String {
+        AppLocalization.languageCode == "zh" ? L("Today") : "T"
     }
 
     private var solarTextWeight: Font.Weight {
@@ -273,9 +322,9 @@ private struct CalendarDayCellView: View {
         case .publicHoliday, .statutoryHoliday:
             return BadgeIndicator(
                 text: L("OFF"),
-                foreground: colorScheme == .dark ? Color(red: 1.0, green: 0.74, blue: 0.76) : Color(red: 0.72, green: 0.16, blue: 0.20),
-                fill: colorScheme == .dark ? Color(red: 0.64, green: 0.18, blue: 0.22).opacity(0.32) : Color.red.opacity(0.10),
-                border: colorScheme == .dark ? Color(red: 1.0, green: 0.48, blue: 0.52).opacity(0.28) : Color.red.opacity(0.18)
+                foreground: colorScheme == .dark ? Color(red: 1.0, green: 0.78, blue: 0.80) : Color.white,
+                fill: colorScheme == .dark ? Color(red: 0.78, green: 0.24, blue: 0.28).opacity(0.78) : Color(red: 0.90, green: 0.20, blue: 0.25),
+                border: colorScheme == .dark ? Color(red: 1.0, green: 0.54, blue: 0.58).opacity(0.24) : Color(red: 0.70, green: 0.14, blue: 0.18).opacity(0.22)
             )
         case .workingAdjustmentDay:
             guard LocaleFeatureAvailability.showWorkingAdjustmentDay else {
@@ -283,9 +332,9 @@ private struct CalendarDayCellView: View {
             }
             return BadgeIndicator(
                 text: L("WRK"),
-                foreground: colorScheme == .dark ? Color(red: 0.70, green: 0.84, blue: 1.0) : Color(red: 0.12, green: 0.36, blue: 0.68),
-                fill: colorScheme == .dark ? Color(red: 0.17, green: 0.48, blue: 0.86).opacity(0.30) : Color.blue.opacity(0.10),
-                border: colorScheme == .dark ? Color(red: 0.45, green: 0.72, blue: 1.0).opacity(0.28) : Color.blue.opacity(0.18)
+                foreground: colorScheme == .dark ? Color(red: 0.76, green: 0.88, blue: 1.0) : Color.white,
+                fill: colorScheme == .dark ? Color(red: 0.18, green: 0.50, blue: 0.92).opacity(0.80) : Color(red: 0.20, green: 0.50, blue: 0.92),
+                border: colorScheme == .dark ? Color(red: 0.50, green: 0.76, blue: 1.0).opacity(0.24) : Color(red: 0.10, green: 0.34, blue: 0.72).opacity(0.22)
             )
         case .festival:
             return nil
@@ -301,29 +350,29 @@ private struct CalendarDayCellView: View {
         case .publicHoliday, .statutoryHoliday:
             if colorScheme == .dark {
                 return SemanticStyle(
-                    fill: Color(red: 0.30, green: 0.10, blue: 0.12).opacity(0.36),
-                    border: Color(red: 0.98, green: 0.43, blue: 0.43).opacity(0.18),
+                    fill: Color(red: 0.34, green: 0.10, blue: 0.13).opacity(0.46),
+                    border: Color(red: 0.98, green: 0.43, blue: 0.43).opacity(0.26),
                     subtitle: Color(red: 1.0, green: 0.68, blue: 0.68)
                 )
             }
 
             return SemanticStyle(
-                fill: Color.red.opacity(0.045),
-                border: Color.red.opacity(0.09),
+                fill: Color.red.opacity(0.095),
+                border: Color.red.opacity(0.18),
                 subtitle: Color(red: 0.78, green: 0.18, blue: 0.22)
             )
         case .workingAdjustmentDay:
             if colorScheme == .dark {
                 return SemanticStyle(
-                    fill: Color(red: 0.07, green: 0.18, blue: 0.31).opacity(0.42),
-                    border: Color(red: 0.45, green: 0.72, blue: 1.0).opacity(0.18),
+                    fill: Color(red: 0.07, green: 0.18, blue: 0.31).opacity(0.50),
+                    border: Color(red: 0.45, green: 0.72, blue: 1.0).opacity(0.26),
                     subtitle: Color(red: 0.68, green: 0.82, blue: 1.0)
                 )
             }
 
             return SemanticStyle(
-                fill: Color.blue.opacity(0.045),
-                border: Color.blue.opacity(0.09),
+                fill: Color.blue.opacity(0.085),
+                border: Color.blue.opacity(0.16),
                 subtitle: Color(red: 0.12, green: 0.36, blue: 0.68)
             )
         case .festival:

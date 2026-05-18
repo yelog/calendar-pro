@@ -80,9 +80,9 @@ struct MonthHeaderView: View {
         Button(action: onOpenVacationGuide) {
             headerPillLabel(
                 title: "休假",
-                foregroundStyle: isVacationGuideEnabled ? Color.accentColor : .secondary,
+                foregroundStyle: isVacationGuideEnabled ? Color.accentColor.opacity(0.86) : .secondary,
                 backgroundColor: isVacationGuideEnabled
-                    ? Color.accentColor.opacity(0.12)
+                    ? Color.accentColor.opacity(0.07)
                     : Color.primary.opacity(0.06)
             )
         }
@@ -96,8 +96,8 @@ struct MonthHeaderView: View {
         Button(action: onResetToToday) {
             headerPillLabel(
                 title: L("Today Nav"),
-                foregroundStyle: Color.accentColor,
-                backgroundColor: Color.accentColor.opacity(0.12)
+                foregroundStyle: Color.accentColor.opacity(0.86),
+                backgroundColor: Color.accentColor.opacity(0.07)
             )
         }
         .buttonStyle(.plain)
@@ -118,7 +118,7 @@ struct MonthHeaderView: View {
                 .frame(width: 28, height: 28)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.primary.opacity(0.07))
+                        .fill(Color.primary.opacity(0.06))
                 )
         }
         .buttonStyle(.plain)
@@ -132,10 +132,10 @@ struct MonthHeaderView: View {
         backgroundColor: Color
     ) -> some View {
         Text(title)
-            .font(.system(size: 11, weight: .semibold, design: .rounded))
+            .font(.system(size: 10.5, weight: .semibold, design: .rounded))
             .foregroundStyle(foregroundStyle)
-            .padding(.horizontal, 8)
-            .frame(height: 28)
+            .padding(.horizontal, 7)
+            .frame(height: 26)
             .background(
                 Capsule(style: .continuous)
                     .fill(backgroundColor)

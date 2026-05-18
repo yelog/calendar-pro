@@ -14,7 +14,7 @@ struct WeatherStripView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center, spacing: 10) {
                 if isLoading {
                     loadingSummarySection
@@ -46,15 +46,15 @@ struct WeatherStripView: View {
                 expandedMetricsSection
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(backgroundFillColor)
         }
         .overlay {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(borderColor, lineWidth: 0.5)
         }
         .help(stripHelpText)
@@ -75,11 +75,11 @@ struct WeatherStripView: View {
     }
 
     private var summarySection: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 9) {
             Image(systemName: weather.iconSystemName)
-                .font(.system(size: 17))
+                .font(.system(size: 15))
                 .foregroundStyle(iconColor)
-                .frame(width: 32, height: 32)
+                .frame(width: 28, height: 28)
                 .background {
                     Circle()
                         .fill(iconBackgroundColor)
@@ -92,19 +92,19 @@ struct WeatherStripView: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(displayTemperatureText)
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
 
                     Text(weather.description)
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .font(.system(size: 11.5, weight: .semibold, design: .rounded))
                         .foregroundStyle(bodySecondaryColor)
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
 
                 Text(detailText)
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(.system(size: 10.5, weight: .semibold, design: .rounded))
                     .foregroundStyle(bodySecondaryColor)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -115,7 +115,7 @@ struct WeatherStripView: View {
     }
 
     private var loadingSummarySection: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 9) {
             Image(systemName: "cloud")
                 .font(.system(size: 15))
                 .foregroundStyle(iconColor)
@@ -157,31 +157,31 @@ struct WeatherStripView: View {
     private var iconColor: Color {
         colorScheme == .dark
             ? Color.white.opacity(0.9)
-            : Color.orange.opacity(0.85)
+            : Color.orange.opacity(0.70)
     }
 
     private var bodySecondaryColor: Color {
         colorScheme == .dark
             ? Color.white.opacity(0.6)
-            : Color.primary.opacity(0.55)
+            : Color.primary.opacity(0.50)
     }
 
     private var iconBackgroundColor: Color {
         colorScheme == .dark
             ? Color.white.opacity(0.07)
-            : Color.orange.opacity(0.10)
+            : Color.orange.opacity(0.075)
     }
 
     private var backgroundFillColor: Color {
         colorScheme == .dark
             ? Color.white.opacity(0.055)
-            : Color(nsColor: .controlBackgroundColor).opacity(0.72)
+            : Color(nsColor: .controlBackgroundColor).opacity(0.46)
     }
 
     private var borderColor: Color {
         colorScheme == .dark
             ? Color.white.opacity(0.08)
-            : Color(nsColor: .separatorColor).opacity(0.18)
+            : Color(nsColor: .separatorColor).opacity(0.12)
     }
 
     private var stripHelpText: String {
@@ -237,7 +237,7 @@ struct WeatherStripView: View {
             ]
         }
 
-        let limit = 2
+        let limit = 1
         return Array(candidates.compactMap { $0 }.prefix(limit))
     }
 
@@ -274,7 +274,7 @@ struct WeatherStripView: View {
     }
 
     private var metricsSectionWidth: CGFloat {
-        112
+        62
     }
 
     private var displayTemperatureText: String {
