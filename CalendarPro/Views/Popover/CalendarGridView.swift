@@ -52,7 +52,7 @@ private struct CalendarDayCellView: View {
     var body: some View {
         VStack(spacing: 2) {
             Text(day.solarText)
-                .font(.system(size: 13, weight: day.isToday ? .semibold : .regular, design: .rounded))
+                .font(.system(size: 13, weight: solarTextWeight, design: .rounded))
                 .foregroundStyle(solarTextColor)
 
             let subtitleText: String? = {
@@ -62,7 +62,7 @@ private struct CalendarDayCellView: View {
                 return day.badges.first?.text ?? day.lunarText
             }()
             Text(subtitleText ?? "")
-                .font(.system(size: 9, weight: .regular, design: .rounded))
+                .font(.system(size: 9, weight: subtitleTextWeight, design: .rounded))
                 .foregroundStyle(subtitleColor)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -180,6 +180,22 @@ private struct CalendarDayCellView: View {
             : Color(red: 0.9, green: 0.67, blue: 0.12).opacity(0.72)
     }
 
+    private var solarTextWeight: Font.Weight {
+        if day.isSelected || day.isToday || (highlightWeekends && day.isWeekend && day.isInDisplayedMonth) || day.badges.contains(where: { $0.kind != .festival }) {
+            return .semibold
+        }
+
+        return day.isInDisplayedMonth ? .medium : .regular
+    }
+
+    private var subtitleTextWeight: Font.Weight {
+        if day.isSelected || day.isToday || day.badges.contains(where: { $0.kind != .festival }) {
+            return .medium
+        }
+
+        return .regular
+    }
+
     private var dayIdentifier: String {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
@@ -193,7 +209,7 @@ private struct CalendarDayCellView: View {
         if highlightWeekends && day.isWeekend && day.isInDisplayedMonth {
             return colorScheme == .dark
                 ? Color(red: 0.92, green: 0.45, blue: 0.45)
-                : Color(red: 0.85, green: 0.35, blue: 0.35)
+                : Color(red: 0.76, green: 0.20, blue: 0.24)
         }
 
         if day.isInDisplayedMonth {
@@ -202,49 +218,49 @@ private struct CalendarDayCellView: View {
 
         if highlightWeekends && day.isWeekend {
             return colorScheme == .dark
-                ? Color(red: 0.92, green: 0.45, blue: 0.45).opacity(0.5)
-                : Color(red: 0.85, green: 0.35, blue: 0.35).opacity(0.4)
+                ? Color(red: 0.92, green: 0.45, blue: 0.45).opacity(0.58)
+                : Color(red: 0.76, green: 0.20, blue: 0.24).opacity(0.62)
         }
 
         if semanticStyle != nil {
-            return Color.primary.opacity(colorScheme == .dark ? 0.78 : 0.6)
+            return Color.primary.opacity(colorScheme == .dark ? 0.78 : 0.66)
         }
 
-        return .secondary.opacity(0.5)
+        return .secondary.opacity(colorScheme == .dark ? 0.5 : 0.62)
     }
 
     private var subtitleColor: Color {
         if let semanticStyle {
-            return day.isInDisplayedMonth ? semanticStyle.subtitle : semanticStyle.subtitle.opacity(colorScheme == .dark ? 0.82 : 0.68)
+            return day.isInDisplayedMonth ? semanticStyle.subtitle : semanticStyle.subtitle.opacity(colorScheme == .dark ? 0.82 : 0.56)
         }
 
         if day.lunarTextSemantic == .solarTerm {
             if day.isInDisplayedMonth {
                 return colorScheme == .dark
                     ? Color(red: 1.0, green: 0.50, blue: 0.50)
-                    : Color.red.opacity(0.82)
+                    : Color(red: 0.78, green: 0.18, blue: 0.22)
             }
 
             return colorScheme == .dark
                 ? Color(red: 1.0, green: 0.50, blue: 0.50).opacity(0.72)
-                : Color.red.opacity(0.58)
+                : Color(red: 0.78, green: 0.18, blue: 0.22).opacity(0.56)
         }
 
         guard day.isInDisplayedMonth else {
-            return .secondary.opacity(0.45)
+            return .secondary.opacity(colorScheme == .dark ? 0.45 : 0.54)
         }
 
         guard let badge = day.badges.first else {
-            return .secondary
+            return Color(nsColor: .secondaryLabelColor)
         }
 
         switch badge.kind {
         case .festival:
-            return .orange
+            return colorScheme == .dark ? .orange : Color(red: 0.78, green: 0.36, blue: 0.04)
         case .publicHoliday, .statutoryHoliday:
-            return .red.opacity(0.8)
+            return colorScheme == .dark ? .red.opacity(0.8) : Color(red: 0.78, green: 0.18, blue: 0.22)
         case .workingAdjustmentDay:
-            return .blue.opacity(0.8)
+            return colorScheme == .dark ? .blue.opacity(0.8) : Color(red: 0.12, green: 0.36, blue: 0.68)
         }
     }
 
@@ -294,7 +310,7 @@ private struct CalendarDayCellView: View {
             return SemanticStyle(
                 fill: Color.red.opacity(0.045),
                 border: Color.red.opacity(0.09),
-                subtitle: Color.red.opacity(0.74)
+                subtitle: Color(red: 0.78, green: 0.18, blue: 0.22)
             )
         case .workingAdjustmentDay:
             if colorScheme == .dark {
@@ -308,7 +324,7 @@ private struct CalendarDayCellView: View {
             return SemanticStyle(
                 fill: Color.blue.opacity(0.045),
                 border: Color.blue.opacity(0.09),
-                subtitle: Color.blue.opacity(0.72)
+                subtitle: Color(red: 0.12, green: 0.36, blue: 0.68)
             )
         case .festival:
             return nil
