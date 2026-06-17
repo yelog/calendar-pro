@@ -3732,6 +3732,23 @@
     "Open-Meteo" : {
 
     },
+    "Open QWeather Developer Console" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open https://console.qweather.com to register or manage projects"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 https://console.qweather.com 注册或管理项目"
+          }
+        }
+      }
+    },
     "Overcast" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4207,6 +4224,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "和风天气 API Key"
+          }
+        }
+      }
+    },
+    "QWeather Host Help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Host: copy the API Host from your QWeather project, without https:// or paths."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Host：从和风天气项目中复制 API Host，不需要填写 https:// 或路径。"
+          }
+        }
+      }
+    },
+    "QWeather Key Help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Key: copy the API Key from the same project."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Key：复制同一项目中的 API Key。"
+          }
+        }
+      }
+    },
+    "QWeather Setup Description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QWeather requires a developer account, a project API Host, and an API Key before weather can update."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "和风天气需要先创建开发者账号，并在项目中获取 API Host 和 API Key，天气才能更新。"
           }
         }
       }

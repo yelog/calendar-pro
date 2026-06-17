@@ -161,6 +161,7 @@ private struct WeatherLocationSettings: View {
     @State private var searchTask: Task<Void, Never>?
 
     private let citySearchService = CitySearchService()
+    private let qWeatherDeveloperConsoleURL = URL(string: "https://console.qweather.com/")!
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -187,6 +188,17 @@ private struct WeatherLocationSettings: View {
                     SecureField(L("QWeather API Key"), text: qWeatherAPIKeyBinding)
                         .textFieldStyle(.roundedBorder)
                         .font(.system(size: 12))
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(L("QWeather Setup Description"))
+
+                        Link(L("Open QWeather Developer Console"), destination: qWeatherDeveloperConsoleURL)
+
+                        Text(L("QWeather Host Help"))
+                        Text(L("QWeather Key Help"))
+                    }
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
 
                     if let statusMessage = store.weatherCredentialStatusMessage {
                         Text(statusMessage)
