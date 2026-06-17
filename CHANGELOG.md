@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - store QWeather key without keychain
+- avoid AppKit layout reentry when sizing event detail and vacation guide panels
 
 ## [0.1.7] - 2026-05-18
 

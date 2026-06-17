@@ -193,8 +193,10 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         activatesForTextInput: Bool = false
     ) {
         panel.contentViewController = hostingController
-        hostingController.view.layoutSubtreeIfNeeded()
 
+        // fittingSize 自身会触发一次完整布局，无需再显式调用 layoutSubtreeIfNeeded()，
+        // 否则在替换 panel content view 的布局 pass 中重入会触发 AppKit 的
+        // "It's not legal to call -layoutSubtreeIfNeeded on a view which is already being laid out"。
         let fittingSize = hostingController.view.fittingSize
         let availableHeight = availableHeight(anchoredTo: anchorWindow)
         let panelSize = EventDetailWindowSizing.panelSize(for: fittingSize, availableHeight: availableHeight)
