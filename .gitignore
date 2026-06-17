@@ -22,3 +22,6 @@ dist/
 
 # Agent skills (local)
 .agents/
+
+# CodeGraph
+.codegraph/
