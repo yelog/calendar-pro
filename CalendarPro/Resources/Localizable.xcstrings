@@ -101,9 +101,6 @@
     "5 %@" : {
 
     },
-    "05月12日 周二 10:30  %@" : {
-
-    },
     "7-Day Rhythm" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1414,23 +1411,6 @@
         }
       }
     },
-    "Enable Weather First" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable weather in General settings first."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请先在通用设置中开启天气。"
-          }
-        }
-      }
-    },
     "Edit" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1546,6 +1526,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在日历面板中显示番茄卡片，并在运行时显示菜单栏状态。"
+          }
+        }
+      }
+    },
+    "Enable Weather First" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable weather in General settings first."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先在通用设置中开启天气。"
           }
         }
       }
@@ -6044,6 +6041,23 @@
         }
       }
     },
+    "Weather data attribution" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weather: Open-Meteo or QWeather. Air quality follows the selected provider."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "天气：Open-Meteo 或和风天气。空气质量随所选平台提供。"
+          }
+        }
+      }
+    },
     "Weather Format Condition Temperature" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6125,23 +6139,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "23° PM2.5 18"
-          }
-        }
-      }
-    },
-    "Weather data attribution" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Weather: Open-Meteo or QWeather. Air quality follows the selected provider."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "天气：Open-Meteo 或和风天气。空气质量随所选平台提供。"
           }
         }
       }
