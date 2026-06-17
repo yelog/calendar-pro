@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.1.8</title>
+            <pubDate>Wed, 17 Jun 2026 06:45:52 +0000</pubDate>
+            <sparkle:version>01899</sparkle:version>
+            <sparkle:shortVersionString>0.1.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.1.8&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add QWeather provider support with platform switching&lt;/li&gt;&lt;li&gt;add QWeather setup guidance in settings UI&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Changed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add MIT license&lt;/li&gt;&lt;li&gt;add 0.1.7 release entry [skip ci]&lt;/li&gt;&lt;li&gt;remove empty weather provider keys&lt;/li&gt;&lt;li&gt;update README to reflect v0.1.7 features and project structure&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;store QWeather key without keychain&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.1.8/CalendarPro-0.1.8-universal.dmg" length="7350898" type="application/octet-stream" sparkle:edSignature="9WIxESYiblFWKZyuKIYu9Wf19Z8fqc2DyRwmZVWbL5REB2IkQzZwKFgtsZFWsj0z0KhgDFtwOvAL0GI0Y81iDw==" />
+        </item>
+        <item>
             <title>Version 0.1.7</title>
             <pubDate>Mon, 18 May 2026 08:23:51 +0000</pubDate>
             <sparkle:version>01799</sparkle:version>
