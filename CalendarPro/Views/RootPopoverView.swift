@@ -89,9 +89,6 @@ struct RootPopoverView: View {
                     clearLoadedEvents()
                 }
             }
-            .onReceive(settingsStore.$qWeatherAPIKey.dropFirst()) { _ in
-                refreshInfoStrips()
-            }
             .onReceive(timeRefreshCoordinator.$currentDate) { currentDate in
                 guard shouldAutoRefreshWeather(at: currentDate) else { return }
                 refreshWeather(for: viewModel.selectedDate ?? currentDate)

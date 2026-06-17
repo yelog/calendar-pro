@@ -200,11 +200,6 @@ private struct WeatherLocationSettings: View {
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
 
-                    if let statusMessage = store.weatherCredentialStatusMessage {
-                        Text(statusMessage)
-                            .font(.system(size: 11))
-                            .foregroundStyle(.red)
-                    }
                 }
                 .padding(.leading, 16)
             }
@@ -366,7 +361,7 @@ private struct WeatherLocationSettings: View {
 
     private var qWeatherAPIKeyBinding: Binding<String> {
         Binding(
-            get: { store.qWeatherAPIKey },
+            get: { store.menuBarPreferences.qWeatherAPIKey },
             set: { store.setQWeatherAPIKey($0) }
         )
     }

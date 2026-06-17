@@ -345,12 +345,11 @@ final class SettingsStoreTests: XCTestCase {
     func testSetWeatherProviderAndQWeatherConfiguration() {
         let suiteName = #function
         let userDefaults = makeIsolatedUserDefaults(name: suiteName)
-        let credentialStore = InMemoryWeatherCredentialStore()
-        let store = makeStore(userDefaults: userDefaults, credentialStore: credentialStore)
+        let store = makeStore(userDefaults: userDefaults)
 
         XCTAssertEqual(store.menuBarPreferences.weatherProvider, .openMeteo)
         XCTAssertEqual(store.menuBarPreferences.qWeatherAPIHost, "")
-        XCTAssertEqual(store.qWeatherAPIKey, "")
+        XCTAssertEqual(store.menuBarPreferences.qWeatherAPIKey, "")
 
         store.setWeatherProvider(.qWeather)
         store.setQWeatherAPIHost("abc1234xyz.def.qweatherapi.com")
@@ -358,13 +357,12 @@ final class SettingsStoreTests: XCTestCase {
 
         XCTAssertEqual(store.menuBarPreferences.weatherProvider, .qWeather)
         XCTAssertEqual(store.menuBarPreferences.qWeatherAPIHost, "abc1234xyz.def.qweatherapi.com")
-        XCTAssertEqual(store.qWeatherAPIKey, "test-key")
-        XCTAssertNil(store.weatherCredentialStatusMessage)
+        XCTAssertEqual(store.menuBarPreferences.qWeatherAPIKey, "test-key")
 
-        let reloaded = makeStore(userDefaults: userDefaults, credentialStore: credentialStore)
+        let reloaded = makeStore(userDefaults: userDefaults)
         XCTAssertEqual(reloaded.menuBarPreferences.weatherProvider, .qWeather)
         XCTAssertEqual(reloaded.menuBarPreferences.qWeatherAPIHost, "abc1234xyz.def.qweatherapi.com")
-        XCTAssertEqual(reloaded.qWeatherAPIKey, "test-key")
+        XCTAssertEqual(reloaded.menuBarPreferences.qWeatherAPIKey, "test-key")
     }
 
     private func makeIsolatedUserDefaults(name: String = #function) -> UserDefaults {
@@ -375,13 +373,11 @@ final class SettingsStoreTests: XCTestCase {
 
     private func makeStore(
         userDefaults: UserDefaults = UserDefaults(suiteName: #function)!,
-        launchAtLoginController: LaunchAtLoginControllerStub = LaunchAtLoginControllerStub(),
-        credentialStore: any WeatherCredentialStoring = InMemoryWeatherCredentialStore()
+        launchAtLoginController: LaunchAtLoginControllerStub = LaunchAtLoginControllerStub()
     ) -> SettingsStore {
         SettingsStore(
             userDefaults: userDefaults,
-            launchAtLoginController: launchAtLoginController,
-            weatherCredentialStore: credentialStore
+            launchAtLoginController: launchAtLoginController
         )
     }
 }
@@ -416,18 +412,6 @@ private enum StubError: LocalizedError {
 
     var errorDescription: String? {
         "stub operation failed"
-    }
-}
-
-private final class InMemoryWeatherCredentialStore: WeatherCredentialStoring {
-    private var apiKey: String?
-
-    func qWeatherAPIKey() throws -> String? {
-        apiKey
-    }
-
-    func setQWeatherAPIKey(_ apiKey: String?) throws {
-        self.apiKey = apiKey
     }
 }
 

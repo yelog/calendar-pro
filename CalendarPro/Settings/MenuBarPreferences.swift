@@ -161,6 +161,7 @@ struct MenuBarPreferences: Codable, Equatable {
     var manualLocation: WeatherLocation? = nil
     var weatherProvider: WeatherProvider = .openMeteo
     var qWeatherAPIHost: String = ""
+    var qWeatherAPIKey: String = ""
     var showUpcomingIndicator: Bool
     var upcomingReminderMinutes: Int
 
@@ -243,6 +244,7 @@ struct MenuBarPreferences: Codable, Equatable {
             manualLocation: nil,
             weatherProvider: .openMeteo,
             qWeatherAPIHost: "",
+            qWeatherAPIKey: "",
             showUpcomingIndicator: true,
             upcomingReminderMinutes: 15
         )
@@ -272,6 +274,7 @@ struct MenuBarPreferences: Codable, Equatable {
         manualLocation: nil,
         weatherProvider: .openMeteo,
         qWeatherAPIHost: "",
+        qWeatherAPIKey: "",
         showUpcomingIndicator: true,
         upcomingReminderMinutes: 15
     )
@@ -298,6 +301,7 @@ extension MenuBarPreferences {
         case manualLocation
         case weatherProvider
         case qWeatherAPIHost
+        case qWeatherAPIKey
         case showUpcomingIndicator
         case upcomingReminderMinutes
     }
@@ -326,6 +330,7 @@ extension MenuBarPreferences {
             manualLocation: try container.decodeIfPresent(WeatherLocation.self, forKey: .manualLocation),
             weatherProvider: try container.decodeIfPresent(WeatherProvider.self, forKey: .weatherProvider) ?? .openMeteo,
             qWeatherAPIHost: try container.decodeIfPresent(String.self, forKey: .qWeatherAPIHost) ?? "",
+            qWeatherAPIKey: try container.decodeIfPresent(String.self, forKey: .qWeatherAPIKey) ?? "",
             showUpcomingIndicator: try container.decodeIfPresent(Bool.self, forKey: .showUpcomingIndicator) ?? true,
             upcomingReminderMinutes: try container.decodeIfPresent(Int.self, forKey: .upcomingReminderMinutes) ?? 15
         )
@@ -352,6 +357,7 @@ extension MenuBarPreferences {
         try container.encodeIfPresent(manualLocation, forKey: .manualLocation)
         try container.encode(weatherProvider, forKey: .weatherProvider)
         try container.encode(qWeatherAPIHost, forKey: .qWeatherAPIHost)
+        try container.encode(qWeatherAPIKey, forKey: .qWeatherAPIKey)
         try container.encode(showUpcomingIndicator, forKey: .showUpcomingIndicator)
         try container.encode(upcomingReminderMinutes, forKey: .upcomingReminderMinutes)
     }

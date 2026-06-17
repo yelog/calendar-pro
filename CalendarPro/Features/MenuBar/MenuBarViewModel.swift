@@ -49,14 +49,13 @@ final class MenuBarViewModel: ObservableObject {
             notificationCenter: notificationCenter
         )
 
-        settingsCancellable = Publishers.CombineLatest4(
+        settingsCancellable = Publishers.CombineLatest3(
             settingsStore.$menuBarPreferences,
             settingsStore.$holidayDataRevision,
-            settingsStore.$appLanguage,
-            settingsStore.$qWeatherAPIKey
+            settingsStore.$appLanguage
         )
         .receive(on: DispatchQueue.main)
-        .sink { [weak self] preferences, _, _, _ in
+        .sink { [weak self] preferences, _, _ in
             guard let self else { return }
             let updatedGranularity: RefreshGranularity = preferences.requiresSecondRefresh ? .second : .minute
             self.refreshGranularity = updatedGranularity

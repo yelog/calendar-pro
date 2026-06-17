@@ -131,6 +131,7 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertNil(prefs.manualLocation)
         XCTAssertEqual(prefs.weatherProvider, .openMeteo)
         XCTAssertEqual(prefs.qWeatherAPIHost, "")
+        XCTAssertEqual(prefs.qWeatherAPIKey, "")
     }
 
     func testWeatherProviderDisplayNameUsesAppLanguage() {
@@ -158,6 +159,7 @@ final class MenuBarPreferencesTests: XCTestCase {
         prefs.manualLocation = WeatherLocation(latitude: 22.3, longitude: 114.2, name: "Hong Kong", country: "HK", admin1: nil)
         prefs.weatherProvider = .qWeather
         prefs.qWeatherAPIHost = "abc1234xyz.def.qweatherapi.com"
+        prefs.qWeatherAPIKey = "test-key"
 
         let data = try JSONEncoder().encode(prefs)
         let decoded = try JSONDecoder().decode(MenuBarPreferences.self, from: data)
@@ -167,6 +169,7 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertEqual(decoded.manualLocation?.latitude ?? .nan, 22.3, accuracy: 0.01)
         XCTAssertEqual(decoded.weatherProvider, .qWeather)
         XCTAssertEqual(decoded.qWeatherAPIHost, "abc1234xyz.def.qweatherapi.com")
+        XCTAssertEqual(decoded.qWeatherAPIKey, "test-key")
     }
 
     func testLegacyDecodingDefaultsLocationModeToAutomatic() throws {
@@ -191,6 +194,7 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertNil(decoded.manualLocation)
         XCTAssertEqual(decoded.weatherProvider, .openMeteo)
         XCTAssertEqual(decoded.qWeatherAPIHost, "")
+        XCTAssertEqual(decoded.qWeatherAPIKey, "")
     }
 
     func testAutomaticForegroundColorUsesContrastForFilledBackground() {
