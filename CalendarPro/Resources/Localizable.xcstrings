@@ -1108,6 +1108,23 @@
         }
       }
     },
+    "Current Location" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current Location"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前位置"
+          }
+        }
+      }
+    },
     "Current: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3270,6 +3287,23 @@
         }
       }
     },
+    "No cities found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No cities found"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到城市"
+          }
+        }
+      }
+    },
     "No Due Date" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3694,6 +3728,9 @@
           }
         }
       }
+    },
+    "Open-Meteo" : {
+
     },
     "Overcast" : {
       "extractionState" : "manual",
@@ -4133,6 +4170,43 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "退出"
+          }
+        }
+      }
+    },
+    "QWeather" : {
+
+    },
+    "QWeather API Host" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QWeather API Host"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "和风天气 API Host"
+          }
+        }
+      }
+    },
+    "QWeather API Key" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QWeather API Key"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "和风天气 API Key"
           }
         }
       }
@@ -5327,6 +5401,57 @@
         }
       }
     },
+    "Unable to load weather credentials: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to load weather credentials: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取天气凭证：%@"
+          }
+        }
+      }
+    },
+    "Unable to save weather credentials: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to save weather credentials: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存天气凭证：%@"
+          }
+        }
+      }
+    },
+    "Unable to search cities" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to search cities"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法搜索城市"
+          }
+        }
+      }
+    },
     "Unable to Update Response" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5829,13 +5954,81 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weather: Open-Meteo. Air quality: CAMS ENSEMBLE via Open-Meteo."
+            "value" : "Weather: Open-Meteo or QWeather. Air quality follows the selected provider."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "天气：Open-Meteo。空气质量：CAMS ENSEMBLE，经 Open-Meteo 提供。"
+            "value" : "天气：Open-Meteo 或和风天气。空气质量随所选平台提供。"
+          }
+        }
+      }
+    },
+    "Weather Provider" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weather Provider"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "天气平台"
+          }
+        }
+      }
+    },
+    "Weather Provider Description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Open-Meteo or configure QWeather for mainland China."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择 Open-Meteo，或为中国大陆配置和风天气。"
+          }
+        }
+      }
+    },
+    "Weather Provider Open-Meteo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open-Meteo"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open-Meteo"
+          }
+        }
+      }
+    },
+    "Weather Provider QWeather" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QWeather"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "和风天气"
           }
         }
       }

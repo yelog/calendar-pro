@@ -1,18 +1,27 @@
 import Combine
 import Foundation
+import Security
+
+protocol WeatherCredentialStoring: AnyObject {
+    func qWeatherAPIKey() throws -> String?
+    func setQWeatherAPIKey(_ apiKey: String?) throws
+}
 
 @MainActor
 final class SettingsStore: ObservableObject {
     @Published var menuBarPreferences: MenuBarPreferences
     @Published var pomodoroPreferences: PomodoroPreferences
     @Published var appLanguage: AppLanguage
+    @Published var qWeatherAPIKey: String = ""
     @Published private(set) var holidayDataRevision: Int = 0
     @Published private(set) var launchAtLoginStatus: LaunchAtLoginStatus = .disabled
     @Published private(set) var launchAtLoginEnabled: Bool = false
     @Published private(set) var launchAtLoginStatusMessage: String?
+    @Published private(set) var weatherCredentialStatusMessage: String?
 
     private let userDefaults: UserDefaults
     private let launchAtLoginController: any LaunchAtLoginControlling
+    private let weatherCredentialStore: any WeatherCredentialStoring
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private let menuBarPreferencesKey = "menuBarPreferences"
@@ -21,10 +30,12 @@ final class SettingsStore: ObservableObject {
 
     init(
         userDefaults: UserDefaults = .standard,
-        launchAtLoginController: any LaunchAtLoginControlling = SystemLaunchAtLoginController()
+        launchAtLoginController: any LaunchAtLoginControlling = SystemLaunchAtLoginController(),
+        weatherCredentialStore: any WeatherCredentialStoring = KeychainWeatherCredentialStore()
     ) {
         self.userDefaults = userDefaults
         self.launchAtLoginController = launchAtLoginController
+        self.weatherCredentialStore = weatherCredentialStore
 
         if let rawValue = userDefaults.string(forKey: appLanguageKey),
            let appLanguage = AppLanguage(rawValue: rawValue) {
@@ -49,6 +60,13 @@ final class SettingsStore: ObservableObject {
             pomodoroPreferences = decoded
         } else {
             pomodoroPreferences = .default
+        }
+
+        do {
+            qWeatherAPIKey = try weatherCredentialStore.qWeatherAPIKey() ?? ""
+        } catch {
+            qWeatherAPIKey = ""
+            weatherCredentialStatusMessage = LF("Unable to load weather credentials: %@", error.localizedDescription)
         }
 
         migrateMenuBarPreferencesIfNeeded()
@@ -323,6 +341,46 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
+    func setWeatherProvider(_ provider: WeatherProvider) {
+        var prefs = menuBarPreferences
+        prefs.weatherProvider = provider
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setQWeatherAPIHost(_ apiHost: String) {
+        var prefs = menuBarPreferences
+        prefs.qWeatherAPIHost = Self.normalizedQWeatherAPIHost(apiHost)
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setQWeatherAPIKey(_ apiKey: String) {
+        let trimmedAPIKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        weatherCredentialStatusMessage = nil
+
+        do {
+            try weatherCredentialStore.setQWeatherAPIKey(trimmedAPIKey.isEmpty ? nil : trimmedAPIKey)
+            qWeatherAPIKey = trimmedAPIKey
+        } catch {
+            weatherCredentialStatusMessage = LF("Unable to save weather credentials: %@", error.localizedDescription)
+        }
+    }
+
+    func weatherProviderConfiguration(for preferences: MenuBarPreferences? = nil) -> WeatherProviderConfiguration {
+        let preferences = preferences ?? menuBarPreferences
+
+        switch preferences.weatherProvider {
+        case .openMeteo:
+            return .openMeteo
+        case .qWeather:
+            return .qWeather(
+                apiHost: preferences.qWeatherAPIHost,
+                apiKey: qWeatherAPIKey
+            )
+        }
+    }
+
     func setShowUpcomingIndicator(_ enabled: Bool) {
         var prefs = menuBarPreferences
         prefs.showUpcomingIndicator = enabled
@@ -410,6 +468,112 @@ final class SettingsStore: ObservableObject {
         case .enabled, .disabled:
             let action = requestedState ? L("Enable") : L("Disable")
             return LF("Unable to %@ launch at login: %@", action, error.localizedDescription)
+        }
+    }
+
+    private static func normalizedQWeatherAPIHost(_ apiHost: String) -> String {
+        let trimmed = apiHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "" }
+
+        if let url = URL(string: trimmed), let host = url.host {
+            return host
+        }
+
+        let withoutScheme = trimmed
+            .replacingOccurrences(of: "https://", with: "")
+            .replacingOccurrences(of: "http://", with: "")
+        return withoutScheme.split(separator: "/").first.map(String.init) ?? ""
+    }
+}
+
+final class KeychainWeatherCredentialStore: WeatherCredentialStoring {
+    private let service: String
+    private let account = "qweather-api-key"
+
+    init(service: String = Bundle.main.bundleIdentifier ?? "com.yelog.CalendarPro") {
+        self.service = service
+    }
+
+    func qWeatherAPIKey() throws -> String? {
+        var query = baseQuery()
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        if status == errSecItemNotFound {
+            return nil
+        }
+
+        guard status == errSecSuccess else {
+            throw KeychainWeatherCredentialError.readFailed(status)
+        }
+
+        guard let data = result as? Data else {
+            throw KeychainWeatherCredentialError.invalidData
+        }
+
+        return String(data: data, encoding: .utf8)
+    }
+
+    func setQWeatherAPIKey(_ apiKey: String?) throws {
+        guard let apiKey, !apiKey.isEmpty else {
+            let status = SecItemDelete(baseQuery() as CFDictionary)
+            guard status == errSecSuccess || status == errSecItemNotFound else {
+                throw KeychainWeatherCredentialError.deleteFailed(status)
+            }
+            return
+        }
+
+        let data = Data(apiKey.utf8)
+        let status = SecItemUpdate(
+            baseQuery() as CFDictionary,
+            [kSecValueData as String: data] as CFDictionary
+        )
+
+        if status == errSecSuccess {
+            return
+        }
+
+        if status == errSecItemNotFound {
+            var query = baseQuery()
+            query[kSecValueData as String] = data
+            let addStatus = SecItemAdd(query as CFDictionary, nil)
+            guard addStatus == errSecSuccess else {
+                throw KeychainWeatherCredentialError.saveFailed(addStatus)
+            }
+            return
+        }
+
+        throw KeychainWeatherCredentialError.saveFailed(status)
+    }
+
+    private func baseQuery() -> [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+    }
+}
+
+private enum KeychainWeatherCredentialError: LocalizedError {
+    case readFailed(OSStatus)
+    case saveFailed(OSStatus)
+    case deleteFailed(OSStatus)
+    case invalidData
+
+    var errorDescription: String? {
+        switch self {
+        case .readFailed(let status):
+            return "Keychain read failed (\(status))"
+        case .saveFailed(let status):
+            return "Keychain save failed (\(status))"
+        case .deleteFailed(let status):
+            return "Keychain delete failed (\(status))"
+        case .invalidData:
+            return "Keychain data is invalid"
         }
     }
 }

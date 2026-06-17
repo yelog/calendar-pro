@@ -28,7 +28,7 @@ final class MenuBarViewModel: ObservableObject {
         settingsStore: SettingsStore,
         renderer: ClockRenderService = ClockRenderService(),
         registry: HolidayProviderRegistry = .live,
-        weatherService: WeatherService = WeatherService(),
+        weatherService: WeatherService = WeatherService(locationResolver: CoreLocationWeatherLocationResolver()),
         now: @escaping () -> Date = Date.init,
         localeProvider: @escaping () -> Locale = { AppLocalization.locale },
         calendarProvider: @escaping () -> Calendar = { .autoupdatingCurrent },
@@ -49,13 +49,14 @@ final class MenuBarViewModel: ObservableObject {
             notificationCenter: notificationCenter
         )
 
-        settingsCancellable = Publishers.CombineLatest3(
+        settingsCancellable = Publishers.CombineLatest4(
             settingsStore.$menuBarPreferences,
             settingsStore.$holidayDataRevision,
-            settingsStore.$appLanguage
+            settingsStore.$appLanguage,
+            settingsStore.$qWeatherAPIKey
         )
         .receive(on: DispatchQueue.main)
-        .sink { [weak self] preferences, _, _ in
+        .sink { [weak self] preferences, _, _, _ in
             guard let self else { return }
             let updatedGranularity: RefreshGranularity = preferences.requiresSecondRefresh ? .second : .minute
             self.refreshGranularity = updatedGranularity
@@ -154,14 +155,18 @@ final class MenuBarViewModel: ObservableObject {
         }
 
         let expectedLocation = prefs.locationMode == .manual ? prefs.manualLocation : nil
-        if weatherService.manualLocation != expectedLocation {
+        let expectedProviderConfiguration = settingsStore.weatherProviderConfiguration(for: prefs)
+        if weatherService.manualLocation != expectedLocation
+            || weatherService.providerConfiguration != expectedProviderConfiguration {
             weatherFetchTask?.cancel()
             weatherFetchTask = nil
             weatherService = WeatherService(
                 session: weatherService.session,
                 now: weatherService.now,
                 refreshInterval: weatherService.refreshInterval,
-                manualLocation: expectedLocation
+                manualLocation: expectedLocation,
+                providerConfiguration: expectedProviderConfiguration,
+                locationResolver: CoreLocationWeatherLocationResolver()
             )
             weatherNextRefreshDate = .distantPast
             weatherFailureCount = 0
@@ -185,6 +190,7 @@ final class MenuBarViewModel: ObservableObject {
                 let latestWeatherTokenEnabled = latestPrefs.tokens.contains(where: { $0.token == .weather && $0.isEnabled })
                 guard latestPrefs.showWeather || latestWeatherTokenEnabled else { return }
                 guard self.weatherService.manualLocation == expectedLocation else { return }
+                guard self.weatherService.providerConfiguration == expectedProviderConfiguration else { return }
 
                 let baseDate = self.timeRefreshCoordinator.currentDate > requestDate
                     ? self.timeRefreshCoordinator.currentDate

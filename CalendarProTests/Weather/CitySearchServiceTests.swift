@@ -9,6 +9,12 @@ final class CitySearchServiceTests: XCTestCase {
 
     func testSearchReturnsResultsFromAPI() async {
         CitySearchMockURLProtocol.requestHandler = { request in
+            let components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)
+            let queryItems = components?.queryItems ?? []
+            XCTAssertEqual(queryItems.first(where: { $0.name == "name" })?.value, "Beijing")
+            XCTAssertEqual(queryItems.first(where: { $0.name == "count" })?.value, "10")
+            XCTAssertNil(queryItems.first(where: { $0.name == "countryCode" })?.value)
+
             let data = Data("""
             {
               "results": [
@@ -46,6 +52,79 @@ final class CitySearchServiceTests: XCTestCase {
         XCTAssertEqual(results[0].name, "Beijing")
         XCTAssertEqual(results[0].admin1, "Beijing")
         XCTAssertEqual(results[0].displayName, "Beijing, Beijing, China")
+    }
+
+    func testOpenMeteoSearchRetriesTwoCharacterChineseCityWithCitySuffixAndChinaFilter() async {
+        let requestedQueries = LockedBox<[String]>([])
+
+        CitySearchMockURLProtocol.requestHandler = { request in
+            let components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)
+            let queryItems = components?.queryItems ?? []
+            let name = queryItems.first(where: { $0.name == "name" })?.value ?? ""
+            let countryCode = queryItems.first(where: { $0.name == "countryCode" })?.value ?? ""
+            requestedQueries.withValue { $0.append("\(name)|\(countryCode)") }
+
+            if name == "厦门市" {
+                let data = Data("""
+                {
+                  "results": [
+                    {
+                      "id": 1790645,
+                      "name": "厦门市",
+                      "country": "中国",
+                      "admin1": "福建省",
+                      "latitude": 24.47979,
+                      "longitude": 118.08187
+                    }
+                  ]
+                }
+                """.utf8)
+
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    data
+                )
+            }
+
+            return (
+                HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                Data("{}".utf8)
+            )
+        }
+
+        let service = CitySearchService(session: makeSession())
+        let results = await service.search(query: "厦门")
+
+        XCTAssertEqual(results.count, 1)
+        XCTAssertEqual(results.first?.name, "厦门市")
+        XCTAssertEqual(requestedQueries.snapshot, ["厦门|CN", "厦门市|CN"])
+    }
+
+    func testSearchDetailedReportsNoResultsSeparatelyFromFailures() async {
+        CitySearchMockURLProtocol.requestHandler = { request in
+            (
+                HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                Data("{}".utf8)
+            )
+        }
+
+        let service = CitySearchService(session: makeSession())
+        let outcome = await service.searchDetailed(query: "xyznonexistent")
+
+        XCTAssertTrue(outcome.results.isEmpty)
+        XCTAssertEqual(outcome.issue, .noResults)
+    }
+
+    func testSearchDetailedReportsNetworkFailure() async {
+        CitySearchMockURLProtocol.requestHandler = { _ in
+            throw URLError(.notConnectedToInternet)
+        }
+
+        let service = CitySearchService(session: makeSession())
+        let outcome = await service.searchDetailed(query: "Tokyo")
+
+        XCTAssertTrue(outcome.results.isEmpty)
+        XCTAssertEqual(outcome.issue, .failed)
     }
 
     func testSearchReturnsEmptyForEmptyQuery() async {
@@ -119,6 +198,27 @@ final class CitySearchServiceTests: XCTestCase {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [CitySearchMockURLProtocol.self]
         return URLSession(configuration: configuration)
+    }
+}
+
+private final class LockedBox<Value>: @unchecked Sendable {
+    private var value: Value
+    private let lock = NSLock()
+
+    init(_ value: Value) {
+        self.value = value
+    }
+
+    var snapshot: Value {
+        lock.lock()
+        defer { lock.unlock() }
+        return value
+    }
+
+    func withValue<T>(_ update: (inout Value) -> T) -> T {
+        lock.lock()
+        defer { lock.unlock() }
+        return update(&value)
     }
 }
 

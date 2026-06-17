@@ -361,6 +361,102 @@ final class WeatherServiceTests: XCTestCase {
         XCTAssertTrue(result.hasContent)
         XCTAssertEqual(result.locationName, "Tokyo")
     }
+
+    func testWeatherServiceUsesInjectedSystemLocationBeforeIPFallback() async {
+        let requestedHosts = LockedBox<[String]>([])
+
+        WeatherMockURLProtocol.requestHandler = { request in
+            requestedHosts.withValue { $0.append(request.url?.host ?? "") }
+
+            switch request.url?.host {
+            case "api.open-meteo.com":
+                let components = URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)
+                let queryItems = components?.queryItems ?? []
+                XCTAssertEqual(queryItems.first(where: { $0.name == "latitude" })?.value, "24.47979")
+                XCTAssertEqual(queryItems.first(where: { $0.name == "longitude" })?.value, "118.08187")
+                return makeForecastResponse(for: request.url!)
+            case "air-quality-api.open-meteo.com":
+                return makeAirQualityResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let service = WeatherService(
+            session: makeSession(),
+            now: { makeDate(year: 2026, month: 4, day: 23, hour: 10) },
+            locationResolver: StaticWeatherLocationResolver(
+                location: ResolvedWeatherLocation(
+                    latitude: 24.47979,
+                    longitude: 118.08187,
+                    displayName: "当前位置"
+                )
+            )
+        )
+
+        let result = await service.fetchCurrentWeather()
+
+        XCTAssertTrue(result.hasContent)
+        XCTAssertEqual(result.locationName, "当前位置")
+        XCTAssertEqual(requestedHosts.snapshot, ["api.open-meteo.com", "air-quality-api.open-meteo.com"])
+    }
+
+    func testQWeatherProviderUsesConfiguredHostAndAPIKeyWithLocalAirQuality() async {
+        let requestedPaths = LockedBox<[String]>([])
+        let requestedAPIKeys = LockedBox<[String?]>([])
+
+        WeatherMockURLProtocol.requestHandler = { request in
+            requestedPaths.withValue { $0.append(request.url?.path ?? "") }
+            requestedAPIKeys.withValue { $0.append(request.value(forHTTPHeaderField: "X-QW-Api-Key")) }
+
+            switch request.url?.path {
+            case "/v7/weather/now":
+                return makeQWeatherNowResponse(for: request.url!)
+            case "/v7/weather/15d":
+                return makeQWeatherDailyResponse(for: request.url!)
+            case "/airquality/v1/current/39.90/116.41":
+                return makeQWeatherAirQualityResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let service = WeatherService(
+            session: makeSession(),
+            now: { makeDate(year: 2026, month: 4, day: 23, hour: 10) },
+            manualLocation: WeatherLocation(
+                latitude: 39.9042,
+                longitude: 116.4074,
+                name: "北京",
+                country: "中国",
+                admin1: "北京市"
+            ),
+            providerConfiguration: .qWeather(
+                apiHost: "abc1234xyz.def.qweatherapi.com",
+                apiKey: "test-key"
+            )
+        )
+
+        let result = await service.fetchCurrentWeather()
+
+        XCTAssertTrue(result.hasContent)
+        XCTAssertEqual(result.locationName, "北京")
+        XCTAssertEqual(result.temperatureText, "24°")
+        XCTAssertEqual(result.apparentTemperature, 26)
+        XCTAssertEqual(result.humidity, 72)
+        XCTAssertEqual(result.precipitation, 0)
+        XCTAssertEqual(result.windSpeed, 3)
+        XCTAssertEqual(result.windDirection, 123)
+        XCTAssertEqual(result.cloudCover, 10)
+        XCTAssertEqual(result.airQualityIndex, 68)
+        XCTAssertEqual(result.pm25, 24)
+        XCTAssertEqual(requestedPaths.snapshot, [
+            "/v7/weather/now",
+            "/v7/weather/15d",
+            "/airquality/v1/current/39.90/116.41"
+        ])
+        XCTAssertEqual(requestedAPIKeys.snapshot, ["test-key", "test-key", "test-key"])
+    }
 }
 
 private final class LockedBox<Value>: @unchecked Sendable {
@@ -500,6 +596,130 @@ private func makeAirQualityResponse(for url: URL) -> (HTTPURLResponse, Data) {
             "us_aqi": [40, 42, 65, 72, 70],
             "pm2_5": [9.0, 9.6, 16.0, 18.0, 17.0]
           }
+        }
+        """.utf8
+    )
+
+    return (
+        HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        data
+    )
+}
+
+private struct StaticWeatherLocationResolver: WeatherLocationResolving {
+    let location: ResolvedWeatherLocation?
+
+    func resolveCurrentLocation() async -> ResolvedWeatherLocation? {
+        location
+    }
+}
+
+private func makeQWeatherNowResponse(for url: URL) -> (HTTPURLResponse, Data) {
+    let data = Data(
+        """
+        {
+          "code": "200",
+          "now": {
+            "obsTime": "2026-04-23T10:00+08:00",
+            "temp": "24",
+            "feelsLike": "26",
+            "icon": "305",
+            "text": "小雨",
+            "wind360": "123",
+            "windDir": "东南风",
+            "windScale": "1",
+            "windSpeed": "3",
+            "humidity": "72",
+            "precip": "0.0",
+            "pressure": "1003",
+            "vis": "16",
+            "cloud": "10"
+          }
+        }
+        """.utf8
+    )
+
+    return (
+        HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        data
+    )
+}
+
+private func makeQWeatherDailyResponse(for url: URL) -> (HTTPURLResponse, Data) {
+    let data = Data(
+        """
+        {
+          "code": "200",
+          "daily": [
+            {
+              "fxDate": "2026-04-23",
+              "tempMax": "26",
+              "tempMin": "18",
+              "iconDay": "305",
+              "textDay": "小雨",
+              "wind360Day": "123",
+              "windSpeedDay": "8",
+              "humidity": "72",
+              "precip": "0.0",
+              "cloud": "10",
+              "uvIndex": "3"
+            },
+            {
+              "fxDate": "2026-04-24",
+              "tempMax": "28",
+              "tempMin": "19",
+              "iconDay": "101",
+              "textDay": "多云",
+              "wind360Day": "90",
+              "windSpeedDay": "12",
+              "humidity": "70",
+              "precip": "1.0",
+              "cloud": "30",
+              "uvIndex": "6"
+            }
+          ]
+        }
+        """.utf8
+    )
+
+    return (
+        HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        data
+    )
+}
+
+private func makeQWeatherAirQualityResponse(for url: URL) -> (HTTPURLResponse, Data) {
+    let data = Data(
+        """
+        {
+          "indexes": [
+            {
+              "code": "cn-mee",
+              "name": "AQI",
+              "aqi": 68,
+              "aqiDisplay": "68",
+              "level": "2",
+              "category": "良"
+            },
+            {
+              "code": "us-epa",
+              "name": "AQI (US)",
+              "aqi": 55,
+              "aqiDisplay": "55",
+              "level": "2",
+              "category": "Moderate"
+            }
+          ],
+          "pollutants": [
+            {
+              "code": "pm2p5",
+              "name": "PM 2.5",
+              "concentration": {
+                "value": 24.0,
+                "unit": "μg/m3"
+              }
+            }
+          ]
         }
         """.utf8
     )

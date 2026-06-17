@@ -156,6 +156,7 @@ private struct WeatherLocationSettings: View {
     @ObservedObject var store: SettingsStore
     @State private var searchText = ""
     @State private var searchResults: [CitySearchResult] = []
+    @State private var searchIssue: CitySearchOutcome.Issue?
     @State private var isSearching = false
     @State private var searchTask: Task<Void, Never>?
 
@@ -163,6 +164,41 @@ private struct WeatherLocationSettings: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            GeneralSettingsRow(
+                title: L("Weather Provider"),
+                description: L("Weather Provider Description")
+            ) {
+                Picker("", selection: weatherProviderBinding) {
+                    ForEach(WeatherProvider.allCases, id: \.self) { provider in
+                        Text(provider.displayName).tag(provider)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .frame(width: 210)
+            }
+
+            if store.menuBarPreferences.weatherProvider == .qWeather {
+                VStack(alignment: .leading, spacing: 8) {
+                    TextField(L("QWeather API Host"), text: qWeatherAPIHostBinding)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(size: 12))
+
+                    SecureField(L("QWeather API Key"), text: qWeatherAPIKeyBinding)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(size: 12))
+
+                    if let statusMessage = store.weatherCredentialStatusMessage {
+                        Text(statusMessage)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.red)
+                    }
+                }
+                .padding(.leading, 16)
+            }
+
+            Divider()
+
             GeneralSettingsRow(
                 title: L("Location Source"),
                 description: L("Location Source Description")
@@ -199,12 +235,23 @@ private struct WeatherLocationSettings: View {
                             .controlSize(.small)
                     }
 
+                    if let searchIssue, !isSearching {
+                        HStack(spacing: 5) {
+                            Image(systemName: searchIssue == .failed ? "wifi.exclamationmark" : "magnifyingglass")
+                                .font(.system(size: 10))
+                            Text(searchIssueText(searchIssue))
+                                .font(.system(size: 11))
+                        }
+                        .foregroundStyle(searchIssue == .failed ? .red : .secondary)
+                    }
+
                     if !searchResults.isEmpty {
                         VStack(alignment: .leading, spacing: 2) {
                             ForEach(searchResults) { result in
                                 Button {
                                     store.setManualLocation(result.toWeatherLocation)
                                     searchResults = []
+                                    searchIssue = nil
                                     searchText = ""
                                 } label: {
                                     HStack {
@@ -260,10 +307,21 @@ private struct WeatherLocationSettings: View {
         searchTask?.cancel()
         searchTask = Task {
             isSearching = true
-            let results = await citySearchService.search(query: query)
+            searchIssue = nil
+            let outcome = await citySearchService.searchDetailed(query: query)
             guard !Task.isCancelled else { return }
             isSearching = false
-            searchResults = results
+            searchResults = outcome.results
+            searchIssue = outcome.issue
+        }
+    }
+
+    private func searchIssueText(_ issue: CitySearchOutcome.Issue) -> String {
+        switch issue {
+        case .noResults:
+            return L("No cities found")
+        case .failed:
+            return L("Unable to search cities")
         }
     }
 
@@ -277,6 +335,27 @@ private struct WeatherLocationSettings: View {
         Binding(
             get: { store.menuBarPreferences.locationMode },
             set: { store.setLocationMode($0) }
+        )
+    }
+
+    private var weatherProviderBinding: Binding<WeatherProvider> {
+        Binding(
+            get: { store.menuBarPreferences.weatherProvider },
+            set: { store.setWeatherProvider($0) }
+        )
+    }
+
+    private var qWeatherAPIHostBinding: Binding<String> {
+        Binding(
+            get: { store.menuBarPreferences.qWeatherAPIHost },
+            set: { store.setQWeatherAPIHost($0) }
+        )
+    }
+
+    private var qWeatherAPIKeyBinding: Binding<String> {
+        Binding(
+            get: { store.qWeatherAPIKey },
+            set: { store.setQWeatherAPIKey($0) }
         )
     }
 }

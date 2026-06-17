@@ -119,6 +119,20 @@ enum LocationMode: String, Codable, CaseIterable {
     case manual
 }
 
+enum WeatherProvider: String, Codable, CaseIterable {
+    case openMeteo
+    case qWeather
+
+    var displayName: String {
+        switch self {
+        case .openMeteo:
+            return L("Weather Provider Open-Meteo")
+        case .qWeather:
+            return L("Weather Provider QWeather")
+        }
+    }
+}
+
 struct WeatherLocation: Codable, Equatable, Sendable {
     let latitude: Double
     let longitude: Double
@@ -145,6 +159,8 @@ struct MenuBarPreferences: Codable, Equatable {
     var showWeather: Bool
     var locationMode: LocationMode = .automatic
     var manualLocation: WeatherLocation? = nil
+    var weatherProvider: WeatherProvider = .openMeteo
+    var qWeatherAPIHost: String = ""
     var showUpcomingIndicator: Bool
     var upcomingReminderMinutes: Int
 
@@ -225,6 +241,8 @@ struct MenuBarPreferences: Codable, Equatable {
             showWeather: false,
             locationMode: .automatic,
             manualLocation: nil,
+            weatherProvider: .openMeteo,
+            qWeatherAPIHost: "",
             showUpcomingIndicator: true,
             upcomingReminderMinutes: 15
         )
@@ -252,6 +270,8 @@ struct MenuBarPreferences: Codable, Equatable {
         showWeather: false,
         locationMode: .automatic,
         manualLocation: nil,
+        weatherProvider: .openMeteo,
+        qWeatherAPIHost: "",
         showUpcomingIndicator: true,
         upcomingReminderMinutes: 15
     )
@@ -276,6 +296,8 @@ extension MenuBarPreferences {
         case showWeather
         case locationMode
         case manualLocation
+        case weatherProvider
+        case qWeatherAPIHost
         case showUpcomingIndicator
         case upcomingReminderMinutes
     }
@@ -302,6 +324,8 @@ extension MenuBarPreferences {
             showWeather: try container.decodeIfPresent(Bool.self, forKey: .showWeather) ?? false,
             locationMode: try container.decodeIfPresent(LocationMode.self, forKey: .locationMode) ?? .automatic,
             manualLocation: try container.decodeIfPresent(WeatherLocation.self, forKey: .manualLocation),
+            weatherProvider: try container.decodeIfPresent(WeatherProvider.self, forKey: .weatherProvider) ?? .openMeteo,
+            qWeatherAPIHost: try container.decodeIfPresent(String.self, forKey: .qWeatherAPIHost) ?? "",
             showUpcomingIndicator: try container.decodeIfPresent(Bool.self, forKey: .showUpcomingIndicator) ?? true,
             upcomingReminderMinutes: try container.decodeIfPresent(Int.self, forKey: .upcomingReminderMinutes) ?? 15
         )
@@ -326,6 +350,8 @@ extension MenuBarPreferences {
         try container.encode(showWeather, forKey: .showWeather)
         try container.encode(locationMode, forKey: .locationMode)
         try container.encodeIfPresent(manualLocation, forKey: .manualLocation)
+        try container.encode(weatherProvider, forKey: .weatherProvider)
+        try container.encode(qWeatherAPIHost, forKey: .qWeatherAPIHost)
         try container.encode(showUpcomingIndicator, forKey: .showUpcomingIndicator)
         try container.encode(upcomingReminderMinutes, forKey: .upcomingReminderMinutes)
     }

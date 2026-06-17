@@ -1,4 +1,39 @@
+import CoreLocation
 import Foundation
+
+struct ResolvedWeatherLocation: Equatable, Sendable {
+    let latitude: Double
+    let longitude: Double
+    let displayName: String
+}
+
+protocol WeatherLocationResolving: Sendable {
+    func resolveCurrentLocation() async -> ResolvedWeatherLocation?
+}
+
+enum WeatherProviderConfiguration: Equatable, Sendable {
+    case openMeteo
+    case qWeather(apiHost: String, apiKey: String)
+
+    var weatherProvider: WeatherProvider {
+        switch self {
+        case .openMeteo:
+            return .openMeteo
+        case .qWeather:
+            return .qWeather
+        }
+    }
+
+    var isUsable: Bool {
+        switch self {
+        case .openMeteo:
+            return true
+        case .qWeather(let apiHost, let apiKey):
+            return !apiHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                && !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+}
 
 struct WeatherDescriptor: Equatable, Sendable {
     let locationName: String
@@ -177,21 +212,27 @@ struct WeatherService: Sendable {
     let now: @Sendable () -> Date
     let refreshInterval: TimeInterval
     let manualLocation: WeatherLocation?
+    let providerConfiguration: WeatherProviderConfiguration
 
     private let cachedLocation = LockedValue<LocationMetadata?>(nil)
     private let cachedSnapshot = LockedValue<WeatherSnapshot?>(nil)
     private let inFlightSnapshotTask = LockedValue<Task<WeatherSnapshot?, Never>?>(nil)
+    private let locationResolver: (any WeatherLocationResolving)?
 
     init(
         session: URLSession = .shared,
         now: @escaping @Sendable () -> Date = Date.init,
         refreshInterval: TimeInterval = 30 * 60,
-        manualLocation: WeatherLocation? = nil
+        manualLocation: WeatherLocation? = nil,
+        providerConfiguration: WeatherProviderConfiguration = .openMeteo,
+        locationResolver: (any WeatherLocationResolving)? = nil
     ) {
         self.session = session
         self.now = now
         self.refreshInterval = refreshInterval
         self.manualLocation = manualLocation
+        self.providerConfiguration = providerConfiguration
+        self.locationResolver = locationResolver
     }
 
     func fetchCurrentWeather() async -> WeatherDescriptor {
@@ -246,26 +287,88 @@ struct WeatherService: Sendable {
         } else if let cachedLocation = cachedLocation.value {
             location = cachedLocation
         } else {
-            location = await resolveLocation()
+            location = await resolveLocationFromPreferredSources()
             if let location {
                 cachedLocation.value = location
             }
         }
 
-        guard let location,
-              let url = openMeteoURL(latitude: location.latitude, longitude: location.longitude) else {
+        guard let location, providerConfiguration.isUsable else {
+            return nil
+        }
+
+        switch providerConfiguration {
+        case .openMeteo:
+            return await fetchOpenMeteoSnapshot(for: location)
+        case .qWeather(let apiHost, let apiKey):
+            return await fetchQWeatherSnapshot(for: location, apiHost: apiHost, apiKey: apiKey)
+        }
+    }
+
+    private func resolveLocationFromPreferredSources() async -> LocationMetadata? {
+        if let systemLocation = await locationResolver?.resolveCurrentLocation() {
+            return LocationMetadata(
+                latitude: systemLocation.latitude,
+                longitude: systemLocation.longitude,
+                displayName: systemLocation.displayName
+            )
+        }
+
+        return await resolveIPLocation()
+    }
+
+    private func fetchOpenMeteoSnapshot(for location: LocationMetadata) async -> WeatherSnapshot? {
+        guard let url = openMeteoURL(latitude: location.latitude, longitude: location.longitude) else {
             return nil
         }
 
         guard let result = await fetchForecast(from: url) else {
             return nil
         }
-
         let airQuality = await fetchAirQuality(latitude: location.latitude, longitude: location.longitude)
         let snapshot = WeatherSnapshot(
             locationName: location.displayName,
             current: result.current.toSnapshot(),
             dailyForecasts: result.daily.forecasts,
+            airQuality: airQuality,
+            fetchedAt: now()
+        )
+        cachedSnapshot.value = snapshot
+        return snapshot
+    }
+
+    private func fetchQWeatherSnapshot(for location: LocationMetadata, apiHost: String, apiKey: String) async -> WeatherSnapshot? {
+        guard let nowURL = qWeatherURL(apiHost: apiHost, path: "/v7/weather/now", queryItems: [
+            URLQueryItem(name: "location", value: qWeatherLocationValue(latitude: location.latitude, longitude: location.longitude)),
+            URLQueryItem(name: "lang", value: AppLocalization.languageCode == "zh" ? "zh" : "en"),
+            URLQueryItem(name: "unit", value: "m")
+        ]),
+            let dailyURL = qWeatherURL(apiHost: apiHost, path: "/v7/weather/15d", queryItems: [
+                URLQueryItem(name: "location", value: qWeatherLocationValue(latitude: location.latitude, longitude: location.longitude)),
+                URLQueryItem(name: "lang", value: AppLocalization.languageCode == "zh" ? "zh" : "en"),
+                URLQueryItem(name: "unit", value: "m")
+            ]) else {
+            return nil
+        }
+
+        guard let nowResponse: QWeatherNowResponse = await fetchQWeather(from: nowURL, apiKey: apiKey),
+              let dailyResponse: QWeatherDailyResponse = await fetchQWeather(from: dailyURL, apiKey: apiKey),
+              nowResponse.code == "200",
+              dailyResponse.code == "200",
+              let current = nowResponse.now.toSnapshot() else {
+            return nil
+        }
+
+        let airQuality = await fetchQWeatherAirQuality(
+            latitude: location.latitude,
+            longitude: location.longitude,
+            apiHost: apiHost,
+            apiKey: apiKey
+        )
+        let snapshot = WeatherSnapshot(
+            locationName: location.displayName,
+            current: current,
+            dailyForecasts: dailyResponse.daily.compactMap(\.forecast),
             airQuality: airQuality,
             fetchedAt: now()
         )
@@ -360,6 +463,48 @@ struct WeatherService: Sendable {
         }
     }
 
+    private func fetchQWeather<Response: Decodable>(from url: URL, apiKey: String) async -> Response? {
+        var request = URLRequest(url: url)
+        request.setValue(apiKey, forHTTPHeaderField: "X-QW-Api-Key")
+        request.setValue("gzip", forHTTPHeaderField: "Accept-Encoding")
+
+        do {
+            let (data, response) = try await session.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200..<300).contains(httpResponse.statusCode) else {
+                return nil
+            }
+
+            return try JSONDecoder().decode(Response.self, from: data)
+        } catch {
+            return nil
+        }
+    }
+
+    private func fetchQWeatherAirQuality(
+        latitude: Double,
+        longitude: Double,
+        apiHost: String,
+        apiKey: String
+    ) async -> AirQualitySnapshot? {
+        let latitudeText = Self.formattedCoordinate(latitude)
+        let longitudeText = Self.formattedCoordinate(longitude)
+        guard let url = qWeatherURL(
+            apiHost: apiHost,
+            path: "/airquality/v1/current/\(latitudeText)/\(longitudeText)",
+            queryItems: [URLQueryItem(name: "lang", value: AppLocalization.languageCode == "zh" ? "zh" : "en")]
+        ) else {
+            return nil
+        }
+
+        guard let response: QWeatherAirQualityResponse = await fetchQWeather(from: url, apiKey: apiKey) else {
+            return nil
+        }
+
+        return response.toSnapshot()
+    }
+
     private func airQualitySummary(
         for date: Date,
         in snapshot: WeatherSnapshot,
@@ -395,7 +540,7 @@ struct WeatherService: Sendable {
         )
     }
 
-    private func resolveLocation() async -> LocationMetadata? {
+    private func resolveIPLocation() async -> LocationMetadata? {
         if let location = await resolveLocation(from: ipWhoURL, parser: { (response: IPWhoLocationResponse) in
             guard response.success != false,
                   let latitude = response.latitude,
@@ -499,6 +644,32 @@ struct WeatherService: Sendable {
         }
 
         return trimmedCountry ?? ""
+    }
+
+    private func qWeatherURL(apiHost: String, path: String, queryItems: [URLQueryItem]) -> URL? {
+        let trimmedHost = apiHost
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "https://", with: "")
+            .replacingOccurrences(of: "http://", with: "")
+            .split(separator: "/")
+            .first
+            .map(String.init) ?? ""
+        guard !trimmedHost.isEmpty else { return nil }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = trimmedHost
+        components.path = path
+        components.queryItems = queryItems
+        return components.url
+    }
+
+    private func qWeatherLocationValue(latitude: Double, longitude: Double) -> String {
+        "\(Self.formattedCoordinate(longitude)),\(Self.formattedCoordinate(latitude))"
+    }
+
+    private static func formattedCoordinate(_ value: Double) -> String {
+        String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), value)
     }
 
     private var ipWhoURL: URL? {
@@ -847,5 +1018,254 @@ private struct OpenMeteoAirQualityResponse: Decodable, Sendable {
             formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
             return formatter
         }()
+    }
+}
+
+private struct QWeatherNowResponse: Decodable, Sendable {
+    let code: String
+    let now: Current
+
+    struct Current: Decodable, Sendable {
+        let temp: String
+        let feelsLike: String?
+        let icon: String
+        let wind360: String?
+        let windSpeed: String?
+        let humidity: String?
+        let precip: String?
+        let cloud: String?
+
+        func toSnapshot() -> CurrentWeatherSnapshot? {
+            guard let temperature = Double(temp) else { return nil }
+
+            return CurrentWeatherSnapshot(
+                temperature: temperature,
+                apparentTemperature: feelsLike.flatMap(Double.init) ?? temperature,
+                weatherCode: QWeatherIconMapper.weatherCode(for: icon),
+                isDaytime: QWeatherIconMapper.isDaytime(icon: icon),
+                humidity: humidity.flatMap(Int.init),
+                precipitation: precip.flatMap(Double.init),
+                windSpeed: windSpeed.flatMap(Double.init),
+                windDirection: wind360.flatMap(Double.init),
+                windGusts: nil,
+                cloudCover: cloud.flatMap(Int.init)
+            )
+        }
+    }
+}
+
+private struct QWeatherDailyResponse: Decodable, Sendable {
+    let code: String
+    let daily: [Daily]
+
+    struct Daily: Decodable, Sendable {
+        let fxDate: String
+        let tempMax: String
+        let tempMin: String
+        let iconDay: String
+        let wind360Day: String?
+        let windSpeedDay: String?
+        let humidity: String?
+        let precip: String?
+        let cloud: String?
+        let uvIndex: String?
+
+        var forecast: DailyWeatherForecast? {
+            guard let date = Self.dateFormatter.date(from: fxDate),
+                  let maxTemperature = Double(tempMax),
+                  let minTemperature = Double(tempMin) else {
+                return nil
+            }
+
+            return DailyWeatherForecast(
+                date: date,
+                weatherCode: QWeatherIconMapper.weatherCode(for: iconDay),
+                maxTemperature: maxTemperature,
+                minTemperature: minTemperature,
+                precipitationSum: precip.flatMap(Double.init),
+                precipitationProbabilityMax: nil,
+                windSpeedMax: windSpeedDay.flatMap(Double.init),
+                windDirectionDominant: wind360Day.flatMap(Double.init),
+                windGustsMax: nil,
+                uvIndexMax: uvIndex.flatMap(Double.init)
+            )
+        }
+
+        private static let dateFormatter: DateFormatter = {
+            let formatter = DateFormatter()
+            formatter.calendar = Calendar(identifier: .gregorian)
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = .autoupdatingCurrent
+            formatter.dateFormat = "yyyy-MM-dd"
+            return formatter
+        }()
+    }
+}
+
+private struct QWeatherAirQualityResponse: Decodable, Sendable {
+    let indexes: [Index]?
+    let pollutants: [Pollutant]?
+
+    func toSnapshot() -> AirQualitySnapshot? {
+        let preferredIndex = indexes?.first { index in
+            index.code.localizedCaseInsensitiveContains("cn")
+        } ?? indexes?.first
+        let pm25 = pollutants?.first { pollutant in
+            pollutant.code == "pm2p5" || pollutant.code == "pm2_5"
+        }?.concentration.value
+
+        guard preferredIndex?.aqi != nil || pm25 != nil else {
+            return nil
+        }
+
+        return AirQualitySnapshot(
+            current: CurrentAirQualitySnapshot(
+                usAQI: preferredIndex?.aqi.flatMap { Int($0.rounded()) },
+                pm25: pm25
+            ),
+            hourlyForecasts: []
+        )
+    }
+
+    struct Index: Decodable, Sendable {
+        let code: String
+        let aqi: Double?
+    }
+
+    struct Pollutant: Decodable, Sendable {
+        let code: String
+        let concentration: Concentration
+    }
+
+    struct Concentration: Decodable, Sendable {
+        let value: Double
+    }
+}
+
+private enum QWeatherIconMapper {
+    static func weatherCode(for icon: String) -> Int {
+        guard let code = Int(icon) else { return 3 }
+
+        switch code {
+        case 100, 150:
+            return 0
+        case 101, 102, 103, 151, 152, 153:
+            return 2
+        case 104, 154:
+            return 3
+        case 300...399:
+            return 61
+        case 400...499:
+            return 71
+        case 500...515:
+            return 45
+        default:
+            return 3
+        }
+    }
+
+    static func isDaytime(icon: String) -> Bool {
+        guard let code = Int(icon) else { return true }
+        return !(150...199).contains(code)
+    }
+}
+
+final class CoreLocationWeatherLocationResolver: NSObject, WeatherLocationResolving, CLLocationManagerDelegate, @unchecked Sendable {
+    private let lock = NSLock()
+    private var manager: CLLocationManager?
+    private var continuation: CheckedContinuation<ResolvedWeatherLocation?, Never>?
+    private var didFinish = false
+
+    func resolveCurrentLocation() async -> ResolvedWeatherLocation? {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.main.async {
+                self.start(continuation: continuation)
+            }
+        }
+    }
+
+    private func start(continuation: CheckedContinuation<ResolvedWeatherLocation?, Never>) {
+        lock.lock()
+        if self.continuation != nil {
+            lock.unlock()
+            continuation.resume(returning: nil)
+            return
+        }
+        self.continuation = continuation
+        didFinish = false
+        lock.unlock()
+
+        guard CLLocationManager.locationServicesEnabled() else {
+            finish(with: nil)
+            return
+        }
+
+        let manager = CLLocationManager()
+        manager.delegate = self
+        manager.desiredAccuracy = kCLLocationAccuracyThreeKilometers
+        self.manager = manager
+
+        switch manager.authorizationStatus {
+        case .notDetermined:
+            manager.requestWhenInUseAuthorization()
+        case .authorizedAlways, .authorizedWhenInUse:
+            manager.requestLocation()
+        case .denied, .restricted:
+            finish(with: nil)
+        @unknown default:
+            finish(with: nil)
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 8) { [weak self] in
+            self?.finish(with: nil)
+        }
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            manager.requestLocation()
+        case .denied, .restricted:
+            finish(with: nil)
+        case .notDetermined:
+            break
+        @unknown default:
+            finish(with: nil)
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let coordinate = locations.last?.coordinate else {
+            finish(with: nil)
+            return
+        }
+
+        finish(
+            with: ResolvedWeatherLocation(
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+                displayName: L("Current Location")
+            )
+        )
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        finish(with: nil)
+    }
+
+    private func finish(with location: ResolvedWeatherLocation?) {
+        lock.lock()
+        guard !didFinish else {
+            lock.unlock()
+            return
+        }
+        didFinish = true
+        let continuation = continuation
+        self.continuation = nil
+        manager?.delegate = nil
+        manager = nil
+        lock.unlock()
+
+        continuation?.resume(returning: location)
     }
 }

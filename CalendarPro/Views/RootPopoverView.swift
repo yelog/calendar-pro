@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 import EventKit
 import AppKit
@@ -47,7 +48,7 @@ struct RootPopoverView: View {
     @State private var almanacDescriptor: AlmanacDescriptor?
     @State private var weatherDescriptor: WeatherDescriptor?
     @State private var isLoadingWeather: Bool = false
-    @State private var weatherService = WeatherService()
+    @State private var weatherService = WeatherService(locationResolver: CoreLocationWeatherLocationResolver())
     @State private var weatherTask: Task<Void, Never>?
     @State private var weatherRequestID = UUID()
     @State private var lastWeatherRefreshTime: Date?
@@ -57,6 +58,55 @@ struct RootPopoverView: View {
     private let weatherAutoRefreshInterval: TimeInterval = 15 * 60
 
     var body: some View {
+        popoverContent
+            .onAppear {
+                timeRefreshCoordinator.refreshNow()
+                eventService.checkAuthorizationStatus()
+                refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+                refreshInfoStrips()
+            }
+            .onReceive(eventService.$isAuthorized.dropFirst()) { _ in
+                refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+            }
+            .onReceive(eventService.$remindersAuthorized.dropFirst()) { isAuthorized in
+                if isAuthorized {
+                    eventService.fetchReminderCalendars()
+                }
+                refreshEventsForCurrentSelection()
+            }
+            .onReceive(settingsStore.$menuBarPreferences.dropFirst()) { _ in
+                refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+                refreshInfoStrips()
+            }
+            .onReceive(eventService.$storeChangeRevision.dropFirst()) { _ in
+                refreshEventsForCurrentSelection()
+            }
+            .onReceive(viewModel.$selectedDate.dropFirst()) { newDate in
+                if let date = newDate {
+                    loadEvents(for: date)
+                    refreshInfoStrips()
+                } else {
+                    clearLoadedEvents()
+                }
+            }
+            .onReceive(settingsStore.$qWeatherAPIKey.dropFirst()) { _ in
+                refreshInfoStrips()
+            }
+            .onReceive(timeRefreshCoordinator.$currentDate) { currentDate in
+                guard shouldAutoRefreshWeather(at: currentDate) else { return }
+                refreshWeather(for: viewModel.selectedDate ?? currentDate)
+            }
+            .onReceive(timeRefreshCoordinator.$dayChangeRevision.dropFirst()) { _ in
+                viewModel.syncCurrentDaySelectionIfNeeded(calendar: displayCalendar)
+                refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+                refreshInfoStrips()
+            }
+            .onDisappear {
+                weatherTask?.cancel()
+            }
+    }
+
+    private var popoverContent: some View {
         CalendarPopoverView(
             displayedMonth: viewModel.displayedMonth,
             displayedYear: viewModel.displayedYear,
@@ -108,10 +158,7 @@ struct RootPopoverView: View {
             onDismissPicker: {
                 viewModel.dismissPicker()
             },
-            onSelectDate: { date in
-                dismissEventDetail()
-                viewModel.selectDate(date)
-            },
+            onSelectDate: handleDateSelection,
             onSelectEvent: { event in
                 handleEventSelection(event)
             },
@@ -124,18 +171,8 @@ struct RootPopoverView: View {
             onCreateItem: {
                 handleCreateItem()
             },
-            onOpenVacationGuide: {
-                onPresentVacationGuide(viewModel.displayedMonth) { date in
-                    dismissEventDetail()
-                    viewModel.showMonth(containing: date, calendar: displayCalendar)
-                    viewModel.selectDate(date)
-                }
-            },
-            onResetToToday: {
-                dismissEventDetail()
-                viewModel.resetToToday()
-                viewModel.selectDate(timeRefreshCoordinator.currentDate, followsCurrentDay: true)
-            },
+            onOpenVacationGuide: handleOpenVacationGuide,
+            onResetToToday: handleResetToToday,
             onStartPomodoroFocus: {
                 pomodoroTimer.startFocus()
             },
@@ -153,71 +190,25 @@ struct RootPopoverView: View {
             },
             onQuit: onQuit
         )
-        .onAppear {
-            timeRefreshCoordinator.refreshNow()
-            eventService.checkAuthorizationStatus()
-            refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
-            refreshInfoStrips()
+    }
+
+    private func handleDateSelection(_ date: Date) {
+        dismissEventDetail()
+        viewModel.selectDate(date)
+    }
+
+    private func handleOpenVacationGuide() {
+        onPresentVacationGuide(viewModel.displayedMonth) { date in
+            dismissEventDetail()
+            viewModel.showMonth(containing: date, calendar: displayCalendar)
+            viewModel.selectDate(date)
         }
-        .onChange(of: eventService.isAuthorized) { _, _ in
-            refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
-        }
-        .onChange(of: eventService.remindersAuthorized) { _, isAuthorized in
-            if isAuthorized {
-                eventService.fetchReminderCalendars()
-            }
-            refreshEventsForCurrentSelection()
-        }
-        .onChange(of: settingsStore.menuBarPreferences.showEvents) { _, _ in
-            refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
-        }
-        .onChange(of: settingsStore.menuBarPreferences.showCalendarEvents) { _, _ in
-            refreshEventsForCurrentSelection()
-        }
-        .onChange(of: settingsStore.menuBarPreferences.showReminders) { _, _ in
-            refreshEventsForCurrentSelection()
-        }
-        .onChange(of: settingsStore.menuBarPreferences.enabledCalendarIDs) { _, _ in
-            refreshEventsForCurrentSelection()
-        }
-        .onChange(of: settingsStore.menuBarPreferences.enabledReminderCalendarIDs) { _, _ in
-            refreshEventsForCurrentSelection()
-        }
-        .onChange(of: eventService.storeChangeRevision) { _, _ in
-            refreshEventsForCurrentSelection()
-        }
-        .onChange(of: viewModel.selectedDate) { _, newDate in
-            if let date = newDate {
-                loadEvents(for: date)
-                refreshInfoStrips()
-            } else {
-                clearLoadedEvents()
-            }
-        }
-        .onChange(of: settingsStore.menuBarPreferences.showAlmanac) { _, _ in
-            refreshInfoStrips()
-        }
-        .onChange(of: settingsStore.menuBarPreferences.showWeather) { _, _ in
-            refreshInfoStrips()
-        }
-        .onChange(of: settingsStore.menuBarPreferences.locationMode) { _, _ in
-            refreshInfoStrips()
-        }
-        .onChange(of: settingsStore.menuBarPreferences.manualLocation) { _, _ in
-            refreshInfoStrips()
-        }
-        .onReceive(timeRefreshCoordinator.$currentDate) { currentDate in
-            guard shouldAutoRefreshWeather(at: currentDate) else { return }
-            refreshWeather(for: viewModel.selectedDate ?? currentDate)
-        }
-        .onChange(of: timeRefreshCoordinator.dayChangeRevision) { _, _ in
-            viewModel.syncCurrentDaySelectionIfNeeded(calendar: displayCalendar)
-            refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
-            refreshInfoStrips()
-        }
-        .onDisappear {
-            weatherTask?.cancel()
-        }
+    }
+
+    private func handleResetToToday() {
+        dismissEventDetail()
+        viewModel.resetToToday()
+        viewModel.selectDate(timeRefreshCoordinator.currentDate, followsCurrentDay: true)
     }
 
     private func refreshInfoStrips() {
@@ -239,9 +230,15 @@ struct RootPopoverView: View {
         }
 
         let expectedLocation = preferredWeatherLocation
-        if weatherService.manualLocation != expectedLocation {
+        let expectedProviderConfiguration = settingsStore.weatherProviderConfiguration()
+        if weatherService.manualLocation != expectedLocation
+            || weatherService.providerConfiguration != expectedProviderConfiguration {
             weatherTask?.cancel()
-            weatherService = WeatherService(manualLocation: expectedLocation)
+            weatherService = WeatherService(
+                manualLocation: expectedLocation,
+                providerConfiguration: expectedProviderConfiguration,
+                locationResolver: CoreLocationWeatherLocationResolver()
+            )
         }
 
         weatherTask?.cancel()
@@ -267,6 +264,7 @@ struct RootPopoverView: View {
                     return
                 }
                 guard weatherService.manualLocation == expectedLocation else { return }
+                guard weatherService.providerConfiguration == expectedProviderConfiguration else { return }
 
                 let currentSelectedDate = viewModel.selectedDate ?? timeRefreshCoordinator.currentDate
                 guard requestedCalendar.isDate(currentSelectedDate, inSameDayAs: requestedDate) else { return }

@@ -35,6 +35,7 @@ app_target.build_configurations.each do |config|
   config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'CalendarPro/CalendarPro.entitlements'
   config.build_settings['INFOPLIST_KEY_LSUIElement'] = config.name == 'Release' ? 'YES' : 'NO'
   config.build_settings['INFOPLIST_KEY_NSCalendarsUsageDescription'] = '用于显示您的日历日程'
+  config.build_settings['INFOPLIST_KEY_NSLocationUsageDescription'] = '用于根据当前位置显示天气'
   config.build_settings['INFOPLIST_KEY_NSRemindersUsageDescription'] = '用于显示您的提醒事项'
   config.build_settings['DEFINES_MODULE'] = 'YES'
   config.build_settings['SWIFT_EMIT_LOC_STRINGS'] = 'YES'
