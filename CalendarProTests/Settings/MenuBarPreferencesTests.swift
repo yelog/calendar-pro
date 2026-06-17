@@ -24,13 +24,13 @@ final class MenuBarPreferencesTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suiteName) }
 
         let store = SettingsStore(userDefaults: defaults, launchAtLoginController: MockLaunchAtLoginController())
-        store.setPomodoroEnabled(false)
+        store.setPomodoroEnabled(true)
         store.setPomodoroMenuBarStyle(.pie)
         store.setPomodoroNotificationsEnabled(false)
         store.setPomodoroSoundEnabled(false)
 
         let reloaded = SettingsStore(userDefaults: defaults, launchAtLoginController: MockLaunchAtLoginController())
-        XCTAssertFalse(reloaded.pomodoroPreferences.isEnabled)
+        XCTAssertTrue(reloaded.pomodoroPreferences.isEnabled)
         XCTAssertEqual(reloaded.pomodoroPreferences.menuBarStyle, .pie)
         XCTAssertFalse(reloaded.pomodoroPreferences.reminders.notificationsEnabled)
         XCTAssertFalse(reloaded.pomodoroPreferences.reminders.soundEnabled)

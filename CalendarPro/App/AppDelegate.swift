@@ -52,8 +52,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func openSettings() {
         if let window = settingsWindow {
             centerSettingsWindowOnCurrentScreen(window)
-            window.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
+            presentSettingsWindow(window)
             return
         }
 
@@ -79,9 +78,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.delegate = self
         centerSettingsWindowOnCurrentScreen(window)
 
+        presentSettingsWindow(window)
+        settingsWindow = window
+    }
+
+    /// Temporarily switch to `.regular` activation policy so the settings window
+    /// appears above all other windows, then restore `.accessory` when it closes.
+    private func presentSettingsWindow(_ window: NSWindow) {
+        NSApp.setActivationPolicy(.regular)
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
-        settingsWindow = window
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -90,6 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if window === settingsWindow {
             DispatchQueue.main.async { [weak self] in
                 self?.settingsWindow = nil
+                NSApp.setActivationPolicy(.accessory)
             }
         }
     }

@@ -4035,6 +4035,23 @@
         }
       }
     },
+    "Pomodoro Menu Bar Display Hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shown in the menu bar while a Pomodoro is running."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "番茄时钟运行时显示在菜单栏。"
+          }
+        }
+      }
+    },
     "Pomodoro Menu Bar Style Description" : {
       "extractionState" : "stale",
       "localizations" : {

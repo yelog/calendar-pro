@@ -109,6 +109,8 @@ struct MenuBarSettingsView: View {
                                 }
                             }
                         }
+
+                        pomodoroDisplayItem
                     }
                 }
             }
@@ -133,6 +135,20 @@ struct MenuBarSettingsView: View {
         Binding(
             get: { store.menuBarPreferences.separator },
             set: { store.setSeparator($0) }
+        )
+    }
+
+    private var pomodoroEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { store.pomodoroPreferences.isEnabled },
+            set: { store.setPomodoroEnabled($0) }
+        )
+    }
+
+    private var pomodoroStyleBinding: Binding<PomodoroMenuBarStyle> {
+        Binding(
+            get: { store.pomodoroPreferences.menuBarStyle },
+            set: { store.setPomodoroMenuBarStyle($0) }
         )
     }
 
@@ -257,6 +273,60 @@ struct MenuBarSettingsView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var pomodoroDisplayItem: some View {
+        Group {
+            if usesCompactLayout {
+                VStack(alignment: .leading, spacing: 10) {
+                    Toggle(L("Pomodoro"), isOn: pomodoroEnabledBinding)
+                        .toggleStyle(.checkbox)
+
+                    pomodoroStylePicker
+
+                    Text(L("Pomodoro Menu Bar Display Hint"))
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(spacing: 12) {
+                    Toggle(L("Pomodoro"), isOn: pomodoroEnabledBinding)
+                        .toggleStyle(.checkbox)
+                        .frame(width: 120, alignment: .leading)
+
+                    pomodoroStylePicker
+                        .frame(width: 120)
+
+                    Text(L("Pomodoro Menu Bar Display Hint"))
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+    }
+
+    private var pomodoroStylePicker: some View {
+        Picker(L("Style"), selection: pomodoroStyleBinding) {
+            ForEach(PomodoroMenuBarStyle.allCases) { style in
+                Text(pomodoroStyleTitle(style)).tag(style)
+            }
+        }
+        .labelsHidden()
+        .disabled(!store.pomodoroPreferences.isEnabled)
+    }
+
+    private func pomodoroStyleTitle(_ style: PomodoroMenuBarStyle) -> String {
+        switch style {
+        case .countdown:
+            return L("Countdown")
+        case .progress:
+            return L("Progress")
+        case .pie:
+            return L("Pie")
+        }
     }
 
     private var textColorControl: some View {

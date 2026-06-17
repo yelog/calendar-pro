@@ -34,28 +34,6 @@ struct PomodoroSettingsView: View {
                     }
                 }
 
-                GeneralSettingsSection(L("Menu Bar Style")) {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Picker("", selection: styleBinding) {
-                            ForEach(PomodoroMenuBarStyle.allCases) { style in
-                                Text(styleTitle(style)).tag(style)
-                            }
-                        }
-                        .labelsHidden()
-                        .pickerStyle(.segmented)
-                        .frame(width: 360)
-                        .disabled(!store.pomodoroPreferences.isEnabled)
-
-                        menuBarPreview
-
-                        Text(L("Pomodoro Menu Bar Style Description"))
-                            .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-
                 GeneralSettingsSection(L("Phase End Reminders")) {
                     VStack(alignment: .leading, spacing: 12) {
                         GeneralSettingsRow(
@@ -123,13 +101,6 @@ struct PomodoroSettingsView: View {
         )
     }
 
-    private var styleBinding: Binding<PomodoroMenuBarStyle> {
-        Binding(
-            get: { store.pomodoroPreferences.menuBarStyle },
-            set: { store.setPomodoroMenuBarStyle($0) }
-        )
-    }
-
     private var notificationBinding: Binding<Bool> {
         Binding(
             get: { store.pomodoroPreferences.reminders.notificationsEnabled },
@@ -188,35 +159,6 @@ struct PomodoroSettingsView: View {
         Task { @MainActor in
             _ = await reminderService.requestAuthorization()
             await refreshNotificationStatus()
-        }
-    }
-
-    private var menuBarPreview: some View {
-        let sampleState = PomodoroTimerController.State(
-            phase: .focus,
-            remainingSeconds: 18 * 60 + 42,
-            totalSeconds: PomodoroTimerController.focusDuration,
-            completedFocusCount: 1,
-            isPaused: false
-        )
-        let suffix = PomodoroMenuBarFormatter.suffix(
-            for: sampleState,
-            preferences: store.pomodoroPreferences
-        ) ?? L("Pomodoro Hidden")
-
-        return HStack(spacing: 10) {
-            Text(L("Preview"))
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-
-            Text("05月12日 周二 10:30  \(suffix)")
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.primary.opacity(0.055))
-                )
         }
     }
 
@@ -293,17 +235,6 @@ struct PomodoroSettingsView: View {
         }
         .font(.system(size: 11))
         .foregroundStyle(.secondary)
-    }
-
-    private func styleTitle(_ style: PomodoroMenuBarStyle) -> String {
-        switch style {
-        case .countdown:
-            return L("Countdown")
-        case .progress:
-            return L("Progress")
-        case .pie:
-            return L("Pie")
-        }
     }
 }
 
