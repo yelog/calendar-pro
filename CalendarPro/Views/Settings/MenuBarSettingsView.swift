@@ -324,22 +324,23 @@ struct MenuBarSettingsView: View {
     private var pomodoroStylePicker: some View {
         Picker(L("Style"), selection: pomodoroStyleBinding) {
             ForEach(PomodoroMenuBarStyle.allCases) { style in
-                Text(pomodoroStyleTitle(style)).tag(style)
+                Text(pomodoroStylePreview(style)).tag(style)
             }
         }
         .labelsHidden()
         .disabled(!store.pomodoroPreferences.isEnabled)
     }
 
-    private func pomodoroStyleTitle(_ style: PomodoroMenuBarStyle) -> String {
-        switch style {
-        case .countdown:
-            return L("Countdown")
-        case .progress:
-            return L("Progress")
-        case .pie:
-            return L("Pie")
-        }
+    private func pomodoroStylePreview(_ style: PomodoroMenuBarStyle) -> String {
+        let sampleState = PomodoroTimerController.State(
+            phase: .focus,
+            remainingSeconds: 18 * 60 + 42,
+            totalSeconds: PomodoroTimerController.focusDuration,
+            completedFocusCount: 1,
+            isPaused: false
+        )
+        let prefs = PomodoroPreferences(isEnabled: true, menuBarStyle: style, reminders: .default)
+        return PomodoroMenuBarFormatter.suffix(for: sampleState, preferences: prefs) ?? L("Countdown")
     }
 
     private var textColorControl: some View {
