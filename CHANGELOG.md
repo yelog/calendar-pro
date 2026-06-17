@@ -5,6 +5,21 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2026-06-17
+
+### Added
+- add QWeather provider support with platform switching
+- add QWeather setup guidance in settings UI
+
+### Changed
+- add MIT license
+- add 0.1.7 release entry [skip ci]
+- remove empty weather provider keys
+- update README to reflect v0.1.7 features and project structure
+
+### Fixed
+- store QWeather key without keychain
+
 ## [0.1.7] - 2026-05-18
 
 ### Added
