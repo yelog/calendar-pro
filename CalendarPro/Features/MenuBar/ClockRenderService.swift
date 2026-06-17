@@ -187,13 +187,26 @@ struct MenuBarTextImageRenderer {
             textColor = Self.menuBarAdaptiveTextColor
         }
 
+        let hasEmoji = text.containsEmoji
         let usesTemplateColor = style.foregroundColorHex == nil
             && !showsFilledBackground
             && !hasDot
+            && !hasEmoji
+
+        let actualTextColor: NSColor
+        if style.foregroundColorHex != nil {
+            actualTextColor = foregroundColor(for: style)
+        } else if showsFilledBackground {
+            actualTextColor = foregroundColor(for: style)
+        } else if hasEmoji {
+            actualTextColor = NSColor.labelColor
+        } else {
+            actualTextColor = Self.menuBarAdaptiveTextColor
+        }
 
         let attributes: [NSAttributedString.Key: Any] = [
             .font: statusBarFont(for: style),
-            .foregroundColor: textColor
+            .foregroundColor: actualTextColor
         ]
         let attributedText = NSAttributedString(string: text, attributes: attributes)
         let textSize = attributedText.size()
@@ -301,6 +314,12 @@ struct MenuBarTextImageRenderer {
         NSColor(menuBarHex: style.backgroundColorHex)
             ?? NSColor(menuBarHex: MenuBarTextStyle.defaultBackgroundColorHex)
             ?? .white
+    }
+}
+
+private extension String {
+    var containsEmoji: Bool {
+        unicodeScalars.contains { $0.properties.isEmoji && $0.value > 0x238C }
     }
 }
 
