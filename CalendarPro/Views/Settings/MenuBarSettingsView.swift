@@ -161,7 +161,7 @@ struct MenuBarSettingsView: View {
         let factory = CalendarDayFactory(calendar: .autoupdatingCurrent, registry: .live)
         let day = try? factory.makeDay(for: now, displayedMonth: now, preferences: store.menuBarPreferences)
 
-        return clockRenderer.render(
+        let baseText = clockRenderer.render(
             now: now,
             preferences: store.menuBarPreferences,
             supplementalText: MenuBarSupplementalText(
@@ -173,6 +173,19 @@ struct MenuBarSettingsView: View {
                 )
             )
         )
+
+        let pomodoroState = PomodoroTimerController.State(
+            phase: .focus,
+            remainingSeconds: 18 * 60 + 42,
+            totalSeconds: PomodoroTimerController.focusDuration,
+            completedFocusCount: 1,
+            isPaused: false
+        )
+
+        guard let suffix = PomodoroMenuBarFormatter.suffix(for: pomodoroState, preferences: store.pomodoroPreferences) else {
+            return baseText
+        }
+        return "\(baseText)  \(suffix)"
     }
 
     private static let previewWeatherDescriptor = WeatherDescriptor(
