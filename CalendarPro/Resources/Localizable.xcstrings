@@ -3729,9 +3729,6 @@
         }
       }
     },
-    "Open-Meteo" : {
-
-    },
     "Open QWeather Developer Console" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4190,9 +4187,6 @@
           }
         }
       }
-    },
-    "QWeather" : {
-
     },
     "QWeather API Host" : {
       "extractionState" : "manual",
