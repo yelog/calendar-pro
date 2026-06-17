@@ -54,7 +54,7 @@ final class PomodoroMenuBarFormatterTests: XCTestCase {
         )
         let preferences = PomodoroPreferences(isEnabled: true, menuBarStyle: .pie, reminders: .default)
 
-        XCTAssertEqual(PomodoroMenuBarFormatter.suffix(for: state, preferences: preferences), "◕ 3m")
+        XCTAssertEqual(PomodoroMenuBarFormatter.suffix(for: state, preferences: preferences), "● 3m")
     }
 
     func testTooltipIncludesPhaseAndRemainingTime() {

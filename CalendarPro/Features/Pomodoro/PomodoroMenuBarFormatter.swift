@@ -42,7 +42,7 @@ enum PomodoroMenuBarFormatter {
     private static func pieSuffix(for state: PomodoroTimerController.State) -> String? {
         guard state.phase != .idle else { return nil }
         let minutes = max(1, Int(ceil(Double(max(0, state.remainingSeconds)) / 60)))
-        return "\(pieSymbol(progress: state.progress)) \(minutes)m"
+        return "● \(minutes)m"
     }
 
     static func tooltip(for state: PomodoroTimerController.State) -> String? {
@@ -80,16 +80,4 @@ enum PomodoroMenuBarFormatter {
         }
     }
 
-    private static func pieSymbol(progress: Double) -> String {
-        switch progress {
-        case ..<0.25:
-            return "◔"
-        case ..<0.5:
-            return "◑"
-        case ..<0.75:
-            return "◕"
-        default:
-            return "●"
-        }
-    }
 }
