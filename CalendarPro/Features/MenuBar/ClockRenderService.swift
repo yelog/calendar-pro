@@ -122,6 +122,12 @@ struct ClockRenderService {
             formatter.dateFormat = "yyyy年M月d日"
         case .chineseWeekday:
             formatter.setLocalizedDateFormatFromTemplate("yMMdd")
+        case .weatherTemperature,
+             .weatherConditionTemperature,
+             .weatherTemperaturePM25,
+             .weatherTemperatureAQI,
+             .weatherFeelsLike:
+            formatter.setLocalizedDateFormatFromTemplate("yMMdd")
         }
 
         return formatter.string(from: now)

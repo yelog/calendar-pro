@@ -109,6 +109,36 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertEqual(decoded.textStyle, .default)
     }
 
+    func testLegacyDecodingAddsMissingWeatherToken() throws {
+        let legacyJSON = """
+        {
+          "tokens": [
+            { "token": "date", "isEnabled": true, "order": 0, "style": "short" },
+            { "token": "weekday", "isEnabled": true, "order": 1, "style": "short" },
+            { "token": "time", "isEnabled": true, "order": 2, "style": "short" },
+            { "token": "lunar", "isEnabled": false, "order": 3, "style": "short" },
+            { "token": "holiday", "isEnabled": false, "order": 4, "style": "short" }
+          ],
+          "separator": " ",
+          "showLunarInMenuBar": false,
+          "activeRegionIDs": ["mainland-cn"],
+          "enabledHolidayIDs": [],
+          "weekStart": "monday",
+          "showEvents": true,
+          "enabledCalendarIDs": [],
+          "showReminders": true,
+          "enabledReminderCalendarIDs": []
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(MenuBarPreferences.self, from: legacyJSON)
+        let weatherToken = decoded.tokens.first(where: { $0.token == .weather })
+
+        XCTAssertEqual(weatherToken?.isEnabled, false)
+        XCTAssertEqual(weatherToken?.order, 5)
+        XCTAssertEqual(weatherToken?.style, .weatherTemperature)
+    }
+
     func testEventsSummaryTextWhenModuleDisabled() {
         var prefs = MenuBarPreferences.default
         prefs.showEvents = false
@@ -160,6 +190,7 @@ final class MenuBarPreferencesTests: XCTestCase {
         prefs.weatherProvider = .qWeather
         prefs.qWeatherAPIHost = "abc1234xyz.def.qweatherapi.com"
         prefs.qWeatherAPIKey = "test-key"
+        prefs.tokens = [DisplayTokenPreference(token: .weather, isEnabled: true, order: 0, style: .weatherTemperatureAQI)]
 
         let data = try JSONEncoder().encode(prefs)
         let decoded = try JSONDecoder().decode(MenuBarPreferences.self, from: data)
@@ -170,6 +201,7 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertEqual(decoded.weatherProvider, .qWeather)
         XCTAssertEqual(decoded.qWeatherAPIHost, "abc1234xyz.def.qweatherapi.com")
         XCTAssertEqual(decoded.qWeatherAPIKey, "test-key")
+        XCTAssertEqual(decoded.tokens.first?.style, .weatherTemperatureAQI)
     }
 
     func testLegacyDecodingDefaultsLocationModeToAutomatic() throws {

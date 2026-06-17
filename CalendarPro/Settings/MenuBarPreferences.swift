@@ -22,6 +22,11 @@ enum DisplayTokenStyle: String, Codable, CaseIterable {
     case chineseFull
     case chineseFullUnpadded = "chineseFullUnpaddedDay"
     case chineseWeekday
+    case weatherTemperature
+    case weatherConditionTemperature
+    case weatherTemperaturePM25
+    case weatherTemperatureAQI
+    case weatherFeelsLike
 }
 
 enum WeekStart: String, Codable, CaseIterable {
@@ -224,7 +229,7 @@ struct MenuBarPreferences: Codable, Equatable {
                 DisplayTokenPreference(token: .weekday, isEnabled: true, order: 2, style: .short),
                 DisplayTokenPreference(token: .lunar, isEnabled: false, order: 3, style: .short),
                 DisplayTokenPreference(token: .holiday, isEnabled: false, order: 4, style: .short),
-                DisplayTokenPreference(token: .weather, isEnabled: false, order: 5, style: .short)
+                DisplayTokenPreference(token: .weather, isEnabled: false, order: 5, style: .weatherTemperature)
             ],
             separator: " ",
             textStyle: .default,
@@ -309,9 +314,10 @@ extension MenuBarPreferences {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let showEvents = try container.decode(Bool.self, forKey: .showEvents)
+        let decodedTokens = try container.decode([DisplayTokenPreference].self, forKey: .tokens)
 
         self.init(
-            tokens: try container.decode([DisplayTokenPreference].self, forKey: .tokens),
+            tokens: Self.normalizedTokens(decodedTokens),
             separator: try container.decode(String.self, forKey: .separator),
             textStyle: try container.decodeIfPresent(MenuBarTextStyle.self, forKey: .textStyle) ?? .default,
             showLunarInMenuBar: try container.decode(Bool.self, forKey: .showLunarInMenuBar),
@@ -334,6 +340,26 @@ extension MenuBarPreferences {
             showUpcomingIndicator: try container.decodeIfPresent(Bool.self, forKey: .showUpcomingIndicator) ?? true,
             upcomingReminderMinutes: try container.decodeIfPresent(Int.self, forKey: .upcomingReminderMinutes) ?? 15
         )
+    }
+
+    private static func normalizedTokens(_ tokens: [DisplayTokenPreference]) -> [DisplayTokenPreference] {
+        var normalized = tokens
+        let defaultTokens = MenuBarPreferences.default.tokens
+        var nextOrder = (normalized.map(\.order).max() ?? -1) + 1
+
+        for defaultToken in defaultTokens where !normalized.contains(where: { $0.token == defaultToken.token }) {
+            normalized.append(
+                DisplayTokenPreference(
+                    token: defaultToken.token,
+                    isEnabled: defaultToken.isEnabled,
+                    order: nextOrder,
+                    style: defaultToken.style
+                )
+            )
+            nextOrder += 1
+        }
+
+        return normalized
     }
 
     func encode(to encoder: Encoder) throws {

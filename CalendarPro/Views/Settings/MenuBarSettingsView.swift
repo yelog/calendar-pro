@@ -47,10 +47,13 @@ struct MenuBarSettingsView: View {
                 GroupBox(L("Display Items")) {
                     VStack(alignment: .leading, spacing: 12) {
                         ForEach(sortedTokens) { token in
+                            let weatherControlsDisabled = token.token == .weather && !store.menuBarPreferences.showWeather
+
                             if usesCompactLayout {
                                 VStack(alignment: .leading, spacing: 10) {
                                     Toggle(tokenDisplayName(token.token), isOn: enabledBinding(for: token.token))
                                         .toggleStyle(.checkbox)
+                                        .disabled(weatherControlsDisabled)
 
                                     HStack(alignment: .center, spacing: 12) {
                                         if styleOptions(for: token.token).count > 1 {
@@ -61,11 +64,18 @@ struct MenuBarSettingsView: View {
                                             }
                                             .labelsHidden()
                                             .frame(maxWidth: 160, alignment: .leading)
+                                            .disabled(weatherControlsDisabled)
                                         }
 
                                         Spacer(minLength: 0)
 
                                         movementButtons(for: token)
+                                    }
+
+                                    if weatherControlsDisabled {
+                                        Text(L("Enable Weather First"))
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(.secondary)
                                     }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -74,6 +84,7 @@ struct MenuBarSettingsView: View {
                                     Toggle(tokenDisplayName(token.token), isOn: enabledBinding(for: token.token))
                                         .toggleStyle(.checkbox)
                                         .frame(width: 120, alignment: .leading)
+                                        .disabled(weatherControlsDisabled)
 
                                     if styleOptions(for: token.token).count > 1 {
                                         Picker(L("Style"), selection: styleBinding(for: token.token)) {
@@ -83,6 +94,13 @@ struct MenuBarSettingsView: View {
                                         }
                                         .labelsHidden()
                                         .frame(width: 120)
+                                        .disabled(weatherControlsDisabled)
+                                    }
+
+                                    if weatherControlsDisabled {
+                                        Text(L("Enable Weather First"))
+                                            .font(.system(size: 11))
+                                            .foregroundStyle(.secondary)
                                     }
 
                                     Spacer(minLength: 0)
@@ -132,10 +150,26 @@ struct MenuBarSettingsView: View {
             preferences: store.menuBarPreferences,
             supplementalText: MenuBarSupplementalText(
                 lunarText: day?.lunarText,
-                holidayText: day?.badges.first?.text
+                holidayText: day?.badges.first?.text,
+                weatherText: MenuBarViewModel.menuBarWeatherText(
+                    for: Self.previewWeatherDescriptor,
+                    preferences: store.menuBarPreferences
+                )
             )
         )
     }
+
+    private static let previewWeatherDescriptor = WeatherDescriptor(
+        locationName: "Beijing",
+        temperatureText: "23°",
+        apparentTemperature: 28,
+        forecastDate: nil,
+        weatherCode: 2,
+        isDaytime: true,
+        isCurrentConditions: true,
+        airQualityIndex: 42,
+        pm25: 18
+    )
 
     private var textStyle: MenuBarTextStyle {
         store.menuBarPreferences.textStyle
@@ -348,14 +382,22 @@ struct MenuBarSettingsView: View {
         case .holiday:
             return [.short] as [DisplayTokenStyle]
         case .weather:
-            return [.short] as [DisplayTokenStyle]
+            return [
+                .weatherTemperature,
+                .weatherConditionTemperature,
+                .weatherTemperaturePM25,
+                .weatherTemperatureAQI,
+                .weatherFeelsLike
+            ] as [DisplayTokenStyle]
         }
     }
 
     private func defaultStyle(for token: DisplayTokenKind) -> DisplayTokenStyle {
         switch token {
-        case .date, .time, .weekday, .lunar, .holiday, .weather:
+        case .date, .time, .weekday, .lunar, .holiday:
             .short
+        case .weather:
+            .weatherTemperature
         }
     }
 
@@ -389,7 +431,24 @@ struct MenuBarSettingsView: View {
         case .holiday:
             return day?.badges.first?.text ?? L("Holiday")
         case .weather:
-            return "23°"
+            return weatherStylePreviewText(style)
+        }
+    }
+
+    private func weatherStylePreviewText(_ style: DisplayTokenStyle) -> String {
+        switch style {
+        case .weatherConditionTemperature:
+            return L("Weather Format Condition Temperature")
+        case .weatherTemperaturePM25:
+            return L("Weather Format Temperature PM25")
+        case .weatherTemperatureAQI:
+            return L("Weather Format Temperature AQI")
+        case .weatherFeelsLike:
+            return L("Weather Format Feels Like")
+        case .weatherTemperature, .short:
+            return L("Weather Format Temperature")
+        default:
+            return L("Weather Format Temperature")
         }
     }
 

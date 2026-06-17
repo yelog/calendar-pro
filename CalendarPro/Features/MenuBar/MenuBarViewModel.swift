@@ -116,9 +116,7 @@ final class MenuBarViewModel: ObservableObject {
             supplementalText = .empty
         }
 
-        let weatherText: String? = weatherDescriptor.hasContent
-            ? weatherDescriptor.temperatureText
-            : nil
+        let weatherText = Self.menuBarWeatherText(for: weatherDescriptor, preferences: prefs)
 
         let fullSupplemental = MenuBarSupplementalText(
             lunarText: supplementalText.lunarText,
@@ -141,7 +139,7 @@ final class MenuBarViewModel: ObservableObject {
     private func fetchWeatherIfNeeded(with prefs: MenuBarPreferences, currentDate: Date) {
         let weatherTokenEnabled = prefs.tokens.contains(where: { $0.token == .weather && $0.isEnabled })
 
-        guard prefs.showWeather || weatherTokenEnabled else {
+        guard prefs.showWeather && weatherTokenEnabled else {
             weatherFetchTask?.cancel()
             weatherFetchTask = nil
             weatherNextRefreshDate = .distantPast
@@ -187,7 +185,7 @@ final class MenuBarViewModel: ObservableObject {
                 self.weatherFetchTask = nil
                 let latestPrefs = self.settingsStore.menuBarPreferences
                 let latestWeatherTokenEnabled = latestPrefs.tokens.contains(where: { $0.token == .weather && $0.isEnabled })
-                guard latestPrefs.showWeather || latestWeatherTokenEnabled else { return }
+                guard latestPrefs.showWeather && latestWeatherTokenEnabled else { return }
                 guard self.weatherService.manualLocation == expectedLocation else { return }
                 guard self.weatherService.providerConfiguration == expectedProviderConfiguration else { return }
 
@@ -210,6 +208,32 @@ final class MenuBarViewModel: ObservableObject {
                     self.renderNow()
                 }
             }
+        }
+    }
+
+    static func menuBarWeatherText(for descriptor: WeatherDescriptor, preferences: MenuBarPreferences) -> String? {
+        guard preferences.showWeather else { return nil }
+        guard descriptor.hasContent else { return nil }
+        guard let style = preferences.tokens.first(where: { $0.token == .weather && $0.isEnabled })?.style else {
+            return nil
+        }
+
+        switch style {
+        case .weatherConditionTemperature:
+            return "\(descriptor.description) \(descriptor.temperatureText)"
+        case .weatherTemperaturePM25:
+            guard let pm25 = descriptor.pm25 else { return descriptor.temperatureText }
+            return "\(descriptor.temperatureText) PM2.5 \(Int(pm25.rounded()))"
+        case .weatherTemperatureAQI:
+            guard let airQualityIndex = descriptor.airQualityIndex else { return descriptor.temperatureText }
+            return "\(descriptor.temperatureText) AQI \(airQualityIndex)"
+        case .weatherFeelsLike:
+            guard let apparentTemperature = descriptor.apparentTemperature else { return descriptor.temperatureText }
+            return "\(L("Feels like")) \(Int(apparentTemperature.rounded()))°"
+        case .weatherTemperature, .short:
+            return descriptor.temperatureText
+        default:
+            return descriptor.temperatureText
         }
     }
 

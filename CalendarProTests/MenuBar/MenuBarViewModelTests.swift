@@ -121,6 +121,53 @@ final class MenuBarViewModelTests: XCTestCase {
         XCTAssertEqual(delay, 60, accuracy: 0.001)
     }
 
+    func testMenuBarWeatherTextUsesSelectedFormat() {
+        var preferences = MenuBarPreferences.default
+        preferences.showWeather = true
+        preferences.tokens = [
+            DisplayTokenPreference(token: .weather, isEnabled: true, order: 0, style: .weatherTemperaturePM25)
+        ]
+
+        let text = MenuBarViewModel.menuBarWeatherText(
+            for: makeWeatherDescriptor(pm25: 18.4),
+            preferences: preferences
+        )
+
+        XCTAssertEqual(text, "23° PM2.5 18")
+    }
+
+    func testMenuBarWeatherTextFallsBackToTemperatureWhenMetricMissing() {
+        var preferences = MenuBarPreferences.default
+        preferences.showWeather = true
+        preferences.tokens = [
+            DisplayTokenPreference(token: .weather, isEnabled: true, order: 0, style: .weatherTemperatureAQI)
+        ]
+
+        let text = MenuBarViewModel.menuBarWeatherText(
+            for: makeWeatherDescriptor(airQualityIndex: nil),
+            preferences: preferences
+        )
+
+        XCTAssertEqual(text, "23°")
+    }
+
+    func testMenuBarWeatherTextRequiresWeatherSwitchAndToken() {
+        var preferences = MenuBarPreferences.default
+        preferences.showWeather = false
+        preferences.tokens = [
+            DisplayTokenPreference(token: .weather, isEnabled: true, order: 0, style: .weatherConditionTemperature)
+        ]
+
+        XCTAssertNil(MenuBarViewModel.menuBarWeatherText(for: makeWeatherDescriptor(), preferences: preferences))
+
+        preferences.showWeather = true
+        preferences.tokens = [
+            DisplayTokenPreference(token: .weather, isEnabled: false, order: 0, style: .weatherConditionTemperature)
+        ]
+
+        XCTAssertNil(MenuBarViewModel.menuBarWeatherText(for: makeWeatherDescriptor(), preferences: preferences))
+    }
+
     private func makeStore(name: String) -> SettingsStore {
         let userDefaults = UserDefaults(suiteName: name)!
         userDefaults.removePersistentDomain(forName: name)
@@ -136,6 +183,23 @@ final class MenuBarViewModelTests: XCTestCase {
             calendarProvider: { .gregorianMondayFirst },
             timeZoneProvider: { TimeZone(secondsFromGMT: 0)! },
             notificationCenter: NotificationCenter()
+        )
+    }
+
+    private func makeWeatherDescriptor(
+        airQualityIndex: Int? = 42,
+        pm25: Double? = 18.4
+    ) -> WeatherDescriptor {
+        WeatherDescriptor(
+            locationName: "Beijing",
+            temperatureText: "23°",
+            apparentTemperature: 28,
+            forecastDate: nil,
+            weatherCode: 2,
+            isDaytime: true,
+            isCurrentConditions: true,
+            airQualityIndex: airQualityIndex,
+            pm25: pm25
         )
     }
 }
