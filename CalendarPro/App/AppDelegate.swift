@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var settingsWindow: NSWindow?
     private let uiTestEventDetailWindowController = EventDetailWindowController()
     private let uiTestVacationGuideWindowController = VacationGuideWindowController()
+    private let uiTestWeatherDetailWindowController = WeatherDetailWindowController()
     private let uiTestPopoverViewModel = CalendarPopoverViewModel()
     private let uiTestTimeRefreshCoordinator = TimeRefreshCoordinator()
     private let uiTestPomodoroTimer = PomodoroTimerController()
@@ -168,6 +169,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 pomodoroTimer: uiTestPomodoroTimer,
                 onPresentEventDetailWindow: { [weak self] event, onEdit, onDelete, onClose in
                     self?.uiTestVacationGuideWindowController.close()
+                    self?.uiTestWeatherDetailWindowController.close()
                     self?.uiTestEventDetailWindowController.show(
                         event: event,
                         anchoredTo: self?.uiTestWindow,
@@ -178,6 +180,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 },
                 onPresentReminderDetailWindow: { [weak self] reminder, onToggle, onEdit, onDelete, onClose in
                     self?.uiTestVacationGuideWindowController.close()
+                    self?.uiTestWeatherDetailWindowController.close()
                     self?.uiTestEventDetailWindowController.show(
                         reminder: reminder,
                         anchoredTo: self?.uiTestWindow,
@@ -189,6 +192,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 },
                 onPresentItemComposer: { [weak self] kind, selectedDate, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
                     self?.uiTestVacationGuideWindowController.close()
+                    self?.uiTestWeatherDetailWindowController.close()
                     self?.uiTestEventDetailWindowController.showComposer(
                         kind: kind,
                         selectedDate: selectedDate,
@@ -202,6 +206,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 },
                 onPresentItemEditor: { [weak self] mode, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
                     self?.uiTestVacationGuideWindowController.close()
+                    self?.uiTestWeatherDetailWindowController.close()
                     self?.uiTestEventDetailWindowController.showEditor(
                         mode: mode,
                         eventCalendars: eventCalendars,
@@ -215,6 +220,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 onPresentVacationGuide: { [weak self] month, onLocate in
                     guard let self else { return }
                     self.uiTestEventDetailWindowController.close()
+                    self.uiTestWeatherDetailWindowController.close()
                     self.uiTestVacationGuideWindowController.show(
                         referenceMonth: month,
                         settingsStore: self.settingsStore,
@@ -223,8 +229,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                         onLocate(date)
                     }
                 },
+                onPresentWeatherDetailWindow: { [weak self] overview, onClose in
+                    guard let self else { return }
+                    self.uiTestEventDetailWindowController.close()
+                    self.uiTestVacationGuideWindowController.close()
+                    self.uiTestWeatherDetailWindowController.show(
+                        overview: overview,
+                        anchoredTo: self.uiTestWindow,
+                        onClose: onClose
+                    )
+                },
                 onDismissEventDetailWindow: { [weak self] in
                     self?.uiTestEventDetailWindowController.close()
+                },
+                onDismissWeatherDetailWindow: { [weak self] in
+                    self?.uiTestWeatherDetailWindowController.close()
                 },
                 onQuit: { NSApp.terminate(nil) }
             )

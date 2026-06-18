@@ -121,6 +121,23 @@
     "10 %@" : {
 
     },
+    "10-Day Forecast" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10-Day Forecast"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 日天气"
+          }
+        }
+      }
+    },
     "15 %@" : {
 
     },
@@ -948,6 +965,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "收起"
+          }
+        }
+      }
+    },
+    "Close Weather Details" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close weather details"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭天气详情"
           }
         }
       }
@@ -3692,6 +3726,23 @@
         }
       }
     },
+    "Open Weather Details" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open weather details"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开天气详情"
+          }
+        }
+      }
+    },
     "Open in Calendar" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6037,6 +6088,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "天气"
+          }
+        }
+      }
+    },
+    "Weather Details" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weather Details"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "天气详情"
           }
         }
       }

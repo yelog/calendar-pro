@@ -115,6 +115,20 @@ struct WeatherDescriptor: Equatable, Sendable {
     )
 }
 
+struct WeatherForecastOverview: Equatable, Sendable {
+    let current: WeatherDescriptor
+    let dailyForecasts: [WeatherDescriptor]
+
+    var hasContent: Bool {
+        current.hasContent || dailyForecasts.contains(where: \.hasContent)
+    }
+
+    static let empty = WeatherForecastOverview(
+        current: .empty,
+        dailyForecasts: []
+    )
+}
+
 private enum WMOWeatherCode {
     static func iconSystemName(for code: Int, isDaytime: Bool) -> String {
         switch code {
@@ -237,6 +251,27 @@ struct WeatherService: Sendable {
 
     func fetchCurrentWeather() async -> WeatherDescriptor {
         await describe(date: now())
+    }
+
+    func forecastOverview(days: Int = 10, calendar: Calendar = .autoupdatingCurrent) async -> WeatherForecastOverview {
+        guard days > 0, let snapshot = await fetchSnapshot() else {
+            return .empty
+        }
+
+        let startOfToday = calendar.startOfDay(for: now())
+        let forecasts = snapshot.dailyForecasts
+            .filter { forecast in
+                calendar.startOfDay(for: forecast.date) >= startOfToday
+            }
+            .prefix(days)
+            .map { forecast in
+                makeForecastDescriptor(from: snapshot, forecast: forecast, calendar: calendar)
+            }
+
+        return WeatherForecastOverview(
+            current: makeCurrentDescriptor(from: snapshot),
+            dailyForecasts: Array(forecasts)
+        )
     }
 
     func describe(date: Date, calendar: Calendar = .autoupdatingCurrent) async -> WeatherDescriptor {

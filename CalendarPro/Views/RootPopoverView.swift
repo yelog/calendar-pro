@@ -40,7 +40,9 @@ struct RootPopoverView: View {
         @escaping () -> Void
     ) -> Void
     let onPresentVacationGuide: (Date, @escaping (Date) -> Void) -> Void
+    let onPresentWeatherDetailWindow: (WeatherForecastOverview, @escaping () -> Void) -> Void
     let onDismissEventDetailWindow: () -> Void
+    let onDismissWeatherDetailWindow: () -> Void
     let onQuit: () -> Void
 
     @State private var itemsForSelectedDate: [CalendarItem] = []
@@ -50,9 +52,13 @@ struct RootPopoverView: View {
     @State private var isLoadingWeather: Bool = false
     @State private var weatherService = WeatherService(locationResolver: CoreLocationWeatherLocationResolver())
     @State private var weatherTask: Task<Void, Never>?
+    @State private var weatherDetailTask: Task<Void, Never>?
     @State private var weatherRequestID = UUID()
+    @State private var weatherDetailRequestID = UUID()
     @State private var lastWeatherRefreshTime: Date?
     @State private var lastWeatherRequestedDate: Date?
+    @State private var isLoadingWeatherDetails = false
+    @State private var isWeatherDetailPresented = false
 
     private let almanacService = AlmanacService()
     private let weatherAutoRefreshInterval: TimeInterval = 15 * 60
@@ -100,6 +106,7 @@ struct RootPopoverView: View {
             }
             .onDisappear {
                 cancelWeatherLoad()
+                dismissWeatherDetail()
             }
     }
 
@@ -127,6 +134,8 @@ struct RootPopoverView: View {
             weather: weatherDescriptor,
             isLoadingWeather: isLoadingWeather,
             showWeather: settingsStore.menuBarPreferences.showWeather,
+            isWeatherDetailPresented: isWeatherDetailPresented,
+            isLoadingWeatherDetails: isLoadingWeatherDetails,
             pomodoroState: pomodoroTimer.state,
             pomodoroPreferences: settingsStore.pomodoroPreferences,
             showVacationGuideButton: showVacationGuideButton,
@@ -168,6 +177,7 @@ struct RootPopoverView: View {
             onCreateItem: {
                 handleCreateItem()
             },
+            onOpenWeatherDetails: handleOpenWeatherDetails,
             onOpenVacationGuide: handleOpenVacationGuide,
             onResetToToday: handleResetToToday,
             onStartPomodoroFocus: {
@@ -230,6 +240,7 @@ struct RootPopoverView: View {
         let expectedProviderConfiguration = settingsStore.weatherProviderConfiguration()
         if weatherService.manualLocation != expectedLocation
             || weatherService.providerConfiguration != expectedProviderConfiguration {
+            dismissWeatherDetail()
             cancelWeatherLoad()
             weatherService = WeatherService(
                 manualLocation: expectedLocation,
@@ -275,6 +286,7 @@ struct RootPopoverView: View {
 
     private func clearWeather() {
         cancelWeatherLoad()
+        dismissWeatherDetail()
         weatherDescriptor = nil
         lastWeatherRefreshTime = nil
         lastWeatherRequestedDate = nil
@@ -286,6 +298,65 @@ struct RootPopoverView: View {
         weatherService.cancelInFlightSnapshot()
         weatherRequestID = UUID()
         isLoadingWeather = false
+    }
+
+    private func handleOpenWeatherDetails() {
+        guard settingsStore.menuBarPreferences.showWeather else { return }
+        guard weatherDescriptor?.hasContent == true else { return }
+
+        if isWeatherDetailPresented {
+            dismissWeatherDetail()
+            return
+        }
+
+        dismissEventDetail()
+        loadWeatherDetails()
+    }
+
+    private func loadWeatherDetails() {
+        guard !isLoadingWeatherDetails else { return }
+
+        let expectedLocation = preferredWeatherLocation
+        let expectedProviderConfiguration = settingsStore.weatherProviderConfiguration()
+        let requestID = UUID()
+        let requestedCalendar = displayCalendar
+        let service = weatherService
+
+        weatherDetailRequestID = requestID
+        isLoadingWeatherDetails = true
+        weatherDetailTask?.cancel()
+        weatherDetailTask = Task {
+            let overview = await service.forecastOverview(days: 10, calendar: requestedCalendar)
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                guard weatherDetailRequestID == requestID else { return }
+                guard settingsStore.menuBarPreferences.showWeather else {
+                    dismissWeatherDetail()
+                    return
+                }
+                guard weatherService.manualLocation == expectedLocation else { return }
+                guard weatherService.providerConfiguration == expectedProviderConfiguration else { return }
+
+                isLoadingWeatherDetails = false
+                weatherDetailTask = nil
+
+                guard overview.hasContent else { return }
+                isWeatherDetailPresented = true
+                onPresentWeatherDetailWindow(overview) {
+                    isWeatherDetailPresented = false
+                }
+            }
+        }
+    }
+
+    private func dismissWeatherDetail() {
+        weatherDetailTask?.cancel()
+        weatherDetailTask = nil
+        weatherDetailRequestID = UUID()
+        isLoadingWeatherDetails = false
+        isWeatherDetailPresented = false
+        onDismissWeatherDetailWindow()
     }
 
     private func loadEvents(for date: Date) {

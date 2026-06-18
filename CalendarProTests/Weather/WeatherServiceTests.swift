@@ -125,6 +125,41 @@ final class WeatherServiceTests: XCTestCase {
         XCTAssertEqual(result.iconSystemName, "cloud.fill")
     }
 
+    func testWeatherServiceForecastOverviewReturnsTenDayForecastStartingToday() async {
+        WeatherMockURLProtocol.requestHandler = { request in
+            switch request.url?.host {
+            case "ipwho.is":
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{\"success\":true,\"city\":\"Hong Kong\",\"latitude\":22.276022,\"longitude\":114.1751471}".utf8)
+                )
+            case "api.open-meteo.com":
+                return makeTenDayForecastResponse(for: request.url!)
+            case "air-quality-api.open-meteo.com":
+                return makeAirQualityResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let calendar = makeCalendar()
+        let service = WeatherService(session: makeSession(), now: { makeDate(year: 2026, month: 4, day: 23, hour: 10) })
+
+        let overview = await service.forecastOverview(days: 10, calendar: calendar)
+
+        XCTAssertTrue(overview.hasContent)
+        XCTAssertEqual(overview.current.locationName, "Hong Kong")
+        XCTAssertEqual(overview.current.temperatureText, "26°")
+        XCTAssertEqual(overview.dailyForecasts.count, 10)
+        XCTAssertTrue(calendar.isDate(overview.dailyForecasts[0].forecastDate ?? .distantPast, inSameDayAs: makeDate(year: 2026, month: 4, day: 23)))
+        XCTAssertEqual(overview.dailyForecasts[0].temperatureText, "28° / 24°")
+        XCTAssertEqual(overview.dailyForecasts[0].precipitationProbability, 25)
+        XCTAssertTrue(calendar.isDate(overview.dailyForecasts[9].forecastDate ?? .distantPast, inSameDayAs: makeDate(year: 2026, month: 5, day: 2)))
+        XCTAssertEqual(overview.dailyForecasts[9].temperatureText, "37° / 33°")
+        XCTAssertEqual(overview.dailyForecasts[9].precipitationProbability, 70)
+        XCTAssertEqual(overview.dailyForecasts[9].windSpeed, 25)
+    }
+
     func testWeatherServiceFallsBackToIPInfoWhenPrimaryLocationProviderFails() async {
         let requestedHosts = LockedBox<[String]>([])
 
@@ -690,6 +725,69 @@ private func makeAirQualityResponse(for url: URL) -> (HTTPURLResponse, Data) {
         HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
         data
     )
+}
+
+private func makeTenDayForecastResponse(for url: URL) -> (HTTPURLResponse, Data) {
+    let startDate = makeDate(year: 2026, month: 4, day: 22)
+    let calendar = makeCalendar()
+    let formatter = DateFormatter()
+    formatter.calendar = calendar
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = calendar.timeZone
+    formatter.dateFormat = "yyyy-MM-dd"
+
+    let dates = (0..<12).map { offset in
+        formatter.string(from: calendar.date(byAdding: .day, value: offset, to: startDate)!)
+    }
+    let weatherCodes = [45, 61, 3, 0, 1, 2, 61, 80, 3, 0, 1, 2]
+    let maxTemperatures = (0..<12).map { 27.0 + Double($0) }
+    let minTemperatures = (0..<12).map { 23.0 + Double($0) }
+    let precipitation = (0..<12).map { Double($0) * 0.2 }
+    let precipitationProbability = (0..<12).map { 20 + ($0 * 5) }
+    let windSpeed = (0..<12).map { 15.0 + Double($0) }
+    let windDirection = (0..<12).map { 45.0 + Double($0 * 15) }
+    let windGusts = (0..<12).map { 22.0 + Double($0) }
+    let uvIndex = (0..<12).map { 3.0 + Double($0 % 6) }
+
+    let data = Data(
+        """
+        {
+          "current": {
+            "temperature_2m": 26.0,
+            "apparent_temperature": 31.0,
+            "relative_humidity_2m": 82,
+            "precipitation": 0.4,
+            "weather_code": 61,
+            "wind_speed_10m": 12.4,
+            "wind_direction_10m": 45.0,
+            "wind_gusts_10m": 22.0,
+            "cloud_cover": 68,
+            "is_day": 1
+          },
+          "daily": {
+            "time": \(jsonArray(dates)),
+            "weather_code": \(jsonArray(weatherCodes)),
+            "temperature_2m_max": \(jsonArray(maxTemperatures)),
+            "temperature_2m_min": \(jsonArray(minTemperatures)),
+            "precipitation_sum": \(jsonArray(precipitation)),
+            "precipitation_probability_max": \(jsonArray(precipitationProbability)),
+            "wind_speed_10m_max": \(jsonArray(windSpeed)),
+            "wind_direction_10m_dominant": \(jsonArray(windDirection)),
+            "wind_gusts_10m_max": \(jsonArray(windGusts)),
+            "uv_index_max": \(jsonArray(uvIndex))
+          }
+        }
+        """.utf8
+    )
+
+    return (
+        HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        data
+    )
+}
+
+private func jsonArray<T: Encodable>(_ value: T) -> String {
+    String(data: try! JSONEncoder().encode(value), encoding: .utf8)!
 }
 
 private struct StaticWeatherLocationResolver: WeatherLocationResolving {

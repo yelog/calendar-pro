@@ -99,6 +99,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private let interactionMonitor: PopoverInteractionMonitoring
     private let eventDetailPresenter: EventDetailWindowPresenting
     private let vacationGuidePresenter: VacationGuideWindowPresenting
+    private let weatherDetailPresenter: WeatherDetailWindowPresenting
     private let timeRefreshCoordinator: TimeRefreshCoordinator
     private let pomodoroTimer: PomodoroTimerController
     private let viewModel: CalendarPopoverViewModel
@@ -111,6 +112,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         interactionMonitor: PopoverInteractionMonitoring = PopoverInteractionMonitor(),
         eventDetailPresenter: EventDetailWindowPresenting = EventDetailWindowController(),
         vacationGuidePresenter: VacationGuideWindowPresenting = VacationGuideWindowController(),
+        weatherDetailPresenter: WeatherDetailWindowPresenting = WeatherDetailWindowController(),
         timeRefreshCoordinator: TimeRefreshCoordinator = TimeRefreshCoordinator(),
         pomodoroTimer: PomodoroTimerController = PomodoroTimerController(),
         viewModel: CalendarPopoverViewModel? = nil
@@ -121,6 +123,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         self.interactionMonitor = interactionMonitor
         self.eventDetailPresenter = eventDetailPresenter
         self.vacationGuidePresenter = vacationGuidePresenter
+        self.weatherDetailPresenter = weatherDetailPresenter
         self.timeRefreshCoordinator = timeRefreshCoordinator
         self.pomodoroTimer = pomodoroTimer
         self.viewModel = viewModel ?? CalendarPopoverViewModel(now: { timeRefreshCoordinator.currentDate })
@@ -193,8 +196,14 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                 onPresentVacationGuide: { [weak self] month, onLocate in
                     self?.showVacationGuide(forMonth: month, onLocateDate: onLocate)
                 },
+                onPresentWeatherDetailWindow: { [weak self] overview, onClose in
+                    self?.showWeatherDetailWindow(overview: overview, onClose: onClose)
+                },
                 onDismissEventDetailWindow: { [weak self] in
                     self?.closeEventDetailWindow()
+                },
+                onDismissWeatherDetailWindow: { [weak self] in
+                    self?.closeWeatherDetailWindow()
                 },
                 onQuit: { [weak self] in
                     self?.quitApp()
@@ -221,12 +230,14 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private func closePopover() {
         interactionMonitor.stop()
         closeVacationGuideWindow()
+        closeWeatherDetailWindow()
         popover.performClose(nil)
     }
 
     func popoverShouldClose(_ popover: NSPopover) -> Bool {
         closeEventDetailWindow()
         closeVacationGuideWindow()
+        closeWeatherDetailWindow()
         return true
     }
 
@@ -243,6 +254,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         onClose: @escaping () -> Void
     ) {
         closeVacationGuideWindow()
+        closeWeatherDetailWindow()
         eventDetailPresenter.show(
             event: event,
             anchoredTo: popover.contentViewController?.view.window,
@@ -263,6 +275,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         onClose: @escaping () -> Void
     ) {
         closeVacationGuideWindow()
+        closeWeatherDetailWindow()
         eventDetailPresenter.show(
             reminder: reminder,
             anchoredTo: popover.contentViewController?.view.window,
@@ -283,6 +296,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         onClose: @escaping () -> Void
     ) {
         closeVacationGuideWindow()
+        closeWeatherDetailWindow()
         suspendTransientPopoverBehaviorForComposer()
         eventDetailPresenter.showComposer(
             kind: kind,
@@ -308,6 +322,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         onClose: @escaping () -> Void
     ) {
         closeVacationGuideWindow()
+        closeWeatherDetailWindow()
         suspendTransientPopoverBehaviorForComposer()
         eventDetailPresenter.showEditor(
             mode: mode,
@@ -331,8 +346,13 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         vacationGuidePresenter.close()
     }
 
+    func closeWeatherDetailWindow() {
+        weatherDetailPresenter.close()
+    }
+
     private func showVacationGuide(forMonth month: Date, onLocateDate: @escaping (Date) -> Void) {
         closeEventDetailWindow()
+        closeWeatherDetailWindow()
         vacationGuidePresenter.show(
             referenceMonth: month,
             settingsStore: settingsStore,
@@ -341,9 +361,20 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         )
     }
 
+    private func showWeatherDetailWindow(overview: WeatherForecastOverview, onClose: @escaping () -> Void) {
+        closeEventDetailWindow()
+        closeVacationGuideWindow()
+        weatherDetailPresenter.show(
+            overview: overview,
+            anchoredTo: popover.contentViewController?.view.window,
+            onClose: onClose
+        )
+    }
+
     private func quitApp() {
         closePopover()
         closeEventDetailWindow()
+        closeWeatherDetailWindow()
         NSApp.terminate(nil)
     }
 

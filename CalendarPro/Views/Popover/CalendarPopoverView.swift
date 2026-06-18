@@ -43,6 +43,8 @@ struct CalendarPopoverView: View {
     let weather: WeatherDescriptor?
     let isLoadingWeather: Bool
     let showWeather: Bool
+    let isWeatherDetailPresented: Bool
+    let isLoadingWeatherDetails: Bool
     let pomodoroState: PomodoroTimerController.State
     let pomodoroPreferences: PomodoroPreferences
     let showVacationGuideButton: Bool
@@ -62,6 +64,7 @@ struct CalendarPopoverView: View {
     let onToggleReminder: (EKReminder) -> Void
     let onOpenReminder: (EKReminder) -> Void
     let onCreateItem: () -> Void
+    let onOpenWeatherDetails: () -> Void
     let onOpenVacationGuide: () -> Void
     let onResetToToday: () -> Void
     let onStartPomodoroFocus: () -> Void
@@ -242,7 +245,10 @@ struct CalendarPopoverView: View {
                     WeatherStripView(
                         weather: weather,
                         isLoading: isLoadingWeather,
-                        requestedDate: selectedDate ?? timeRefreshCoordinator.currentDate
+                        requestedDate: selectedDate ?? timeRefreshCoordinator.currentDate,
+                        isDetailPresented: isWeatherDetailPresented,
+                        isDetailLoading: isLoadingWeatherDetails,
+                        onOpenDetails: onOpenWeatherDetails
                     )
                 }
 
