@@ -216,7 +216,7 @@ struct WeatherService: Sendable {
 
     private let cachedLocation = LockedValue<LocationMetadata?>(nil)
     private let cachedSnapshot = LockedValue<WeatherSnapshot?>(nil)
-    private let inFlightSnapshotTask = LockedValue<Task<WeatherSnapshot?, Never>?>(nil)
+    private let inFlightSnapshotRequest = LockedValue<WeatherSnapshotRequest?>(nil)
     private let locationResolver: (any WeatherLocationResolving)?
 
     init(
@@ -255,24 +255,39 @@ struct WeatherService: Sendable {
         return makeForecastDescriptor(from: snapshot, forecast: forecast, calendar: calendar)
     }
 
+    func cancelInFlightSnapshot() {
+        let request = inFlightSnapshotRequest.withValue { inFlight -> WeatherSnapshotRequest? in
+            let request = inFlight
+            inFlight = nil
+            return request
+        }
+        request?.task.cancel()
+    }
+
     private func fetchSnapshot() async -> WeatherSnapshot? {
         if let cachedSnapshot = cachedSnapshot.value,
            now().timeIntervalSince(cachedSnapshot.fetchedAt) < refreshInterval {
             return cachedSnapshot
         }
 
-        let task = inFlightSnapshotTask.withValue { inFlight in
+        let request = inFlightSnapshotRequest.withValue { inFlight in
             if let inFlight {
                 return inFlight
             }
 
-            let newTask = Task { await fetchSnapshotFromNetwork() }
-            inFlight = newTask
-            return newTask
+            let newRequest = WeatherSnapshotRequest(
+                id: UUID(),
+                task: Task { await fetchSnapshotFromNetwork() }
+            )
+            inFlight = newRequest
+            return newRequest
         }
 
-        let snapshot = await task.value
-        inFlightSnapshotTask.value = nil
+        let snapshot = await request.task.value
+        inFlightSnapshotRequest.withValue { inFlight in
+            guard inFlight?.id == request.id else { return }
+            inFlight = nil
+        }
         return snapshot
     }
 
@@ -724,6 +739,11 @@ private struct WeatherSnapshot: Sendable {
     let dailyForecasts: [DailyWeatherForecast]
     let airQuality: AirQualitySnapshot?
     let fetchedAt: Date
+}
+
+private struct WeatherSnapshotRequest: Sendable {
+    let id: UUID
+    let task: Task<WeatherSnapshot?, Never>
 }
 
 private struct CurrentWeatherSnapshot: Sendable {

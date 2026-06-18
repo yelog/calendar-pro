@@ -99,7 +99,7 @@ struct RootPopoverView: View {
                 refreshInfoStrips()
             }
             .onDisappear {
-                weatherTask?.cancel()
+                cancelWeatherLoad()
             }
     }
 
@@ -230,7 +230,7 @@ struct RootPopoverView: View {
         let expectedProviderConfiguration = settingsStore.weatherProviderConfiguration()
         if weatherService.manualLocation != expectedLocation
             || weatherService.providerConfiguration != expectedProviderConfiguration {
-            weatherTask?.cancel()
+            cancelWeatherLoad()
             weatherService = WeatherService(
                 manualLocation: expectedLocation,
                 providerConfiguration: expectedProviderConfiguration,
@@ -238,7 +238,7 @@ struct RootPopoverView: View {
             )
         }
 
-        weatherTask?.cancel()
+        cancelWeatherLoad()
         weatherDescriptor = nil
         isLoadingWeather = true
         lastWeatherRefreshTime = timeRefreshCoordinator.currentDate
@@ -274,13 +274,18 @@ struct RootPopoverView: View {
     }
 
     private func clearWeather() {
-        weatherTask?.cancel()
-        weatherTask = nil
-        weatherRequestID = UUID()
+        cancelWeatherLoad()
         weatherDescriptor = nil
-        isLoadingWeather = false
         lastWeatherRefreshTime = nil
         lastWeatherRequestedDate = nil
+    }
+
+    private func cancelWeatherLoad() {
+        weatherTask?.cancel()
+        weatherTask = nil
+        weatherService.cancelInFlightSnapshot()
+        weatherRequestID = UUID()
+        isLoadingWeather = false
     }
 
     private func loadEvents(for date: Date) {

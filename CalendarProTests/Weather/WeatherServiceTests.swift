@@ -5,6 +5,8 @@ final class WeatherServiceTests: XCTestCase {
     override func tearDown() {
         super.tearDown()
         WeatherMockURLProtocol.requestHandler = nil
+        StallingWeatherURLProtocol.mode = .stall
+        StallingWeatherURLProtocol.onStalledRequest = nil
     }
 
     func testWeatherDescriptorIconSystemNameForClearDay() {
@@ -291,6 +293,32 @@ final class WeatherServiceTests: XCTestCase {
         XCTAssertEqual(airQualityRequests.snapshot, 1)
     }
 
+    func testWeatherServiceCancelsInFlightSnapshotBeforeRetrying() async {
+        let firstRequestStarted = expectation(description: "first request started")
+        StallingWeatherURLProtocol.mode = .stall
+        StallingWeatherURLProtocol.onStalledRequest = { _ in
+            firstRequestStarted.fulfill()
+        }
+
+        let service = WeatherService(
+            session: makeStallingSession(),
+            now: { makeDate(year: 2026, month: 4, day: 23, hour: 10) }
+        )
+        let stalledTask = Task { await service.fetchCurrentWeather() }
+
+        await fulfillment(of: [firstRequestStarted], timeout: 1.0)
+        service.cancelInFlightSnapshot()
+        StallingWeatherURLProtocol.mode = .success
+
+        let result = await service.fetchCurrentWeather()
+
+        stalledTask.cancel()
+        _ = await stalledTask.value
+        XCTAssertTrue(result.hasContent)
+        XCTAssertEqual(result.locationName, "Hong Kong")
+        XCTAssertEqual(result.temperatureText, "26°")
+    }
+
     func testWeatherServiceFetchReturnsEmptyOnNetworkError() async {
         let service = WeatherService(session: makeSession())
         let result = await service.fetchCurrentWeather()
@@ -510,9 +538,67 @@ private final class WeatherMockURLProtocol: URLProtocol {
     override func stopLoading() {}
 }
 
+private final class StallingWeatherURLProtocol: URLProtocol {
+    enum Mode {
+        case stall
+        case success
+    }
+
+    nonisolated(unsafe) static var mode: Mode = .stall
+    nonisolated(unsafe) static var onStalledRequest: (@Sendable (URLRequest) -> Void)?
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        switch Self.mode {
+        case .stall:
+            Self.onStalledRequest?(request)
+        case .success:
+            do {
+                let (response, data) = try Self.successResponse(for: request)
+                client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+                client?.urlProtocol(self, didLoad: data)
+                client?.urlProtocolDidFinishLoading(self)
+            } catch {
+                client?.urlProtocol(self, didFailWithError: error)
+            }
+        }
+    }
+
+    override func stopLoading() {}
+
+    private static func successResponse(for request: URLRequest) throws -> (HTTPURLResponse, Data) {
+        switch request.url?.host {
+        case "ipwho.is":
+            return (
+                HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                Data("{\"success\":true,\"city\":\"Hong Kong\",\"latitude\":22.276022,\"longitude\":114.1751471}".utf8)
+            )
+        case "api.open-meteo.com":
+            return makeForecastResponse(for: request.url!)
+        case "air-quality-api.open-meteo.com":
+            return makeAirQualityResponse(for: request.url!)
+        default:
+            throw URLError(.badURL)
+        }
+    }
+}
+
 private func makeSession() -> URLSession {
     let configuration = URLSessionConfiguration.ephemeral
     configuration.protocolClasses = [WeatherMockURLProtocol.self]
+    return URLSession(configuration: configuration)
+}
+
+private func makeStallingSession() -> URLSession {
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [StallingWeatherURLProtocol.self]
     return URLSession(configuration: configuration)
 }
 

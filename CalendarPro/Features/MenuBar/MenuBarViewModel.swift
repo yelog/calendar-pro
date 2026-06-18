@@ -88,8 +88,7 @@ final class MenuBarViewModel: ObservableObject {
 
     func stop() {
         isRunning = false
-        weatherFetchTask?.cancel()
-        weatherFetchTask = nil
+        cancelWeatherFetch()
         timeRefreshCoordinator.stop()
     }
 
@@ -140,8 +139,7 @@ final class MenuBarViewModel: ObservableObject {
         let weatherTokenEnabled = prefs.tokens.contains(where: { $0.token == .weather && $0.isEnabled })
 
         guard prefs.showWeather && weatherTokenEnabled else {
-            weatherFetchTask?.cancel()
-            weatherFetchTask = nil
+            cancelWeatherFetch()
             weatherNextRefreshDate = .distantPast
             weatherFailureCount = 0
             if weatherDescriptor != .empty {
@@ -155,8 +153,7 @@ final class MenuBarViewModel: ObservableObject {
         let expectedProviderConfiguration = settingsStore.weatherProviderConfiguration(for: prefs)
         if weatherService.manualLocation != expectedLocation
             || weatherService.providerConfiguration != expectedProviderConfiguration {
-            weatherFetchTask?.cancel()
-            weatherFetchTask = nil
+            cancelWeatherFetch()
             weatherService = WeatherService(
                 session: weatherService.session,
                 now: weatherService.now,
@@ -209,6 +206,12 @@ final class MenuBarViewModel: ObservableObject {
                 }
             }
         }
+    }
+
+    private func cancelWeatherFetch() {
+        weatherFetchTask?.cancel()
+        weatherFetchTask = nil
+        weatherService.cancelInFlightSnapshot()
     }
 
     static func menuBarWeatherText(for descriptor: WeatherDescriptor, preferences: MenuBarPreferences) -> String? {
