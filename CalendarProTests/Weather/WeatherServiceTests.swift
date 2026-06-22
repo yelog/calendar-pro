@@ -226,6 +226,64 @@ final class WeatherServiceTests: XCTestCase {
         XCTAssertTrue(result.isCurrentConditions)
     }
 
+    func testWeatherServiceForecastOverviewSuppressesOpenMeteoHailWithoutThunderstormPrecipitation() async {
+        WeatherMockURLProtocol.requestHandler = { request in
+            switch request.url?.host {
+            case "ipwho.is":
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{\"success\":true,\"city\":\"Shenzhen\",\"latitude\":22.538,\"longitude\":113.9389}".utf8)
+                )
+            case "api.open-meteo.com":
+                return makeHailWithUnrelatedRainResponse(for: request.url!)
+            case "air-quality-api.open-meteo.com":
+                return makeAirQualityResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let calendar = makeCalendar()
+        let service = WeatherService(session: makeSession(), now: { makeDate(year: 2026, month: 6, day: 22, hour: 10) })
+
+        let overview = await service.forecastOverview(days: 10, calendar: calendar)
+
+        XCTAssertEqual(overview.current.weatherCode, 61)
+        XCTAssertEqual(overview.dailyForecasts.first?.weatherCode, 61)
+        XCTAssertEqual(overview.dailyForecasts.first?.temperatureText, "35° / 29°")
+        XCTAssertEqual(overview.dailyForecasts.first?.precipitation, 1.2)
+        XCTAssertEqual(overview.dailyForecasts.first?.precipitationProbability, 70)
+    }
+
+    func testWeatherServiceDescribeDowngradesSupportedOpenMeteoHailToThunderstorm() async {
+        WeatherMockURLProtocol.requestHandler = { request in
+            switch request.url?.host {
+            case "ipwho.is":
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{\"success\":true,\"city\":\"Shenzhen\",\"latitude\":22.538,\"longitude\":113.9389}".utf8)
+                )
+            case "api.open-meteo.com":
+                return makeHailWithThunderstormPrecipitationResponse(for: request.url!)
+            case "air-quality-api.open-meteo.com":
+                return makeAirQualityResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let calendar = makeCalendar()
+        let service = WeatherService(session: makeSession(), now: { makeDate(year: 2026, month: 6, day: 22, hour: 10) })
+
+        let result = await service.describe(date: makeDate(year: 2026, month: 6, day: 22, hour: 10), calendar: calendar)
+        let overview = await service.forecastOverview(days: 10, calendar: calendar)
+
+        XCTAssertEqual(result.weatherCode, 95)
+        XCTAssertEqual(result.iconSystemName, "cloud.bolt.rain.fill")
+        XCTAssertEqual(overview.current.weatherCode, 95)
+        XCTAssertEqual(overview.dailyForecasts.first?.weatherCode, 95)
+    }
+
     func testWeatherServiceFallsBackToIPInfoWhenPrimaryLocationProviderFails() async {
         let requestedHosts = LockedBox<[String]>([])
 
@@ -633,6 +691,58 @@ final class WeatherServiceTests: XCTestCase {
         XCTAssertEqual(overview.dailyForecasts.dropFirst().first?.precipitation, 1.6)
         XCTAssertEqual(overview.dailyForecasts.dropFirst().first?.precipitationProbability, 70)
     }
+
+    func testSevenTimerProviderFetchesCivilLightForecastWithoutConfiguration() async {
+        let requestedHosts = LockedBox<[String]>([])
+
+        WeatherMockURLProtocol.requestHandler = { request in
+            requestedHosts.withValue { $0.append(request.url?.host ?? "") }
+
+            switch request.url?.host {
+            case "ipwho.is":
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{\"success\":true,\"city\":\"Beijing\",\"latitude\":39.9042,\"longitude\":116.4074}".utf8)
+                )
+            case "www.7timer.info":
+                let components = URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)
+                let queryItems = components?.queryItems ?? []
+                XCTAssertEqual(request.url?.path, "/bin/api.pl")
+                XCTAssertEqual(queryItems.first(where: { $0.name == "lon" })?.value, "116.4074")
+                XCTAssertEqual(queryItems.first(where: { $0.name == "lat" })?.value, "39.9042")
+                XCTAssertEqual(queryItems.first(where: { $0.name == "product" })?.value, "civillight")
+                XCTAssertEqual(queryItems.first(where: { $0.name == "output" })?.value, "json")
+                return makeSevenTimerResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let service = WeatherService(
+            session: makeSession(),
+            now: { makeDate(year: 2026, month: 6, day: 22, hour: 10) },
+            providerConfiguration: .sevenTimer
+        )
+
+        let overview = await service.forecastOverview(days: 10, calendar: makeCalendar())
+
+        XCTAssertTrue(overview.hasContent)
+        XCTAssertEqual(overview.current.locationName, "Beijing")
+        XCTAssertEqual(overview.current.temperatureText, "33°")
+        XCTAssertEqual(overview.current.weatherCode, 0)
+        XCTAssertEqual(overview.current.windSpeed, 3)
+        XCTAssertNil(overview.current.humidity)
+        XCTAssertNil(overview.current.airQualityIndex)
+        XCTAssertEqual(overview.dailyForecasts.count, 4)
+        XCTAssertEqual(overview.dailyForecasts[0].temperatureText, "33° / 22°")
+        XCTAssertEqual(overview.dailyForecasts[0].weatherCode, 0)
+        XCTAssertEqual(overview.dailyForecasts[1].weatherCode, 61)
+        XCTAssertEqual(overview.dailyForecasts[1].precipitationProbability, 50)
+        XCTAssertEqual(overview.dailyForecasts[2].weatherCode, 95)
+        XCTAssertEqual(overview.dailyForecasts[2].precipitationProbability, 80)
+        XCTAssertEqual(overview.dailyForecasts[3].weatherCode, 3)
+        XCTAssertEqual(requestedHosts.snapshot, ["ipwho.is", "www.7timer.info"])
+    }
 }
 
 private final class LockedBox<Value>: @unchecked Sendable {
@@ -945,6 +1055,98 @@ private func makeDailyThunderstormHourlyDryResponse(for url: URL) -> (HTTPURLRes
     )
 }
 
+private func makeHailWithUnrelatedRainResponse(for url: URL) -> (HTTPURLResponse, Data) {
+    let data = Data(
+        """
+        {
+          "current": {
+            "temperature_2m": 34.0,
+            "apparent_temperature": 41.0,
+            "relative_humidity_2m": 70,
+            "precipitation": 0.0,
+            "weather_code": 96,
+            "wind_speed_10m": 10.0,
+            "wind_direction_10m": 120.0,
+            "wind_gusts_10m": 18.0,
+            "cloud_cover": 40,
+            "is_day": 1
+          },
+          "hourly": {
+            "time": ["2026-06-22T10:00", "2026-06-22T11:00", "2026-06-22T12:00", "2026-06-22T13:00"],
+            "weather_code": [96, 3, 61, 2],
+            "precipitation": [0.0, 0.0, 1.2, 0.0],
+            "precipitation_probability": [0, 10, 70, 8],
+            "rain": [0.0, 0.0, 1.2, 0.0],
+            "showers": [0.0, 0.0, 0.0, 0.0]
+          },
+          "daily": {
+            "time": ["2026-06-22"],
+            "weather_code": [96],
+            "temperature_2m_max": [35.0],
+            "temperature_2m_min": [29.0],
+            "precipitation_sum": [1.2],
+            "precipitation_probability_max": [70],
+            "wind_speed_10m_max": [16.0],
+            "wind_direction_10m_dominant": [135.0],
+            "wind_gusts_10m_max": [24.0],
+            "uv_index_max": [9.0]
+          }
+        }
+        """.utf8
+    )
+
+    return (
+        HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        data
+    )
+}
+
+private func makeHailWithThunderstormPrecipitationResponse(for url: URL) -> (HTTPURLResponse, Data) {
+    let data = Data(
+        """
+        {
+          "current": {
+            "temperature_2m": 34.0,
+            "apparent_temperature": 41.0,
+            "relative_humidity_2m": 70,
+            "precipitation": 0.8,
+            "weather_code": 96,
+            "wind_speed_10m": 10.0,
+            "wind_direction_10m": 120.0,
+            "wind_gusts_10m": 18.0,
+            "cloud_cover": 40,
+            "is_day": 1
+          },
+          "hourly": {
+            "time": ["2026-06-22T10:00", "2026-06-22T11:00", "2026-06-22T12:00", "2026-06-22T13:00"],
+            "weather_code": [96, 96, 95, 61],
+            "precipitation": [0.8, 0.7, 0.9, 1.2],
+            "precipitation_probability": [80, 90, 85, 70],
+            "rain": [0.6, 0.6, 0.9, 1.2],
+            "showers": [0.2, 0.1, 0.0, 0.0]
+          },
+          "daily": {
+            "time": ["2026-06-22"],
+            "weather_code": [96],
+            "temperature_2m_max": [35.0],
+            "temperature_2m_min": [29.0],
+            "precipitation_sum": [3.6],
+            "precipitation_probability_max": [90],
+            "wind_speed_10m_max": [16.0],
+            "wind_direction_10m_dominant": [135.0],
+            "wind_gusts_10m_max": [24.0],
+            "uv_index_max": [9.0]
+          }
+        }
+        """.utf8
+    )
+
+    return (
+        HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        data
+    )
+}
+
 private func makeWttrResponse(for url: URL) -> (HTTPURLResponse, Data) {
     let data = Data(
         """
@@ -1018,6 +1220,48 @@ private func makeWttrResponse(for url: URL) -> (HTTPURLResponse, Data) {
                   "WindGustKmph": "24"
                 }
               ]
+            }
+          ]
+        }
+        """.utf8
+    )
+
+    return (
+        HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        data
+    )
+}
+
+private func makeSevenTimerResponse(for url: URL) -> (HTTPURLResponse, Data) {
+    let data = Data(
+        """
+        {
+          "product": "civillight",
+          "init": "2026062200",
+          "dataseries": [
+            {
+              "date": 20260622,
+              "weather": "clear",
+              "temp2m": { "max": 33, "min": 22 },
+              "wind10m_max": 3
+            },
+            {
+              "date": 20260623,
+              "weather": "lightrain",
+              "temp2m": { "max": 29, "min": 21 },
+              "wind10m_max": 2
+            },
+            {
+              "date": 20260624,
+              "weather": "tsrain",
+              "temp2m": { "max": 28, "min": 20 },
+              "wind10m_max": 4
+            },
+            {
+              "date": 20260625,
+              "weather": "unknown-weather",
+              "temp2m": { "max": 31, "min": 23 },
+              "wind10m_max": 2
             }
           ]
         }

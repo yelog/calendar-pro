@@ -15,6 +15,7 @@ enum WeatherProviderConfiguration: Equatable, Sendable {
     case openMeteo
     case qWeather(apiHost: String, apiKey: String)
     case wttrIn
+    case sevenTimer
 
     var weatherProvider: WeatherProvider {
         switch self {
@@ -24,12 +25,14 @@ enum WeatherProviderConfiguration: Equatable, Sendable {
             return .qWeather
         case .wttrIn:
             return .wttrIn
+        case .sevenTimer:
+            return .sevenTimer
         }
     }
 
     var isUsable: Bool {
         switch self {
-        case .openMeteo, .wttrIn:
+        case .openMeteo, .wttrIn, .sevenTimer:
             return true
         case .qWeather(let apiHost, let apiKey):
             return !apiHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -361,6 +364,8 @@ struct WeatherService: Sendable {
             return await fetchQWeatherSnapshot(for: location, apiHost: apiHost, apiKey: apiKey)
         case .wttrIn:
             return await fetchWttrSnapshot(for: location)
+        case .sevenTimer:
+            return await fetchSevenTimerSnapshot(for: location)
         }
     }
 
@@ -469,6 +474,38 @@ struct WeatherService: Sendable {
         }
     }
 
+    private func fetchSevenTimerSnapshot(for location: LocationMetadata) async -> WeatherSnapshot? {
+        guard let url = sevenTimerURL(latitude: location.latitude, longitude: location.longitude) else {
+            return nil
+        }
+
+        do {
+            let (data, response) = try await session.data(from: url)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200..<300).contains(httpResponse.statusCode) else {
+                return nil
+            }
+
+            let result = try JSONDecoder().decode(SevenTimerResponse.self, from: data)
+            guard let current = result.currentSnapshot else {
+                return nil
+            }
+
+            let snapshot = WeatherSnapshot(
+                locationName: location.displayName,
+                current: current,
+                dailyForecasts: result.dailyForecasts,
+                hourlyForecasts: [],
+                airQuality: nil,
+                fetchedAt: now()
+            )
+            cachedSnapshot.value = snapshot
+            return snapshot
+        } catch {
+            return nil
+        }
+    }
+
     private func makeCurrentDescriptor(from snapshot: WeatherSnapshot) -> WeatherDescriptor {
         let airQuality = snapshot.airQuality?.current
         let weatherCode = supportedCurrentWeatherCode(from: snapshot)
@@ -502,14 +539,15 @@ struct WeatherService: Sendable {
         let currentHourlyForecasts = snapshot.hourlyForecasts.filter { hourly in
             hourly.date >= currentTime && hourly.date <= windowEnd
         }
+        let thunderstormHourlyForecasts = currentHourlyForecasts.filter { Self.isThunderstormCode($0.weatherCode) }
         let hasMeaningfulPrecipitation = Self.hasMeaningfulPrecipitation(
-            hourlyForecasts: currentHourlyForecasts,
+            hourlyForecasts: thunderstormHourlyForecasts,
             additionalAmounts: [snapshot.current.precipitation],
             additionalProbabilities: []
         )
 
         guard !hasMeaningfulPrecipitation else {
-            return snapshot.current.weatherCode
+            return Self.normalizedSupportedThunderstormCode(snapshot.current.weatherCode)
         }
 
         return Self.fallbackNonThunderstormCode(
@@ -547,16 +585,18 @@ struct WeatherService: Sendable {
             return makeForecastDescriptor(from: snapshot, forecast: forecast, calendar: calendar)
         }
 
+        let thunderstormHourlyForecasts = remainingHourlyForecasts.filter { Self.isThunderstormCode($0.weatherCode) }
         let hasMeaningfulPrecipitation = Self.hasMeaningfulPrecipitation(
-            hourlyForecasts: remainingHourlyForecasts,
-            additionalAmounts: [forecast.precipitationSum, snapshot.current.precipitation],
-            additionalProbabilities: [forecast.precipitationProbabilityMax]
+            hourlyForecasts: thunderstormHourlyForecasts,
+            additionalAmounts: Self.isThunderstormCode(snapshot.current.weatherCode) ? [snapshot.current.precipitation] : [],
+            additionalProbabilities: []
         )
         let weatherCode: Int
         if hasMeaningfulPrecipitation {
-            weatherCode = remainingHourlyForecasts.max { lhs, rhs in
+            let strongestThunderstormCode = thunderstormHourlyForecasts.max { lhs, rhs in
                 Self.weatherSeverityRank(lhs.weatherCode) < Self.weatherSeverityRank(rhs.weatherCode)
             }?.weatherCode ?? forecast.weatherCode
+            weatherCode = Self.normalizedSupportedThunderstormCode(strongestThunderstormCode)
         } else {
             weatherCode = Self.fallbackNonThunderstormCode(
                 from: remainingHourlyForecasts,
@@ -584,14 +624,15 @@ struct WeatherService: Sendable {
         let dayHourlyForecasts = snapshot.hourlyForecasts.filter { hourly in
             calendar.isDate(hourly.date, inSameDayAs: forecast.date)
         }
+        let thunderstormHourlyForecasts = dayHourlyForecasts.filter { Self.isThunderstormCode($0.weatherCode) }
         let hasMeaningfulPrecipitation = Self.hasMeaningfulPrecipitation(
-            hourlyForecasts: dayHourlyForecasts,
-            additionalAmounts: [forecast.precipitationSum],
-            additionalProbabilities: [forecast.precipitationProbabilityMax]
+            hourlyForecasts: thunderstormHourlyForecasts,
+            additionalAmounts: [],
+            additionalProbabilities: []
         )
 
         guard !hasMeaningfulPrecipitation else {
-            return forecast.weatherCode
+            return Self.normalizedSupportedThunderstormCode(forecast.weatherCode)
         }
 
         return Self.fallbackNonThunderstormCode(from: dayHourlyForecasts, defaultCode: forecast.weatherCode)
@@ -668,6 +709,14 @@ struct WeatherService: Sendable {
             .max { lhs, rhs in
                 weatherSeverityRank(lhs.weatherCode) < weatherSeverityRank(rhs.weatherCode)
             }?.weatherCode ?? 3
+    }
+
+    private static func normalizedSupportedThunderstormCode(_ code: Int) -> Int {
+        isHailThunderstormCode(code) ? 95 : code
+    }
+
+    private static func isHailThunderstormCode(_ code: Int) -> Bool {
+        code == 96 || code == 99
     }
 
     private static func weatherSeverityRank(_ code: Int) -> Int {
@@ -946,6 +995,20 @@ struct WeatherService: Sendable {
             URLQueryItem(name: "format", value: "j1"),
             URLQueryItem(name: "m", value: nil),
             URLQueryItem(name: "lang", value: AppLocalization.languageCode == "zh" ? "zh" : "en")
+        ]
+        return components.url
+    }
+
+    private func sevenTimerURL(latitude: Double, longitude: Double) -> URL? {
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "www.7timer.info"
+        components.path = "/bin/api.pl"
+        components.queryItems = [
+            URLQueryItem(name: "lon", value: String(longitude)),
+            URLQueryItem(name: "lat", value: String(latitude)),
+            URLQueryItem(name: "product", value: "civillight"),
+            URLQueryItem(name: "output", value: "json")
         ]
         return components.url
     }
@@ -1528,6 +1591,133 @@ private enum WttrWeatherCodeMapper {
         default:
             return 0
         }
+    }
+}
+
+private struct SevenTimerResponse: Decodable, Sendable {
+    let product: String?
+    let initTime: String?
+    let dataseries: [DataPoint]
+
+    enum CodingKeys: String, CodingKey {
+        case product
+        case initTime = "init"
+        case dataseries
+    }
+
+    var currentSnapshot: CurrentWeatherSnapshot? {
+        guard let today = dataseries.first else { return nil }
+        return today.currentSnapshot
+    }
+
+    var dailyForecasts: [DailyWeatherForecast] {
+        dataseries.compactMap(\.forecast)
+    }
+
+    struct DataPoint: Decodable, Sendable {
+        let date: Int
+        let weather: String
+        let temperature2m: Temperature2m
+        let wind10mMax: Int?
+
+        enum CodingKeys: String, CodingKey {
+            case date
+            case weather
+            case temperature2m = "temp2m"
+            case wind10mMax = "wind10m_max"
+        }
+
+        var currentSnapshot: CurrentWeatherSnapshot? {
+            CurrentWeatherSnapshot(
+                temperature: Double(temperature2m.max),
+                apparentTemperature: Double(temperature2m.max),
+                weatherCode: SevenTimerWeatherCodeMapper.weatherCode(for: weather),
+                isDaytime: true,
+                humidity: nil,
+                precipitation: nil,
+                windSpeed: wind10mMax.map { Double($0) },
+                windDirection: nil,
+                windGusts: nil,
+                cloudCover: nil
+            )
+        }
+
+        var forecast: DailyWeatherForecast? {
+            guard let date = Self.dateFormatter.date(from: String(date)) else {
+                return nil
+            }
+
+            return DailyWeatherForecast(
+                date: date,
+                weatherCode: SevenTimerWeatherCodeMapper.weatherCode(for: weather),
+                maxTemperature: Double(temperature2m.max),
+                minTemperature: Double(temperature2m.min),
+                precipitationSum: nil,
+                precipitationProbabilityMax: SevenTimerWeatherCodeMapper.precipitationProbability(for: weather),
+                windSpeedMax: wind10mMax.map { Double($0) },
+                windDirectionDominant: nil,
+                windGustsMax: nil,
+                uvIndexMax: nil
+            )
+        }
+
+        private static let dateFormatter: DateFormatter = {
+            let formatter = DateFormatter()
+            formatter.calendar = Calendar(identifier: .gregorian)
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = .autoupdatingCurrent
+            formatter.dateFormat = "yyyyMMdd"
+            return formatter
+        }()
+    }
+
+    struct Temperature2m: Decodable, Sendable {
+        let max: Int
+        let min: Int
+    }
+}
+
+private enum SevenTimerWeatherCodeMapper {
+    static func weatherCode(for weather: String) -> Int {
+        switch normalized(weather) {
+        case "clear":
+            return 0
+        case "pcloudy":
+            return 2
+        case "mcloudy", "cloudy", "humid":
+            return 3
+        case "fog":
+            return 45
+        case "lightrain", "oshower", "ishower":
+            return 61
+        case "rain":
+            return 63
+        case "lightsnow":
+            return 71
+        case "snow":
+            return 73
+        case "rainsnow":
+            return 66
+        case "ts", "tsrain":
+            return 95
+        default:
+            return 3
+        }
+    }
+
+    static func precipitationProbability(for weather: String) -> Int? {
+        switch normalized(weather) {
+        case "lightrain", "oshower", "ishower", "lightsnow", "rainsnow":
+            return 50
+        case "rain", "snow", "ts", "tsrain":
+            return 80
+        default:
+            return nil
+        }
+    }
+
+    private static func normalized(_ weather: String) -> String {
+        weather.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 }
 
