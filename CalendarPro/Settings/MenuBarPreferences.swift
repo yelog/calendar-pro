@@ -128,6 +128,7 @@ enum WeatherProvider: String, Codable, CaseIterable {
     case openMeteo
     case qWeather
     case wttrIn
+    case sevenTimer
 
     var displayName: String {
         switch self {
@@ -137,6 +138,8 @@ enum WeatherProvider: String, Codable, CaseIterable {
             return L("Weather Provider QWeather")
         case .wttrIn:
             return L("Weather Provider wttr.in")
+        case .sevenTimer:
+            return L("Weather Provider 7Timer")
         }
     }
 }

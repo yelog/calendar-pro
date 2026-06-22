@@ -6234,13 +6234,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose Open-Meteo, wttr.in, or configure QWeather for mainland China."
+            "value" : "Choose Open-Meteo, wttr.in, 7Timer, or configure QWeather for mainland China."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择 Open-Meteo、wttr.in，或为中国大陆配置和风天气。"
+            "value" : "选择 Open-Meteo、wttr.in、7Timer，或为中国大陆配置和风天气。"
           }
         }
       }
@@ -6292,6 +6292,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "wttr.in"
+          }
+        }
+      }
+    },
+    "Weather Provider 7Timer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7Timer"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7Timer"
           }
         }
       }

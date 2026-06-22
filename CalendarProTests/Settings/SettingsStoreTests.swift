@@ -367,6 +367,10 @@ final class SettingsStoreTests: XCTestCase {
         store.setWeatherProvider(.wttrIn)
         XCTAssertEqual(store.menuBarPreferences.weatherProvider, .wttrIn)
         XCTAssertEqual(store.weatherProviderConfiguration(), .wttrIn)
+
+        store.setWeatherProvider(.sevenTimer)
+        XCTAssertEqual(store.menuBarPreferences.weatherProvider, .sevenTimer)
+        XCTAssertEqual(store.weatherProviderConfiguration(), .sevenTimer)
     }
 
     private func makeIsolatedUserDefaults(name: String = #function) -> UserDefaults {

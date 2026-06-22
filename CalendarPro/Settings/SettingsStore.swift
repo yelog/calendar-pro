@@ -358,6 +358,8 @@ final class SettingsStore: ObservableObject {
             )
         case .wttrIn:
             return .wttrIn
+        case .sevenTimer:
+            return .sevenTimer
         }
     }
 
