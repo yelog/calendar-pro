@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.1.9</title>
+            <pubDate>Mon, 22 Jun 2026 02:30:33 +0000</pubDate>
+            <sparkle:version>01999</sparkle:version>
+            <sparkle:shortVersionString>0.1.9</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.1.9&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add weather-aware visual styling&lt;/li&gt;&lt;li&gt;add weather detail window&lt;/li&gt;&lt;li&gt;show pomodoro style previews in picker&lt;/li&gt;&lt;li&gt;add pomodoro display to menu bar settings&lt;/li&gt;&lt;li&gt;add weather display formats&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Changed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add .codegraph to gitignore&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;cancel stalled weather refreshes&lt;/li&gt;&lt;li&gt;avoid AppKit layout reentry when sizing panels&lt;/li&gt;&lt;li&gt;use consistent pie symbol size in pomodoro suffix&lt;/li&gt;&lt;li&gt;preserve emoji color in menu bar text rendering&lt;/li&gt;&lt;li&gt;include pomodoro suffix in settings preview&lt;/li&gt;&lt;li&gt;bring settings window above all other windows&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.1.9/CalendarPro-0.1.9-universal.dmg" length="7486642" type="application/octet-stream" sparkle:edSignature="5qPk3k+Yl/8qsLFL7fc+HNec10IB4/IseDG+be51eNHAwxiT45swtZPYBsezPunBZsw+SQgtsLYyeZ1pyD59Ag==" />
+        </item>
+        <item>
             <title>Version 0.1.8</title>
             <pubDate>Wed, 17 Jun 2026 06:45:52 +0000</pubDate>
             <sparkle:version>01899</sparkle:version>
