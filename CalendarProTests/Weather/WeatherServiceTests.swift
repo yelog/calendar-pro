@@ -586,6 +586,53 @@ final class WeatherServiceTests: XCTestCase {
         ])
         XCTAssertEqual(requestedAPIKeys.snapshot, ["test-key", "test-key", "test-key"])
     }
+
+    func testWttrProviderFetchesCurrentAndDailyWeatherWithoutConfiguration() async {
+        WeatherMockURLProtocol.requestHandler = { request in
+            switch request.url?.host {
+            case "ipwho.is":
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{\"success\":true,\"city\":\"Shenzhen\",\"latitude\":22.538,\"longitude\":113.9389}".utf8)
+                )
+            case "wttr.in":
+                let components = URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)
+                let queryItems = components?.queryItems ?? []
+                XCTAssertEqual(request.url?.path, "/22.538,113.9389")
+                XCTAssertEqual(queryItems.first(where: { $0.name == "format" })?.value, "j1")
+                XCTAssertTrue(queryItems.contains { $0.name == "m" })
+                XCTAssertEqual(queryItems.first(where: { $0.name == "lang" })?.value, AppLocalization.languageCode == "zh" ? "zh" : "en")
+                return makeWttrResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let service = WeatherService(
+            session: makeSession(),
+            now: { makeDate(year: 2026, month: 6, day: 22, hour: 10) },
+            providerConfiguration: .wttrIn
+        )
+
+        let overview = await service.forecastOverview(days: 10, calendar: makeCalendar())
+
+        XCTAssertTrue(overview.hasContent)
+        XCTAssertEqual(overview.current.locationName, "Shenzhen")
+        XCTAssertEqual(overview.current.temperatureText, "32°")
+        XCTAssertEqual(overview.current.weatherCode, 0)
+        XCTAssertEqual(overview.current.humidity, 71)
+        XCTAssertEqual(overview.current.precipitation, 0)
+        XCTAssertEqual(overview.current.windSpeed, 18)
+        XCTAssertNil(overview.current.airQualityIndex)
+        XCTAssertEqual(overview.dailyForecasts.count, 2)
+        XCTAssertEqual(overview.dailyForecasts.first?.temperatureText, "31° / 27°")
+        XCTAssertEqual(overview.dailyForecasts.first?.weatherCode, 0)
+        XCTAssertEqual(overview.dailyForecasts.first?.precipitation, 0)
+        XCTAssertEqual(overview.dailyForecasts.first?.precipitationProbability, 8)
+        XCTAssertEqual(overview.dailyForecasts.dropFirst().first?.weatherCode, 95)
+        XCTAssertEqual(overview.dailyForecasts.dropFirst().first?.precipitation, 1.6)
+        XCTAssertEqual(overview.dailyForecasts.dropFirst().first?.precipitationProbability, 70)
+    }
 }
 
 private final class LockedBox<Value>: @unchecked Sendable {
@@ -888,6 +935,91 @@ private func makeDailyThunderstormHourlyDryResponse(for url: URL) -> (HTTPURLRes
             "wind_gusts_10m_max": [24.0, 20.0],
             "uv_index_max": [8.0, 7.0]
           }
+        }
+        """.utf8
+    )
+
+    return (
+        HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        data
+    )
+}
+
+private func makeWttrResponse(for url: URL) -> (HTTPURLResponse, Data) {
+    let data = Data(
+        """
+        {
+          "current_condition": [
+            {
+              "FeelsLikeC": "40",
+              "cloudcover": "25",
+              "humidity": "71",
+              "precipMM": "0.0",
+              "temp_C": "32",
+              "weatherCode": "113",
+              "winddirDegree": "213",
+              "windspeedKmph": "18"
+            }
+          ],
+          "nearest_area": [
+            {
+              "areaName": [{ "value": "Shenzhen" }]
+            }
+          ],
+          "weather": [
+            {
+              "date": "2026-06-22",
+              "maxtempC": "31",
+              "mintempC": "27",
+              "uvIndex": "12",
+              "hourly": [
+                {
+                  "time": "900",
+                  "weatherCode": "113",
+                  "precipMM": "0.0",
+                  "chanceofrain": "8",
+                  "windspeedKmph": "14",
+                  "winddirDegree": "216",
+                  "WindGustKmph": "16"
+                },
+                {
+                  "time": "1200",
+                  "weatherCode": "116",
+                  "precipMM": "0.0",
+                  "chanceofrain": "4",
+                  "windspeedKmph": "17",
+                  "winddirDegree": "220",
+                  "WindGustKmph": "19"
+                }
+              ]
+            },
+            {
+              "date": "2026-06-23",
+              "maxtempC": "30",
+              "mintempC": "26",
+              "uvIndex": "8",
+              "hourly": [
+                {
+                  "time": "900",
+                  "weatherCode": "386",
+                  "precipMM": "0.6",
+                  "chanceofrain": "70",
+                  "windspeedKmph": "12",
+                  "winddirDegree": "180",
+                  "WindGustKmph": "21"
+                },
+                {
+                  "time": "1200",
+                  "weatherCode": "176",
+                  "precipMM": "1.0",
+                  "chanceofrain": "55",
+                  "windspeedKmph": "16",
+                  "winddirDegree": "190",
+                  "WindGustKmph": "24"
+                }
+              ]
+            }
+          ]
         }
         """.utf8
     )

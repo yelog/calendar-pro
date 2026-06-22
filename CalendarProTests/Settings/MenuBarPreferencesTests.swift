@@ -177,17 +177,19 @@ final class MenuBarPreferencesTests: XCTestCase {
         UserDefaults.standard.set(AppLanguage.simplifiedChinese.rawValue, forKey: AppLocalization.appLanguageDefaultsKey)
         XCTAssertEqual(WeatherProvider.openMeteo.displayName, "Open-Meteo")
         XCTAssertEqual(WeatherProvider.qWeather.displayName, "和风天气")
+        XCTAssertEqual(WeatherProvider.wttrIn.displayName, "wttr.in")
 
         UserDefaults.standard.set(AppLanguage.english.rawValue, forKey: AppLocalization.appLanguageDefaultsKey)
         XCTAssertEqual(WeatherProvider.openMeteo.displayName, "Open-Meteo")
         XCTAssertEqual(WeatherProvider.qWeather.displayName, "QWeather")
+        XCTAssertEqual(WeatherProvider.wttrIn.displayName, "wttr.in")
     }
 
     func testCodableRoundTripPreservesLocationMode() throws {
         var prefs = MenuBarPreferences.default
         prefs.locationMode = .manual
         prefs.manualLocation = WeatherLocation(latitude: 22.3, longitude: 114.2, name: "Hong Kong", country: "HK", admin1: nil)
-        prefs.weatherProvider = .qWeather
+        prefs.weatherProvider = .wttrIn
         prefs.qWeatherAPIHost = "abc1234xyz.def.qweatherapi.com"
         prefs.qWeatherAPIKey = "test-key"
         prefs.tokens = [DisplayTokenPreference(token: .weather, isEnabled: true, order: 0, style: .weatherTemperatureAQI)]
@@ -198,7 +200,7 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertEqual(decoded.locationMode, .manual)
         XCTAssertEqual(decoded.manualLocation?.name, "Hong Kong")
         XCTAssertEqual(decoded.manualLocation?.latitude ?? .nan, 22.3, accuracy: 0.01)
-        XCTAssertEqual(decoded.weatherProvider, .qWeather)
+        XCTAssertEqual(decoded.weatherProvider, .wttrIn)
         XCTAssertEqual(decoded.qWeatherAPIHost, "abc1234xyz.def.qweatherapi.com")
         XCTAssertEqual(decoded.qWeatherAPIKey, "test-key")
         XCTAssertEqual(decoded.tokens.first?.style, .weatherTemperatureAQI)

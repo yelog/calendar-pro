@@ -356,6 +356,8 @@ final class SettingsStore: ObservableObject {
                 apiHost: preferences.qWeatherAPIHost,
                 apiKey: preferences.qWeatherAPIKey
             )
+        case .wttrIn:
+            return .wttrIn
         }
     }
 

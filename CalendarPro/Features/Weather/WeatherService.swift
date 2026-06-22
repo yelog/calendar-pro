@@ -14,6 +14,7 @@ protocol WeatherLocationResolving: Sendable {
 enum WeatherProviderConfiguration: Equatable, Sendable {
     case openMeteo
     case qWeather(apiHost: String, apiKey: String)
+    case wttrIn
 
     var weatherProvider: WeatherProvider {
         switch self {
@@ -21,12 +22,14 @@ enum WeatherProviderConfiguration: Equatable, Sendable {
             return .openMeteo
         case .qWeather:
             return .qWeather
+        case .wttrIn:
+            return .wttrIn
         }
     }
 
     var isUsable: Bool {
         switch self {
-        case .openMeteo:
+        case .openMeteo, .wttrIn:
             return true
         case .qWeather(let apiHost, let apiKey):
             return !apiHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -356,6 +359,8 @@ struct WeatherService: Sendable {
             return await fetchOpenMeteoSnapshot(for: location)
         case .qWeather(let apiHost, let apiKey):
             return await fetchQWeatherSnapshot(for: location, apiHost: apiHost, apiKey: apiKey)
+        case .wttrIn:
+            return await fetchWttrSnapshot(for: location)
         }
     }
 
@@ -430,6 +435,38 @@ struct WeatherService: Sendable {
         )
         cachedSnapshot.value = snapshot
         return snapshot
+    }
+
+    private func fetchWttrSnapshot(for location: LocationMetadata) async -> WeatherSnapshot? {
+        guard let url = wttrURL(latitude: location.latitude, longitude: location.longitude) else {
+            return nil
+        }
+
+        do {
+            let (data, response) = try await session.data(from: url)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200..<300).contains(httpResponse.statusCode) else {
+                return nil
+            }
+
+            let result = try JSONDecoder().decode(WttrResponse.self, from: data)
+            guard let current = result.currentSnapshot else {
+                return nil
+            }
+
+            let snapshot = WeatherSnapshot(
+                locationName: location.displayName,
+                current: current,
+                dailyForecasts: result.dailyForecasts,
+                hourlyForecasts: result.hourlyForecasts,
+                airQuality: nil,
+                fetchedAt: now()
+            )
+            cachedSnapshot.value = snapshot
+            return snapshot
+        } catch {
+            return nil
+        }
     }
 
     private func makeCurrentDescriptor(from snapshot: WeatherSnapshot) -> WeatherDescriptor {
@@ -900,6 +937,19 @@ struct WeatherService: Sendable {
         "\(Self.formattedCoordinate(longitude)),\(Self.formattedCoordinate(latitude))"
     }
 
+    private func wttrURL(latitude: Double, longitude: Double) -> URL? {
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "wttr.in"
+        components.path = "/\(latitude),\(longitude)"
+        components.queryItems = [
+            URLQueryItem(name: "format", value: "j1"),
+            URLQueryItem(name: "m", value: nil),
+            URLQueryItem(name: "lang", value: AppLocalization.languageCode == "zh" ? "zh" : "en")
+        ]
+        return components.url
+    }
+
     private static func formattedCoordinate(_ value: Double) -> String {
         String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), value)
     }
@@ -1250,6 +1300,234 @@ private struct OpenMeteoResponse: Decodable, Sendable {
             formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
             return formatter
         }()
+    }
+}
+
+private struct WttrResponse: Decodable, Sendable {
+    let currentCondition: [CurrentCondition]
+    let weather: [WeatherDay]
+
+    enum CodingKeys: String, CodingKey {
+        case currentCondition = "current_condition"
+        case weather
+    }
+
+    var currentSnapshot: CurrentWeatherSnapshot? {
+        currentCondition.first?.snapshot
+    }
+
+    var dailyForecasts: [DailyWeatherForecast] {
+        weather.compactMap(\.forecast)
+    }
+
+    var hourlyForecasts: [HourlyWeatherForecast] {
+        weather.flatMap(\.hourlyForecasts)
+    }
+
+    struct CurrentCondition: Decodable, Sendable {
+        let feelsLikeC: String
+        let cloudCover: String?
+        let humidity: String?
+        let precipitationMM: String?
+        let temperatureC: String
+        let weatherCode: String
+        let windDirectionDegree: String?
+        let windSpeedKmph: String?
+
+        enum CodingKeys: String, CodingKey {
+            case feelsLikeC = "FeelsLikeC"
+            case cloudCover = "cloudcover"
+            case humidity
+            case precipitationMM = "precipMM"
+            case temperatureC = "temp_C"
+            case weatherCode
+            case windDirectionDegree = "winddirDegree"
+            case windSpeedKmph = "windspeedKmph"
+        }
+
+        var snapshot: CurrentWeatherSnapshot? {
+            guard let temperature = Double(temperatureC),
+                  let apparentTemperature = Double(feelsLikeC) else {
+                return nil
+            }
+
+            return CurrentWeatherSnapshot(
+                temperature: temperature,
+                apparentTemperature: apparentTemperature,
+                weatherCode: WttrWeatherCodeMapper.weatherCode(for: weatherCode),
+                isDaytime: true,
+                humidity: humidity.flatMap(Int.init),
+                precipitation: precipitationMM.flatMap(Double.init),
+                windSpeed: windSpeedKmph.flatMap(Double.init),
+                windDirection: windDirectionDegree.flatMap(Double.init),
+                windGusts: nil,
+                cloudCover: cloudCover.flatMap(Int.init)
+            )
+        }
+    }
+
+    struct WeatherDay: Decodable, Sendable {
+        let date: String
+        let maxTemperatureC: String
+        let minTemperatureC: String
+        let uvIndex: String?
+        let hourly: [Hourly]
+
+        enum CodingKeys: String, CodingKey {
+            case date
+            case maxTemperatureC = "maxtempC"
+            case minTemperatureC = "mintempC"
+            case uvIndex
+            case hourly
+        }
+
+        var forecast: DailyWeatherForecast? {
+            guard let date = Self.dateFormatter.date(from: date),
+                  let maxTemperature = Double(maxTemperatureC),
+                  let minTemperature = Double(minTemperatureC) else {
+                return nil
+            }
+
+            let hourlyForecasts = hourly.compactMap { $0.forecast(on: date) }
+            let weatherCode = hourlyForecasts.max { lhs, rhs in
+                WttrWeatherCodeMapper.severityRank(lhs.weatherCode) < WttrWeatherCodeMapper.severityRank(rhs.weatherCode)
+            }?.weatherCode ?? 3
+            let precipitationValues = hourlyForecasts.compactMap(\.precipitation)
+            let precipitationSum = precipitationValues.isEmpty ? nil : precipitationValues.reduce(0, +)
+            let precipitationProbabilityMax = hourlyForecasts.compactMap(\.precipitationProbability).max()
+
+            return DailyWeatherForecast(
+                date: date,
+                weatherCode: weatherCode,
+                maxTemperature: maxTemperature,
+                minTemperature: minTemperature,
+                precipitationSum: precipitationSum,
+                precipitationProbabilityMax: precipitationProbabilityMax,
+                windSpeedMax: hourly.compactMap { $0.windSpeedKmph.flatMap(Double.init) }.max(),
+                windDirectionDominant: hourly.first?.windDirectionDegree.flatMap(Double.init),
+                windGustsMax: hourly.compactMap { $0.windGustKmph.flatMap(Double.init) }.max(),
+                uvIndexMax: uvIndex.flatMap(Double.init)
+            )
+        }
+
+        var hourlyForecasts: [HourlyWeatherForecast] {
+            guard let date = Self.dateFormatter.date(from: date) else {
+                return []
+            }
+
+            return hourly.compactMap { $0.forecast(on: date) }
+        }
+
+        private static let dateFormatter: DateFormatter = {
+            let formatter = DateFormatter()
+            formatter.calendar = Calendar(identifier: .gregorian)
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = .autoupdatingCurrent
+            formatter.dateFormat = "yyyy-MM-dd"
+            return formatter
+        }()
+    }
+
+    struct Hourly: Decodable, Sendable {
+        let time: String
+        let weatherCode: String
+        let precipitationMM: String?
+        let precipitationProbability: String?
+        let windSpeedKmph: String?
+        let windDirectionDegree: String?
+        let windGustKmph: String?
+
+        enum CodingKeys: String, CodingKey {
+            case time
+            case weatherCode
+            case precipitationMM = "precipMM"
+            case precipitationProbability = "chanceofrain"
+            case windSpeedKmph = "windspeedKmph"
+            case windDirectionDegree = "winddirDegree"
+            case windGustKmph = "WindGustKmph"
+        }
+
+        func forecast(on date: Date) -> HourlyWeatherForecast? {
+            guard let rawTime = Int(time) else {
+                return nil
+            }
+
+            let hour = rawTime / 100
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = .autoupdatingCurrent
+            guard let hourlyDate = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: date) else {
+                return nil
+            }
+
+            return HourlyWeatherForecast(
+                date: hourlyDate,
+                weatherCode: WttrWeatherCodeMapper.weatherCode(for: weatherCode),
+                precipitation: precipitationMM.flatMap(Double.init),
+                precipitationProbability: precipitationProbability.flatMap(Int.init),
+                rain: nil,
+                showers: nil
+            )
+        }
+    }
+}
+
+private enum WttrWeatherCodeMapper {
+    static func weatherCode(for code: String) -> Int {
+        switch code.trimmingCharacters(in: .whitespacesAndNewlines) {
+        case "113":
+            return 0
+        case "116":
+            return 2
+        case "119", "122":
+            return 3
+        case "143", "248":
+            return 45
+        case "260":
+            return 48
+        case "176", "263", "266", "293", "296", "353":
+            return 61
+        case "299", "302", "305", "308", "356", "359":
+            return 63
+        case "281", "284":
+            return 56
+        case "311", "314", "317", "350", "362", "365":
+            return 66
+        case "179", "182", "185", "320", "323", "326", "368", "374", "377":
+            return 71
+        case "227", "230", "329", "332":
+            return 73
+        case "335", "338", "371":
+            return 75
+        case "200", "386", "389", "392", "395":
+            return 95
+        default:
+            return 3
+        }
+    }
+
+    static func severityRank(_ code: Int) -> Int {
+        switch code {
+        case 95, 96, 99:
+            return 9
+        case 82:
+            return 8
+        case 65, 67, 81:
+            return 7
+        case 63, 80:
+            return 6
+        case 61, 66:
+            return 5
+        case 51, 53, 55, 56, 57, 71, 73, 75, 77, 85, 86:
+            return 4
+        case 45, 48:
+            return 3
+        case 3:
+            return 2
+        case 1, 2:
+            return 1
+        default:
+            return 0
+        }
     }
 }
 

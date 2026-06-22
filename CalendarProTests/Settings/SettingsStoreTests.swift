@@ -363,6 +363,10 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertEqual(reloaded.menuBarPreferences.weatherProvider, .qWeather)
         XCTAssertEqual(reloaded.menuBarPreferences.qWeatherAPIHost, "abc1234xyz.def.qweatherapi.com")
         XCTAssertEqual(reloaded.menuBarPreferences.qWeatherAPIKey, "test-key")
+
+        store.setWeatherProvider(.wttrIn)
+        XCTAssertEqual(store.menuBarPreferences.weatherProvider, .wttrIn)
+        XCTAssertEqual(store.weatherProviderConfiguration(), .wttrIn)
     }
 
     private func makeIsolatedUserDefaults(name: String = #function) -> UserDefaults {
