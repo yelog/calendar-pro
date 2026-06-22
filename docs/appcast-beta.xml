@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.2.0</title>
+            <pubDate>Mon, 22 Jun 2026 08:57:15 +0000</pubDate>
+            <sparkle:version>02099</sparkle:version>
+            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.2.0&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add 7Timer civillight weather provider&lt;/li&gt;&lt;li&gt;add wttr.in weather provider&lt;/li&gt;&lt;li&gt;filter unsupported Open-Meteo thunderstorm and hail codes&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;suppress Open-Meteo hail codes without thunderstorm precipitation evidence&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.2.0/CalendarPro-0.2.0-universal.dmg" length="7522153" type="application/octet-stream" sparkle:edSignature="DBGKSK3IHB2bK/Y+Jfp12BvL1f0YEIA/IruFqTYP1Q2VLqKWk4CAx3gesuSiS9UC+8isfHdSFmx1AVtcN5EYAQ==" />
+        </item>
+        <item>
             <title>Version 0.1.9</title>
             <pubDate>Mon, 22 Jun 2026 02:30:33 +0000</pubDate>
             <sparkle:version>01999</sparkle:version>
