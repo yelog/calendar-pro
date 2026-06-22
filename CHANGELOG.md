@@ -5,6 +5,16 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-06-22
+
+### Added
+- add 7Timer civillight weather provider
+- add wttr.in weather provider
+- filter unsupported Open-Meteo thunderstorm and hail codes
+
+### Fixed
+- suppress Open-Meteo hail codes without thunderstorm precipitation evidence
+
 ## [0.1.9] - 2026-06-22
 
 ### Added
