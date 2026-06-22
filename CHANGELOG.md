@@ -5,6 +5,26 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9] - 2026-06-22
+
+### Added
+- add weather-aware visual styling
+- add weather detail window
+- show pomodoro style previews in picker
+- add pomodoro display to menu bar settings
+- add weather display formats
+
+### Changed
+- add .codegraph to gitignore
+
+### Fixed
+- cancel stalled weather refreshes
+- avoid AppKit layout reentry when sizing panels
+- use consistent pie symbol size in pomodoro suffix
+- preserve emoji color in menu bar text rendering
+- include pomodoro suffix in settings preview
+- bring settings window above all other windows
+
 ## [0.1.8] - 2026-06-17
 
 ### Added
