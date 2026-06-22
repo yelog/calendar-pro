@@ -47,6 +47,7 @@ final class WeatherServiceTests: XCTestCase {
                 XCTAssertEqual(queryItems.first(where: { $0.name == "latitude" })?.value, "22.276022")
                 XCTAssertEqual(queryItems.first(where: { $0.name == "longitude" })?.value, "114.1751471")
                 XCTAssertEqual(queryItems.first(where: { $0.name == "current" })?.value, "temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day")
+                XCTAssertEqual(queryItems.first(where: { $0.name == "hourly" })?.value, "weather_code,precipitation,precipitation_probability,rain,showers")
                 XCTAssertEqual(queryItems.first(where: { $0.name == "daily" })?.value, "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,wind_gusts_10m_max,uv_index_max")
                 XCTAssertEqual(queryItems.first(where: { $0.name == "past_days" })?.value, "31")
                 XCTAssertEqual(queryItems.first(where: { $0.name == "forecast_days" })?.value, "16")
@@ -158,6 +159,71 @@ final class WeatherServiceTests: XCTestCase {
         XCTAssertEqual(overview.dailyForecasts[9].temperatureText, "37° / 33°")
         XCTAssertEqual(overview.dailyForecasts[9].precipitationProbability, 70)
         XCTAssertEqual(overview.dailyForecasts[9].windSpeed, 25)
+    }
+
+    func testWeatherServiceForecastOverviewSynthesizesTodayFromRemainingOpenMeteoHourlyData() async {
+        WeatherMockURLProtocol.requestHandler = { request in
+            switch request.url?.host {
+            case "ipwho.is":
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{\"success\":true,\"city\":\"Shenzhen\",\"latitude\":22.538,\"longitude\":113.9389}".utf8)
+                )
+            case "api.open-meteo.com":
+                return makeDailyThunderstormHourlyDryResponse(for: request.url!)
+            case "air-quality-api.open-meteo.com":
+                return makeAirQualityResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let calendar = makeCalendar()
+        let service = WeatherService(session: makeSession(), now: { makeDate(year: 2026, month: 6, day: 22, hour: 10) })
+
+        let overview = await service.forecastOverview(days: 10, calendar: calendar)
+
+        XCTAssertEqual(overview.current.weatherCode, 3)
+        XCTAssertEqual(overview.current.temperatureText, "31°")
+
+        XCTAssertEqual(overview.dailyForecasts.first?.weatherCode, 3)
+        XCTAssertEqual(overview.dailyForecasts.first?.temperatureText, "33° / 27°")
+        XCTAssertEqual(overview.dailyForecasts.first?.precipitation, 0)
+        XCTAssertEqual(overview.dailyForecasts.first?.precipitationProbability, 0)
+
+        XCTAssertEqual(overview.dailyForecasts.dropFirst().first?.weatherCode, 3)
+        XCTAssertEqual(overview.dailyForecasts.dropFirst().first?.temperatureText, "32° / 26°")
+        XCTAssertEqual(overview.dailyForecasts.dropFirst().first?.precipitation, 0.2)
+        XCTAssertEqual(overview.dailyForecasts.dropFirst().first?.precipitationProbability, 14)
+    }
+
+    func testWeatherServiceDescribeFiltersUnsupportedCurrentOpenMeteoThunderstorm() async {
+        WeatherMockURLProtocol.requestHandler = { request in
+            switch request.url?.host {
+            case "ipwho.is":
+                return (
+                    HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+                    Data("{\"success\":true,\"city\":\"Shenzhen\",\"latitude\":22.538,\"longitude\":113.9389}".utf8)
+                )
+            case "api.open-meteo.com":
+                return makeDailyThunderstormHourlyDryResponse(for: request.url!)
+            case "air-quality-api.open-meteo.com":
+                return makeAirQualityResponse(for: request.url!)
+            default:
+                throw URLError(.badURL)
+            }
+        }
+
+        let calendar = makeCalendar()
+        let service = WeatherService(session: makeSession(), now: { makeDate(year: 2026, month: 6, day: 22, hour: 10) })
+
+        let result = await service.describe(date: makeDate(year: 2026, month: 6, day: 22, hour: 10), calendar: calendar)
+
+        XCTAssertEqual(result.weatherCode, 3)
+        XCTAssertEqual(result.iconSystemName, "cloud.fill")
+        XCTAssertEqual(result.temperatureText, "31°")
+        XCTAssertEqual(result.precipitation, 0)
+        XCTAssertTrue(result.isCurrentConditions)
     }
 
     func testWeatherServiceFallsBackToIPInfoWhenPrimaryLocationProviderFails() async {
@@ -775,6 +841,52 @@ private func makeTenDayForecastResponse(for url: URL) -> (HTTPURLResponse, Data)
             "wind_direction_10m_dominant": \(jsonArray(windDirection)),
             "wind_gusts_10m_max": \(jsonArray(windGusts)),
             "uv_index_max": \(jsonArray(uvIndex))
+          }
+        }
+        """.utf8
+    )
+
+    return (
+        HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!,
+        data
+    )
+}
+
+private func makeDailyThunderstormHourlyDryResponse(for url: URL) -> (HTTPURLResponse, Data) {
+    let data = Data(
+        """
+        {
+          "current": {
+            "temperature_2m": 31.0,
+            "apparent_temperature": 36.0,
+            "relative_humidity_2m": 72,
+            "precipitation": 0.0,
+            "weather_code": 95,
+            "wind_speed_10m": 10.0,
+            "wind_direction_10m": 120.0,
+            "wind_gusts_10m": 18.0,
+            "cloud_cover": 55,
+            "is_day": 1
+          },
+          "hourly": {
+            "time": ["2026-06-22T09:00", "2026-06-22T10:00", "2026-06-22T11:00", "2026-06-22T12:00", "2026-06-22T13:00", "2026-06-23T09:00", "2026-06-23T10:00", "2026-06-23T11:00"],
+            "weather_code": [95, 95, 95, 3, 2, 3, 3, 2],
+            "precipitation": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            "precipitation_probability": [0, 0, 0, 0, 0, 14, 10, 8],
+            "rain": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            "showers": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+          },
+          "daily": {
+            "time": ["2026-06-22", "2026-06-23"],
+            "weather_code": [95, 96],
+            "temperature_2m_max": [33.0, 32.0],
+            "temperature_2m_min": [27.0, 26.0],
+            "precipitation_sum": [0.0, 0.2],
+            "precipitation_probability_max": [0, 14],
+            "wind_speed_10m_max": [16.0, 14.0],
+            "wind_direction_10m_dominant": [135.0, 120.0],
+            "wind_gusts_10m_max": [24.0, 20.0],
+            "uv_index_max": [8.0, 7.0]
           }
         }
         """.utf8

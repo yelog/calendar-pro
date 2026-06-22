@@ -265,7 +265,11 @@ struct WeatherService: Sendable {
             }
             .prefix(days)
             .map { forecast in
-                makeForecastDescriptor(from: snapshot, forecast: forecast, calendar: calendar)
+                if calendar.isDate(forecast.date, inSameDayAs: now()) {
+                    return makeTodayForecastDescriptor(from: snapshot, forecast: forecast, calendar: calendar)
+                }
+
+                return makeForecastDescriptor(from: snapshot, forecast: forecast, calendar: calendar)
             }
 
         return WeatherForecastOverview(
@@ -380,6 +384,7 @@ struct WeatherService: Sendable {
             locationName: location.displayName,
             current: result.current.toSnapshot(),
             dailyForecasts: result.daily.forecasts,
+            hourlyForecasts: result.hourly?.forecasts ?? [],
             airQuality: airQuality,
             fetchedAt: now()
         )
@@ -419,6 +424,7 @@ struct WeatherService: Sendable {
             locationName: location.displayName,
             current: current,
             dailyForecasts: dailyResponse.daily.compactMap(\.forecast),
+            hourlyForecasts: [],
             airQuality: airQuality,
             fetchedAt: now()
         )
@@ -428,13 +434,14 @@ struct WeatherService: Sendable {
 
     private func makeCurrentDescriptor(from snapshot: WeatherSnapshot) -> WeatherDescriptor {
         let airQuality = snapshot.airQuality?.current
+        let weatherCode = supportedCurrentWeatherCode(from: snapshot)
 
         return WeatherDescriptor(
             locationName: snapshot.locationName,
             temperatureText: Self.formattedTemperature(snapshot.current.temperature),
             apparentTemperature: snapshot.current.apparentTemperature,
             forecastDate: nil,
-            weatherCode: snapshot.current.weatherCode,
+            weatherCode: weatherCode,
             isDaytime: snapshot.current.isDaytime,
             isCurrentConditions: true,
             humidity: snapshot.current.humidity,
@@ -448,10 +455,116 @@ struct WeatherService: Sendable {
         )
     }
 
+    private func supportedCurrentWeatherCode(from snapshot: WeatherSnapshot) -> Int {
+        guard Self.isThunderstormCode(snapshot.current.weatherCode), !snapshot.hourlyForecasts.isEmpty else {
+            return snapshot.current.weatherCode
+        }
+
+        let currentTime = now()
+        let windowEnd = currentTime.addingTimeInterval(3 * 60 * 60)
+        let currentHourlyForecasts = snapshot.hourlyForecasts.filter { hourly in
+            hourly.date >= currentTime && hourly.date <= windowEnd
+        }
+        let hasMeaningfulPrecipitation = Self.hasMeaningfulPrecipitation(
+            hourlyForecasts: currentHourlyForecasts,
+            additionalAmounts: [snapshot.current.precipitation],
+            additionalProbabilities: []
+        )
+
+        guard !hasMeaningfulPrecipitation else {
+            return snapshot.current.weatherCode
+        }
+
+        return Self.fallbackNonThunderstormCode(
+            from: currentHourlyForecasts,
+            defaultCode: snapshot.current.weatherCode
+        )
+    }
+
     private func makeForecastDescriptor(
         from snapshot: WeatherSnapshot,
         forecast: DailyWeatherForecast,
         calendar: Calendar
+    ) -> WeatherDescriptor {
+        let weatherCode = supportedWeatherCode(from: snapshot, forecast: forecast, calendar: calendar)
+
+        return makeForecastDescriptor(
+            from: snapshot,
+            forecast: forecast,
+            calendar: calendar,
+            weatherCode: weatherCode
+        )
+    }
+
+    private func makeTodayForecastDescriptor(
+        from snapshot: WeatherSnapshot,
+        forecast: DailyWeatherForecast,
+        calendar: Calendar
+    ) -> WeatherDescriptor {
+        let currentTime = now()
+        let remainingHourlyForecasts = snapshot.hourlyForecasts.filter { hourly in
+            hourly.date >= currentTime && calendar.isDate(hourly.date, inSameDayAs: forecast.date)
+        }
+
+        guard !remainingHourlyForecasts.isEmpty else {
+            return makeForecastDescriptor(from: snapshot, forecast: forecast, calendar: calendar)
+        }
+
+        let hasMeaningfulPrecipitation = Self.hasMeaningfulPrecipitation(
+            hourlyForecasts: remainingHourlyForecasts,
+            additionalAmounts: [forecast.precipitationSum, snapshot.current.precipitation],
+            additionalProbabilities: [forecast.precipitationProbabilityMax]
+        )
+        let weatherCode: Int
+        if hasMeaningfulPrecipitation {
+            weatherCode = remainingHourlyForecasts.max { lhs, rhs in
+                Self.weatherSeverityRank(lhs.weatherCode) < Self.weatherSeverityRank(rhs.weatherCode)
+            }?.weatherCode ?? forecast.weatherCode
+        } else {
+            weatherCode = Self.fallbackNonThunderstormCode(
+                from: remainingHourlyForecasts,
+                defaultCode: snapshot.current.weatherCode
+            )
+        }
+
+        return makeForecastDescriptor(
+            from: snapshot,
+            forecast: forecast,
+            calendar: calendar,
+            weatherCode: weatherCode
+        )
+    }
+
+    private func supportedWeatherCode(
+        from snapshot: WeatherSnapshot,
+        forecast: DailyWeatherForecast,
+        calendar: Calendar
+    ) -> Int {
+        guard Self.isThunderstormCode(forecast.weatherCode), !snapshot.hourlyForecasts.isEmpty else {
+            return forecast.weatherCode
+        }
+
+        let dayHourlyForecasts = snapshot.hourlyForecasts.filter { hourly in
+            calendar.isDate(hourly.date, inSameDayAs: forecast.date)
+        }
+        let hasMeaningfulPrecipitation = Self.hasMeaningfulPrecipitation(
+            hourlyForecasts: dayHourlyForecasts,
+            additionalAmounts: [forecast.precipitationSum],
+            additionalProbabilities: [forecast.precipitationProbabilityMax]
+        )
+
+        guard !hasMeaningfulPrecipitation else {
+            return forecast.weatherCode
+        }
+
+        return Self.fallbackNonThunderstormCode(from: dayHourlyForecasts, defaultCode: forecast.weatherCode)
+    }
+
+    private func makeForecastDescriptor(
+        from snapshot: WeatherSnapshot,
+        forecast: DailyWeatherForecast,
+        calendar: Calendar,
+        weatherCode: Int
     ) -> WeatherDescriptor {
         let airQuality = airQualitySummary(for: forecast.date, in: snapshot, calendar: calendar)
 
@@ -460,7 +573,7 @@ struct WeatherService: Sendable {
             temperatureText: "\(Self.formattedTemperature(forecast.maxTemperature)) / \(Self.formattedTemperature(forecast.minTemperature))",
             apparentTemperature: nil,
             forecastDate: forecast.date,
-            weatherCode: forecast.weatherCode,
+            weatherCode: weatherCode,
             isDaytime: true,
             isCurrentConditions: false,
             precipitation: forecast.precipitationSum,
@@ -476,6 +589,75 @@ struct WeatherService: Sendable {
 
     private static func formattedTemperature(_ value: Double) -> String {
         "\(Int(round(value)))°"
+    }
+
+    private static func isThunderstormCode(_ code: Int) -> Bool {
+        switch code {
+        case 95, 96, 99:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private static func hasMeaningfulPrecipitation(
+        hourlyForecasts: [HourlyWeatherForecast],
+        additionalAmounts: [Double?],
+        additionalProbabilities: [Int?]
+    ) -> Bool {
+        let hourlyAmounts = hourlyForecasts.flatMap { hourly in
+            [hourly.precipitation, hourly.rain, hourly.showers]
+        }
+        let hasAmount = (hourlyAmounts + additionalAmounts).contains { amount in
+            (amount ?? 0) > 0.5
+        }
+        let maxProbability = (hourlyForecasts.map(\.precipitationProbability) + additionalProbabilities)
+            .compactMap { $0 }
+            .max() ?? 0
+
+        return hasAmount || maxProbability >= 30
+    }
+
+    private static func fallbackNonThunderstormCode(
+        from hourlyForecasts: [HourlyWeatherForecast],
+        defaultCode: Int
+    ) -> Int {
+        if !isThunderstormCode(defaultCode) {
+            return defaultCode
+        }
+
+        return hourlyForecasts
+            .filter { !isThunderstormCode($0.weatherCode) }
+            .max { lhs, rhs in
+                weatherSeverityRank(lhs.weatherCode) < weatherSeverityRank(rhs.weatherCode)
+            }?.weatherCode ?? 3
+    }
+
+    private static func weatherSeverityRank(_ code: Int) -> Int {
+        switch code {
+        case 95, 96, 99:
+            return 9
+        case 82:
+            return 8
+        case 65, 67, 81:
+            return 7
+        case 63, 80:
+            return 6
+        case 61, 66:
+            return 5
+        case 51, 53, 55, 56, 57:
+            return 4
+        case 71, 73, 75, 77, 85, 86:
+            return 4
+        case 45, 48:
+            return 3
+        case 3:
+            return 2
+        case 1, 2:
+            return 1
+        default:
+            return 0
+        }
     }
 
     private func fetchForecast(from url: URL) async -> OpenMeteoResponse? {
@@ -740,6 +922,7 @@ struct WeatherService: Sendable {
             URLQueryItem(name: "latitude", value: String(latitude)),
             URLQueryItem(name: "longitude", value: String(longitude)),
             URLQueryItem(name: "current", value: "temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day"),
+            URLQueryItem(name: "hourly", value: "weather_code,precipitation,precipitation_probability,rain,showers"),
             URLQueryItem(name: "daily", value: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_direction_10m_dominant,wind_gusts_10m_max,uv_index_max"),
             URLQueryItem(name: "past_days", value: "31"),
             URLQueryItem(name: "forecast_days", value: "16"),
@@ -772,6 +955,7 @@ private struct WeatherSnapshot: Sendable {
     let locationName: String
     let current: CurrentWeatherSnapshot
     let dailyForecasts: [DailyWeatherForecast]
+    let hourlyForecasts: [HourlyWeatherForecast]
     let airQuality: AirQualitySnapshot?
     let fetchedAt: Date
 }
@@ -805,6 +989,15 @@ private struct DailyWeatherForecast: Sendable {
     let windDirectionDominant: Double?
     let windGustsMax: Double?
     let uvIndexMax: Double?
+}
+
+private struct HourlyWeatherForecast: Sendable {
+    let date: Date
+    let weatherCode: Int
+    let precipitation: Double?
+    let precipitationProbability: Int?
+    let rain: Double?
+    let showers: Double?
 }
 
 private struct AirQualitySnapshot: Sendable {
@@ -891,6 +1084,7 @@ private struct IPAPILocationResponse: Decodable, Sendable {
 private struct OpenMeteoResponse: Decodable, Sendable {
     let current: CurrentWeather
     let daily: DailyWeather
+    let hourly: HourlyWeather?
 
     struct CurrentWeather: Decodable, Sendable {
         let temperature2m: Double
@@ -999,6 +1193,61 @@ private struct OpenMeteoResponse: Decodable, Sendable {
             formatter.locale = Locale(identifier: "en_US_POSIX")
             formatter.timeZone = .autoupdatingCurrent
             formatter.dateFormat = "yyyy-MM-dd"
+            return formatter
+        }()
+    }
+
+    struct HourlyWeather: Decodable, Sendable {
+        let time: [String]
+        let weatherCode: [Int]
+        let precipitation: [Double?]?
+        let precipitationProbability: [Int?]?
+        let rain: [Double?]?
+        let showers: [Double?]?
+
+        enum CodingKeys: String, CodingKey {
+            case time
+            case weatherCode = "weather_code"
+            case precipitation
+            case precipitationProbability = "precipitation_probability"
+            case rain
+            case showers
+        }
+
+        var forecasts: [HourlyWeatherForecast] {
+            let count = Swift.min(time.count, weatherCode.count)
+            guard count > 0 else { return [] }
+
+            return (0..<count).compactMap { index in
+                guard let date = Self.dateFormatter.date(from: time[index]) else {
+                    return nil
+                }
+
+                return HourlyWeatherForecast(
+                    date: date,
+                    weatherCode: weatherCode[index],
+                    precipitation: Self.optionalValue(from: precipitation, at: index),
+                    precipitationProbability: Self.optionalValue(from: precipitationProbability, at: index),
+                    rain: Self.optionalValue(from: rain, at: index),
+                    showers: Self.optionalValue(from: showers, at: index)
+                )
+            }
+        }
+
+        private static func optionalValue<Value>(from values: [Value?]?, at index: Int) -> Value? {
+            guard let values, values.indices.contains(index) else {
+                return nil
+            }
+
+            return values[index]
+        }
+
+        private static let dateFormatter: DateFormatter = {
+            let formatter = DateFormatter()
+            formatter.calendar = Calendar(identifier: .gregorian)
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = .autoupdatingCurrent
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
             return formatter
         }()
     }
