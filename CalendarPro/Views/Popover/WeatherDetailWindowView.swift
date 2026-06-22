@@ -8,6 +8,10 @@ struct WeatherDetailWindowView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var lastReportedPreferredHeight: CGFloat = 0
 
+    private var currentVisualStyle: WeatherVisualStyle {
+        WeatherVisualStyle(iconSystemName: overview.current.iconSystemName)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
@@ -60,11 +64,15 @@ struct WeatherDetailWindowView: View {
             HStack(alignment: .center, spacing: 12) {
                 Image(systemName: overview.current.iconSystemName)
                     .font(.system(size: 24, weight: .semibold))
-                    .foregroundStyle(currentIconColor)
+                    .foregroundStyle(currentVisualStyle.primary(for: colorScheme))
                     .frame(width: 48, height: 48)
                     .background {
                         Circle()
-                            .fill(currentIconColor.opacity(colorScheme == .dark ? 0.12 : 0.10))
+                            .fill(currentVisualStyle.iconBackgroundGradient(for: colorScheme))
+                    }
+                    .overlay {
+                        Circle()
+                            .strokeBorder(currentVisualStyle.border(for: colorScheme), lineWidth: 0.7)
                     }
 
                 VStack(alignment: .leading, spacing: 3) {
@@ -97,11 +105,11 @@ struct WeatherDetailWindowView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(PopoverSurfaceMetrics.elevatedCardFillColor(for: colorScheme))
+                .fill(currentVisualStyle.heroGradient(for: colorScheme))
         }
         .overlay {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(PopoverSurfaceMetrics.elevatedCardBorderColor(for: colorScheme), lineWidth: 0.8)
+                .strokeBorder(currentVisualStyle.border(for: colorScheme), lineWidth: 0.8)
         }
     }
 
@@ -159,10 +167,6 @@ struct WeatherDetailWindowView: View {
         return "\(formattedDate(first)) - \(formattedDate(last))"
     }
 
-    private var currentIconColor: Color {
-        colorScheme == .dark ? .white.opacity(0.92) : .orange.opacity(0.78)
-    }
-
     private var metricColumns: [GridItem] {
         [
             GridItem(.flexible(minimum: 150), spacing: 10),
@@ -218,7 +222,10 @@ struct WeatherDetailWindowView: View {
     private var surfaceBackground: some View {
         ZStack {
             PopoverSurfaceMetrics.floatingPanelBaseFill(for: colorScheme)
-            PopoverSurfaceMetrics.floatingPanelTintOverlay(accent: .orange, for: colorScheme)
+            PopoverSurfaceMetrics.floatingPanelTintOverlay(
+                accent: currentVisualStyle.primary(for: colorScheme),
+                for: colorScheme
+            )
         }
         .clipShape(RoundedRectangle(cornerRadius: PopoverSurfaceMetrics.cornerRadius, style: .continuous))
         .overlay(
@@ -365,6 +372,10 @@ private struct WeatherForecastRowView: View {
     let isFirst: Bool
     @Environment(\.colorScheme) private var colorScheme
 
+    private var visualStyle: WeatherVisualStyle {
+        WeatherVisualStyle(iconSystemName: descriptor.iconSystemName)
+    }
+
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
@@ -381,7 +392,7 @@ private struct WeatherForecastRowView: View {
 
             Image(systemName: descriptor.iconSystemName)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(iconColor)
+                .foregroundStyle(visualStyle.primary(for: colorScheme))
                 .frame(width: 22)
 
             VStack(alignment: .leading, spacing: 3) {
@@ -417,11 +428,11 @@ private struct WeatherForecastRowView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(rowFill)
+                .fill(visualStyle.backgroundGradient(for: colorScheme))
         }
         .overlay {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(rowBorder, lineWidth: 0.6)
+                .strokeBorder(visualStyle.border(for: colorScheme), lineWidth: 0.6)
         }
     }
 
@@ -459,22 +470,6 @@ private struct WeatherForecastRowView: View {
         }
 
         return descriptor.precipitation.map(formattedPrecipitation)
-    }
-
-    private var iconColor: Color {
-        colorScheme == .dark ? .white.opacity(0.82) : .orange.opacity(0.74)
-    }
-
-    private var rowFill: Color {
-        colorScheme == .dark
-            ? Color.white.opacity(0.045)
-            : Color(nsColor: .controlBackgroundColor).opacity(0.45)
-    }
-
-    private var rowBorder: Color {
-        colorScheme == .dark
-            ? Color.white.opacity(0.06)
-            : Color(nsColor: .separatorColor).opacity(0.12)
     }
 
     private func compactForecastTemperatureText(_ value: String) -> String {

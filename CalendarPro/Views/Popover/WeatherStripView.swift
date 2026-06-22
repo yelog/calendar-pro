@@ -53,11 +53,11 @@ struct WeatherStripView: View {
         .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(backgroundFillColor)
+                .fill(visualStyle.backgroundGradient(for: colorScheme))
         }
         .overlay {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(borderColor, lineWidth: 0.5)
+                .strokeBorder(visualStyle.border(for: colorScheme), lineWidth: 0.7)
         }
         .help(stripHelpText)
         .contentShape(Rectangle())
@@ -73,19 +73,23 @@ struct WeatherStripView: View {
         descriptor ?? .empty
     }
 
+    private var visualStyle: WeatherVisualStyle {
+        WeatherVisualStyle(iconSystemName: weather.iconSystemName)
+    }
+
     private var summarySection: some View {
         HStack(spacing: 9) {
             Image(systemName: weather.iconSystemName)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(iconColor)
+                .foregroundStyle(visualStyle.primary(for: colorScheme))
                 .frame(width: 32, height: 32)
                 .background {
                     Circle()
-                        .fill(iconBackgroundColor)
+                        .fill(visualStyle.iconBackgroundGradient(for: colorScheme))
                 }
                 .overlay {
                     Circle()
-                        .strokeBorder(borderColor, lineWidth: 0.5)
+                        .strokeBorder(visualStyle.border(for: colorScheme), lineWidth: 0.6)
                 }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -117,15 +121,15 @@ struct WeatherStripView: View {
         HStack(spacing: 9) {
             Image(systemName: "cloud")
                 .font(.system(size: 15))
-                .foregroundStyle(iconColor)
+                .foregroundStyle(visualStyle.primary(for: colorScheme))
                 .frame(width: 28, height: 28)
                 .background {
                     Circle()
-                        .fill(iconBackgroundColor)
+                        .fill(visualStyle.iconBackgroundGradient(for: colorScheme))
                 }
                 .overlay {
                     Circle()
-                        .strokeBorder(borderColor, lineWidth: 0.5)
+                        .strokeBorder(visualStyle.border(for: colorScheme), lineWidth: 0.6)
                 }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -147,7 +151,11 @@ struct WeatherStripView: View {
     private var metricsGrid: some View {
         LazyVGrid(columns: compactMetricColumns, alignment: .leading, spacing: 5) {
             ForEach(compactMetricItems) { item in
-                WeatherCompactMetricView(item: item, labelColor: bodySecondaryColor)
+                WeatherCompactMetricView(
+                    item: item,
+                    labelColor: bodySecondaryColor,
+                    iconColor: visualStyle.secondary(for: colorScheme)
+                )
             }
         }
         .frame(width: 134, alignment: .leading)
@@ -175,34 +183,10 @@ struct WeatherStripView: View {
         ]
     }
 
-    private var iconColor: Color {
-        colorScheme == .dark
-            ? Color.white.opacity(0.9)
-            : Color.orange.opacity(0.72)
-    }
-
     private var bodySecondaryColor: Color {
         colorScheme == .dark
             ? Color.white.opacity(0.62)
             : Color.primary.opacity(0.52)
-    }
-
-    private var iconBackgroundColor: Color {
-        colorScheme == .dark
-            ? Color.white.opacity(0.07)
-            : Color.orange.opacity(0.075)
-    }
-
-    private var backgroundFillColor: Color {
-        colorScheme == .dark
-            ? Color.white.opacity(0.055)
-            : Color(nsColor: .controlBackgroundColor).opacity(0.46)
-    }
-
-    private var borderColor: Color {
-        colorScheme == .dark
-            ? Color.white.opacity(0.08)
-            : Color(nsColor: .separatorColor).opacity(0.12)
     }
 
     private var stripHelpText: String {
@@ -547,15 +531,121 @@ private struct WeatherMetricItem: Identifiable {
     let systemImage: String
 }
 
+struct WeatherVisualStyle {
+    private enum Tone {
+        case sunny
+        case night
+        case rainy
+        case stormy
+        case snowy
+        case cloudy
+        case neutral
+    }
+
+    private let tone: Tone
+
+    init(iconSystemName: String) {
+        if iconSystemName.contains("bolt") {
+            tone = .stormy
+        } else if iconSystemName.contains("snow") || iconSystemName.contains("sleet") {
+            tone = .snowy
+        } else if iconSystemName.contains("rain") || iconSystemName.contains("drizzle") || iconSystemName.contains("umbrella") {
+            tone = .rainy
+        } else if iconSystemName.contains("moon") {
+            tone = .night
+        } else if iconSystemName.contains("cloud") || iconSystemName.contains("fog") || iconSystemName.contains("smoke") {
+            tone = .cloudy
+        } else if iconSystemName.contains("sun") {
+            tone = .sunny
+        } else {
+            tone = .neutral
+        }
+    }
+
+    func primary(for colorScheme: ColorScheme) -> Color {
+        switch tone {
+        case .sunny:
+            return colorScheme == .dark ? Color(red: 1.00, green: 0.80, blue: 0.30) : Color(red: 0.88, green: 0.46, blue: 0.05)
+        case .night:
+            return colorScheme == .dark ? Color(red: 0.74, green: 0.78, blue: 1.00) : Color(red: 0.34, green: 0.35, blue: 0.78)
+        case .rainy:
+            return colorScheme == .dark ? Color(red: 0.45, green: 0.78, blue: 1.00) : Color(red: 0.06, green: 0.48, blue: 0.82)
+        case .stormy:
+            return colorScheme == .dark ? Color(red: 0.84, green: 0.72, blue: 1.00) : Color(red: 0.47, green: 0.28, blue: 0.80)
+        case .snowy:
+            return colorScheme == .dark ? Color(red: 0.72, green: 0.92, blue: 1.00) : Color(red: 0.04, green: 0.58, blue: 0.76)
+        case .cloudy:
+            return colorScheme == .dark ? Color(red: 0.76, green: 0.84, blue: 0.94) : Color(red: 0.32, green: 0.46, blue: 0.62)
+        case .neutral:
+            return colorScheme == .dark ? Color.white.opacity(0.88) : Color.accentColor
+        }
+    }
+
+    func secondary(for colorScheme: ColorScheme) -> Color {
+        primary(for: colorScheme).opacity(colorScheme == .dark ? 0.72 : 0.78)
+    }
+
+    func border(for colorScheme: ColorScheme) -> Color {
+        primary(for: colorScheme).opacity(colorScheme == .dark ? 0.22 : 0.20)
+    }
+
+    func backgroundGradient(for colorScheme: ColorScheme) -> LinearGradient {
+        LinearGradient(
+            colors: backgroundColors(for: colorScheme),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    func heroGradient(for colorScheme: ColorScheme) -> LinearGradient {
+        LinearGradient(
+            colors: heroColors(for: colorScheme),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    func iconBackgroundGradient(for colorScheme: ColorScheme) -> LinearGradient {
+        let primary = primary(for: colorScheme)
+        return LinearGradient(
+            colors: [
+                primary.opacity(colorScheme == .dark ? 0.24 : 0.17),
+                primary.opacity(colorScheme == .dark ? 0.09 : 0.07)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private func backgroundColors(for colorScheme: ColorScheme) -> [Color] {
+        let primary = primary(for: colorScheme)
+        if colorScheme == .dark {
+            return [primary.opacity(0.16), Color.white.opacity(0.045)]
+        }
+
+        return [primary.opacity(0.105), Color(nsColor: .controlBackgroundColor).opacity(0.58)]
+    }
+
+    private func heroColors(for colorScheme: ColorScheme) -> [Color] {
+        let primary = primary(for: colorScheme)
+        if colorScheme == .dark {
+            return [primary.opacity(0.26), Color.white.opacity(0.055), primary.opacity(0.10)]
+        }
+
+        return [primary.opacity(0.18), Color.white.opacity(0.72), primary.opacity(0.08)]
+    }
+}
+
 private struct WeatherCompactMetricView: View {
     let item: WeatherMetricItem
     let labelColor: Color
+    let iconColor: Color
 
     var body: some View {
         HStack(alignment: .center, spacing: 4) {
             Image(systemName: item.systemImage)
                 .font(.system(size: 8.5, weight: .medium))
-                .foregroundStyle(labelColor)
+                .foregroundStyle(iconColor)
                 .frame(width: 10)
 
             VStack(alignment: .leading, spacing: 1) {
