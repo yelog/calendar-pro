@@ -26,6 +26,7 @@ struct CalendarDay: Equatable, Identifiable {
     let solarText: String
     let lunarText: String?
     let lunarTextSemantic: LunarTextSemantic
+    let subtitleText: String?
     let badges: [DayBadge]
 
     var id: Date { date }

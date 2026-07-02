@@ -55,13 +55,7 @@ private struct CalendarDayCellView: View {
                 .font(.system(size: 13, weight: solarTextWeight, design: .rounded))
                 .foregroundStyle(solarTextColor)
 
-            let subtitleText: String? = {
-                if let badge = day.badges.first, badge.kind == .workingAdjustmentDay {
-                    return day.lunarText
-                }
-                return day.badges.first?.text ?? day.lunarText
-            }()
-            Text(subtitleText ?? "")
+            Text(day.subtitleText ?? "")
                 .font(.system(size: 9, weight: subtitleTextWeight, design: .rounded))
                 .foregroundStyle(subtitleColor)
                 .lineLimit(1)

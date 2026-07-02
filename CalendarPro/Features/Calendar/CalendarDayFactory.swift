@@ -29,6 +29,8 @@ struct CalendarDayFactory {
             activeRegionIDs: preferences.activeRegionIDs,
             enabledHolidaySetIDs: preferences.enabledHolidayIDs
         )
+        let badges = holidays.map(\.dayBadge)
+        let lunarText = lunarDescriptor.displayText(style: lunarDisplayStyle(from: preferences))
 
         return CalendarDay(
             date: date,
@@ -37,9 +39,10 @@ struct CalendarDayFactory {
             isSelected: selectedDate != nil && calendar.isDate(date, inSameDayAs: selectedDate!),
             isWeekend: calendar.isDateInWeekend(date),
             solarText: String(calendar.component(.day, from: date)),
-            lunarText: lunarDescriptor.displayText(style: lunarDisplayStyle(from: preferences)),
+            lunarText: lunarText,
             lunarTextSemantic: lunarDescriptor.displaySemantic,
-            badges: holidays.map(\.dayBadge)
+            subtitleText: subtitleText(for: date, lunarText: lunarText, badges: badges),
+            badges: badges
         )
     }
 
@@ -58,6 +61,7 @@ struct CalendarDayFactory {
         return baseDays.map { day in
             let lunarDescriptor = lunarService.describe(date: day.date, timeZone: calendar.timeZone)
             let resolvedBadges = holidayMap[calendar.startOfDay(for: day.date)]?.map(\.dayBadge) ?? []
+            let lunarText = lunarDescriptor.displayText(style: lunarDisplayStyle(from: preferences))
 
             return CalendarDay(
                 date: day.date,
@@ -66,10 +70,50 @@ struct CalendarDayFactory {
                 isSelected: selectedDate != nil && calendar.isDate(day.date, inSameDayAs: selectedDate!),
                 isWeekend: calendar.isDateInWeekend(day.date),
                 solarText: day.solarText,
-                lunarText: lunarDescriptor.displayText(style: lunarDisplayStyle(from: preferences)),
+                lunarText: lunarText,
                 lunarTextSemantic: lunarDescriptor.displaySemantic,
+                subtitleText: subtitleText(for: day.date, lunarText: lunarText, badges: resolvedBadges),
                 badges: resolvedBadges
             )
+        }
+    }
+
+    private func subtitleText(for date: Date, lunarText: String?, badges: [DayBadge]) -> String? {
+        guard let badge = badges.first else {
+            return lunarText
+        }
+
+        switch badge.kind {
+        case .festival, .publicHoliday:
+            return badge.text
+        case .workingAdjustmentDay:
+            return lunarText
+        case .statutoryHoliday:
+            return shouldShowStatutoryHolidayName(badge.text, on: date, lunarText: lunarText)
+                ? badge.text
+                : lunarText ?? badge.text
+        }
+    }
+
+    private func shouldShowStatutoryHolidayName(_ holidayName: String, on date: Date, lunarText: String?) -> Bool {
+        if let lunarText, holidayName == lunarText || holidayName == "\(lunarText)节" {
+            return true
+        }
+
+        let components = calendar.dateComponents([.month, .day], from: date)
+        guard let month = components.month, let day = components.day else {
+            return false
+        }
+
+        switch holidayName {
+        case "元旦":
+            return month == 1 && day == 1
+        case "劳动节":
+            return month == 5 && day == 1
+        case "国庆节":
+            return month == 10 && day == 1
+        default:
+            return false
         }
     }
 
