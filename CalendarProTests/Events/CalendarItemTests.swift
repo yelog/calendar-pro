@@ -283,6 +283,191 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertEqual(snapshot.untimedItems.count, 1)
     }
 
+    func testTimelineSnapshotCreatesIdenticalOverlapGroupForSameTimeEvents() throws {
+        let firstEvent = CalendarItem.event(makeEvent(
+            title: "Daily Review",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 30)
+        ))
+        let secondEvent = CalendarItem.event(makeEvent(
+            title: "Project Sync",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 30)
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [firstEvent, secondEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 16, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(snapshot.timedGroups.count, 1)
+        let group = try XCTUnwrap(snapshot.timedGroups.first)
+        XCTAssertEqual(group.displayTime, "17:00-17:30")
+        XCTAssertEqual(group.startMinutes, 17 * 60)
+        XCTAssertEqual(group.endMinutes, 17 * 60 + 30)
+        let summary = try XCTUnwrap(group.overlapSummary)
+        XCTAssertEqual(summary.kind, .identical)
+        XCTAssertEqual(summary.itemCount, 2)
+        XCTAssertEqual(summary.maximumConcurrentItemCount, 2)
+        XCTAssertEqual(summary.overlapMinutes, 30)
+    }
+
+    func testTimelineSnapshotCreatesPartialOverlapGroupForStaggeredEvents() throws {
+        let firstEvent = CalendarItem.event(makeEvent(
+            title: "Daily Review",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 30)
+        ))
+        let secondEvent = CalendarItem.event(makeEvent(
+            title: "MES Review",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 15),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 45)
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [firstEvent, secondEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 16, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(snapshot.timedGroups.count, 1)
+        let group = try XCTUnwrap(snapshot.timedGroups.first)
+        XCTAssertEqual(group.displayTime, "17:00-17:45")
+        XCTAssertEqual(group.startMinutes, 17 * 60)
+        XCTAssertEqual(group.endMinutes, 17 * 60 + 45)
+        let summary = try XCTUnwrap(group.overlapSummary)
+        XCTAssertEqual(summary.kind, .partial)
+        XCTAssertEqual(summary.itemCount, 2)
+        XCTAssertEqual(summary.maximumConcurrentItemCount, 2)
+        XCTAssertEqual(summary.overlapMinutes, 15)
+    }
+
+    func testTimelineSnapshotAssignsOverlapLaneItemsForSideBySideLayout() throws {
+        let firstEvent = CalendarItem.event(makeEvent(
+            title: "Daily Review",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 30)
+        ))
+        let secondEvent = CalendarItem.event(makeEvent(
+            title: "MES Review",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 15),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 45)
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [firstEvent, secondEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 20),
+            calendar: .gregorianMondayFirst
+        )
+
+        let group = try XCTUnwrap(snapshot.timedGroups.first)
+        XCTAssertEqual(group.laneCount, 2)
+        XCTAssertEqual(group.laneItems.count, 2)
+
+        let firstLaneItem = try XCTUnwrap(group.laneItems.first { $0.selectionIdentifier == firstEvent.selectionIdentifier })
+        XCTAssertEqual(firstLaneItem.laneIndex, 0)
+        XCTAssertEqual(firstLaneItem.startRatio, 0, accuracy: 0.001)
+        XCTAssertEqual(firstLaneItem.endRatio, 2.0 / 3.0, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(firstLaneItem.currentProgress), 2.0 / 3.0, accuracy: 0.001)
+
+        let secondLaneItem = try XCTUnwrap(group.laneItems.first { $0.selectionIdentifier == secondEvent.selectionIdentifier })
+        XCTAssertEqual(secondLaneItem.laneIndex, 1)
+        XCTAssertEqual(secondLaneItem.startRatio, 1.0 / 3.0, accuracy: 0.001)
+        XCTAssertEqual(secondLaneItem.endRatio, 1, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(secondLaneItem.currentProgress), 1.0 / 6.0, accuracy: 0.001)
+    }
+
+    func testTimelineSnapshotUsesGroupMarkerForOngoingOverlapGroup() throws {
+        let firstEvent = CalendarItem.event(makeEvent(
+            title: "Daily Review",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 30)
+        ))
+        let secondEvent = CalendarItem.event(makeEvent(
+            title: "MES Review",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 15),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 45)
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [firstEvent, secondEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 20),
+            calendar: .gregorianMondayFirst
+        )
+
+        let marker = try XCTUnwrap(snapshot.marker)
+        switch marker.position {
+        case .withinGroup(let progress):
+            XCTAssertEqual(progress, 20.0 / 45.0, accuracy: 0.001)
+        default:
+            XCTFail("Expected group-level marker for overlapping ongoing events")
+        }
+    }
+
+    func testTimelineSnapshotClustersConnectedOverlapsAndCountsMaximumConcurrency() throws {
+        let firstEvent = CalendarItem.event(makeEvent(
+            title: "Long Review",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 18, minute: 0)
+        ))
+        let secondEvent = CalendarItem.event(makeEvent(
+            title: "MES Review",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 15),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 45)
+        ))
+        let thirdEvent = CalendarItem.event(makeEvent(
+            title: "Planning",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 17, minute: 30),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 18, minute: 15)
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [firstEvent, secondEvent, thirdEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 16, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(snapshot.timedGroups.count, 1)
+        let group = try XCTUnwrap(snapshot.timedGroups.first)
+        XCTAssertEqual(group.displayTime, "17:00-18:15")
+        XCTAssertEqual(group.startMinutes, 17 * 60)
+        XCTAssertEqual(group.endMinutes, 18 * 60 + 15)
+        let summary = try XCTUnwrap(group.overlapSummary)
+        XCTAssertEqual(summary.kind, .partial)
+        XCTAssertEqual(summary.itemCount, 3)
+        XCTAssertEqual(summary.maximumConcurrentItemCount, 3)
+        XCTAssertEqual(summary.overlapMinutes, 45)
+    }
+
+    func testTimelineSnapshotKeepsAdjacentTimedItemsSeparate() {
+        let firstEvent = CalendarItem.event(makeEvent(
+            title: "Morning",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        ))
+        let secondEvent = CalendarItem.event(makeEvent(
+            title: "Next",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 11, minute: 0)
+        ))
+
+        let snapshot = EventTimelineSnapshot.make(
+            items: [firstEvent, secondEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 8, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(snapshot.timedGroups.map(\.displayTime), ["09:00", "10:00"])
+        XCTAssertTrue(snapshot.timedGroups.allSatisfy { $0.overlapSummary == nil })
+    }
+
     func testTimelineSnapshotPrefersOngoingGroupForMarker() {
         let ongoingEvent = CalendarItem.event(makeEvent(
             title: "评审会",
