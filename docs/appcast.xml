@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.2.1</title>
+            <pubDate>Fri, 03 Jul 2026 10:11:41 +0000</pubDate>
+            <sparkle:version>02199</sparkle:version>
+            <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.2.1&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;render overlapping events side by side in popover&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;surface overlapping date metadata in calendar&lt;/li&gt;&lt;li&gt;distinguish holiday break subtitles&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.2.1/CalendarPro-0.2.1-universal.dmg" length="7624446" type="application/octet-stream" sparkle:edSignature="5tGqhpnQbT5nHQU4KznQrBNsOw2lJPs/Y3sOOpLikFOJbvodZ1ks0ElGNyHyBcOQcDnazfFzgfkbyQ+ot0EuDw==" />
+        </item>
+        <item>
             <title>Version 0.2.0</title>
             <pubDate>Mon, 22 Jun 2026 08:57:15 +0000</pubDate>
             <sparkle:version>02099</sparkle:version>
