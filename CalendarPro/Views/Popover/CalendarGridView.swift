@@ -55,11 +55,7 @@ private struct CalendarDayCellView: View {
                 .font(.system(size: 13, weight: solarTextWeight, design: .rounded))
                 .foregroundStyle(solarTextColor)
 
-            Text(day.subtitleText ?? "")
-                .font(.system(size: 9, weight: subtitleTextWeight, design: .rounded))
-                .foregroundStyle(subtitleColor)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+            subtitleLine
         }
         .frame(maxWidth: .infinity, minHeight: 36)
         .padding(.vertical, 3)
@@ -90,7 +86,24 @@ private struct CalendarDayCellView: View {
             isHovered = hovering
         }
         .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(accessibilityLabelText))
         .accessibilityIdentifier(dayIdentifier)
+    }
+
+    private var subtitleLine: some View {
+        HStack(spacing: supplementalBadgeText == nil ? 0 : 2) {
+            Text(day.subtitleText ?? "")
+                .font(.system(size: 9, weight: subtitleTextWeight, design: .rounded))
+                .foregroundStyle(subtitleColor)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .layoutPriority(1)
+
+            if let supplementalBadgeText {
+                supplementalBadgeView(supplementalBadgeText)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private func badgeView(_ badgeIndicator: BadgeIndicator) -> some View {
@@ -105,6 +118,24 @@ private struct CalendarDayCellView: View {
             .overlay {
                 Capsule()
                     .strokeBorder(badgeIndicator.border, lineWidth: 0.5)
+            }
+    }
+
+    private func supplementalBadgeView(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 7.5, weight: .semibold, design: .rounded))
+            .foregroundStyle(supplementalBadgeForegroundColor)
+            .lineLimit(1)
+            .minimumScaleFactor(0.76)
+            .padding(.horizontal, 3)
+            .frame(height: 11)
+            .background {
+                Capsule()
+                    .fill(supplementalBadgeFillColor)
+            }
+            .overlay {
+                Capsule()
+                    .strokeBorder(supplementalBadgeBorderColor, lineWidth: 0.5)
             }
     }
 
@@ -231,12 +262,52 @@ private struct CalendarDayCellView: View {
         return day.isInDisplayedMonth ? .medium : .regular
     }
 
+    private var supplementalBadgeText: String? {
+        CalendarDayDisplayMetadata.supplementalIndicatorText(for: day)
+    }
+
     private var subtitleTextWeight: Font.Weight {
         if day.isSelected || day.isToday || day.badges.contains(where: { $0.kind != .festival }) {
             return .medium
         }
 
         return .regular
+    }
+
+    private var supplementalBadgeForegroundColor: Color {
+        let baseColor = colorScheme == .dark
+            ? Color(red: 1.0, green: 0.72, blue: 0.42)
+            : Color(red: 0.68, green: 0.31, blue: 0.02)
+        return day.isInDisplayedMonth ? baseColor : baseColor.opacity(colorScheme == .dark ? 0.62 : 0.52)
+    }
+
+    private var supplementalBadgeFillColor: Color {
+        let opacity = day.isInDisplayedMonth ? 0.13 : 0.08
+        return colorScheme == .dark
+            ? Color(red: 1.0, green: 0.58, blue: 0.18).opacity(opacity + 0.04)
+            : Color(red: 1.0, green: 0.58, blue: 0.18).opacity(opacity)
+    }
+
+    private var supplementalBadgeBorderColor: Color {
+        let opacity = day.isInDisplayedMonth ? 0.20 : 0.12
+        return colorScheme == .dark
+            ? Color(red: 1.0, green: 0.72, blue: 0.42).opacity(opacity)
+            : Color(red: 0.82, green: 0.38, blue: 0.04).opacity(opacity)
+    }
+
+    private var accessibilityLabelText: String {
+        var components = [day.solarText]
+        if let subtitleText = day.subtitleText, !subtitleText.isEmpty {
+            components.append(subtitleText)
+        }
+        components.append(contentsOf: day.supplementalBadges.map(\.text))
+        if day.isToday {
+            components.append(L("Today"))
+        }
+        if let indicator = badgeIndicator {
+            components.append(indicator.text)
+        }
+        return components.joined(separator: ", ")
     }
 
     private var dayIdentifier: String {

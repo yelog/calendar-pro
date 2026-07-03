@@ -29,6 +29,7 @@ struct MonthCalendarService {
                 lunarText: nil,
                 lunarTextSemantic: .regular,
                 subtitleText: nil,
+                supplementalBadges: [],
                 badges: []
             )
         }

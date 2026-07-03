@@ -67,6 +67,67 @@ final class CalendarDayFactoryTests: XCTestCase {
         XCTAssertTrue(mothersDay.badges.contains { $0.kind == .festival && $0.text == "母亲节" })
     }
 
+    func testMonthGridKeepsSupplementalFestivalWhenSolarTermIsPrimarySubtitle() throws {
+        var preferences = MenuBarPreferences.default
+        preferences.activeRegionIDs = ["mainland-cn"]
+        let factory = CalendarDayFactory.makePreview()
+        let days = try factory.makeMonthGrid(for: makeDate(year: 2026, month: 6, day: 1), preferences: preferences)
+
+        let fathersDay = try XCTUnwrap(days.first { $0.solarText == "21" && $0.isInDisplayedMonth })
+
+        XCTAssertEqual(fathersDay.subtitleText, "夏至")
+        XCTAssertTrue(fathersDay.badges.contains { $0.kind == .festival && $0.text == "父亲节" })
+        XCTAssertEqual(fathersDay.supplementalBadges.map(\.text), ["父亲节"])
+        XCTAssertEqual(CalendarDayDisplayMetadata.supplementalIndicatorText(for: fathersDay), "+1")
+        XCTAssertEqual(
+            CalendarDayDisplayMetadata.selectedDayMetadataTexts(for: fathersDay, offText: "休", workText: "班"),
+            ["夏至", "父亲节", "休"]
+        )
+    }
+
+    func testSelectedDayMetadataChipsClassifyDateInfoForPresentation() throws {
+        var preferences = MenuBarPreferences.default
+        preferences.activeRegionIDs = ["mainland-cn"]
+        let factory = CalendarDayFactory.makePreview()
+        let days = try factory.makeMonthGrid(for: makeDate(year: 2026, month: 6, day: 1), preferences: preferences)
+
+        let fathersDay = try XCTUnwrap(days.first { $0.solarText == "21" && $0.isInDisplayedMonth })
+        let chips = CalendarDayDisplayMetadata.selectedDayMetadataChips(
+            for: fathersDay,
+            offText: "休",
+            workText: "班"
+        )
+
+        XCTAssertEqual(chips.map(\.text), ["夏至", "父亲节", "休"])
+        XCTAssertEqual(chips.map(\.style), [.primary, .supplemental, .status])
+    }
+
+    func testSelectedDaySummaryTitleUsesCompactDateAnchor() {
+        let title = CalendarDayDisplayMetadata.selectedDaySummaryTitle(
+            for: makeDate(year: 2026, month: 6, day: 21),
+            calendar: .gregorianMondayFirst,
+            locale: Locale(identifier: "zh-Hans")
+        )
+
+        XCTAssertEqual(title, "6月21日 周日")
+    }
+
+    func testSelectedDayMetadataChipsHideRegularLunarSubtitle() throws {
+        let factory = CalendarDayFactory.makePreview()
+        let day = try factory.makeDay(
+            for: makeDate(year: 2026, month: 2, day: 24),
+            displayedMonth: makeDate(year: 2026, month: 2, day: 1)
+        )
+
+        XCTAssertTrue(
+            CalendarDayDisplayMetadata.selectedDayMetadataChips(
+                for: day,
+                offText: "休",
+                workText: "班"
+            ).isEmpty
+        )
+    }
+
     func testMonthGridFiltersMainlandGregorianObservanceFestivalWhenSetDisabled() throws {
         var preferences = MenuBarPreferences.default
         preferences.activeRegionIDs = ["mainland-cn"]

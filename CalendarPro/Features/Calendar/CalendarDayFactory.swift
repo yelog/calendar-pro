@@ -31,6 +31,7 @@ struct CalendarDayFactory {
         )
         let badges = holidays.map(\.dayBadge)
         let lunarText = lunarDescriptor.displayText(style: lunarDisplayStyle(from: preferences))
+        let subtitle = subtitleText(for: date, lunarText: lunarText, badges: badges)
 
         return CalendarDay(
             date: date,
@@ -41,7 +42,8 @@ struct CalendarDayFactory {
             solarText: String(calendar.component(.day, from: date)),
             lunarText: lunarText,
             lunarTextSemantic: lunarDescriptor.displaySemantic,
-            subtitleText: subtitleText(for: date, lunarText: lunarText, badges: badges),
+            subtitleText: subtitle,
+            supplementalBadges: supplementalBadges(primarySubtitleText: subtitle, badges: badges),
             badges: badges
         )
     }
@@ -62,6 +64,7 @@ struct CalendarDayFactory {
             let lunarDescriptor = lunarService.describe(date: day.date, timeZone: calendar.timeZone)
             let resolvedBadges = holidayMap[calendar.startOfDay(for: day.date)]?.map(\.dayBadge) ?? []
             let lunarText = lunarDescriptor.displayText(style: lunarDisplayStyle(from: preferences))
+            let subtitle = subtitleText(for: day.date, lunarText: lunarText, badges: resolvedBadges)
 
             return CalendarDay(
                 date: day.date,
@@ -72,7 +75,8 @@ struct CalendarDayFactory {
                 solarText: day.solarText,
                 lunarText: lunarText,
                 lunarTextSemantic: lunarDescriptor.displaySemantic,
-                subtitleText: subtitleText(for: day.date, lunarText: lunarText, badges: resolvedBadges),
+                subtitleText: subtitle,
+                supplementalBadges: supplementalBadges(primarySubtitleText: subtitle, badges: resolvedBadges),
                 badges: resolvedBadges
             )
         }
@@ -92,6 +96,13 @@ struct CalendarDayFactory {
             return shouldShowStatutoryHolidayName(badge.text, on: date, lunarText: lunarText)
                 ? badge.text
                 : lunarText ?? badge.text
+        }
+    }
+
+    private func supplementalBadges(primarySubtitleText: String?, badges: [DayBadge]) -> [DayBadge] {
+        badges.filter { badge in
+            guard badge.kind == .festival else { return false }
+            return badge.text != primarySubtitleText
         }
     }
 
