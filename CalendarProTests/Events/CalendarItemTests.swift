@@ -468,6 +468,194 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertTrue(snapshot.timedGroups.allSatisfy { $0.overlapSummary == nil })
     }
 
+    func testDayTimelineUsesRealMinuteGeometryForDurationEvent() throws {
+        let event = CalendarItem.event(makeEvent(
+            title: "设计评审",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        ))
+
+        let layout = EventDayTimelineLayout.make(
+            items: [event],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 8, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        let positionedItem = try XCTUnwrap(layout.timedItems.first)
+        XCTAssertEqual(positionedItem.startMinutes, 9 * 60)
+        XCTAssertEqual(positionedItem.endMinutes, 10 * 60)
+        XCTAssertEqual(positionedItem.durationMinutes, 60)
+        XCTAssertEqual(positionedItem.yPosition(pointsPerMinute: 1), 540)
+        XCTAssertEqual(positionedItem.height(pointsPerMinute: 1), 60)
+    }
+
+    func testDayTimelineKeepsIdleGapInSharedMinuteCoordinates() throws {
+        let firstEvent = CalendarItem.event(makeEvent(
+            title: "晨会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        ))
+        let secondEvent = CalendarItem.event(makeEvent(
+            title: "午间评审",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 11, minute: 30),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 12, minute: 0)
+        ))
+
+        let layout = EventDayTimelineLayout.make(
+            items: [firstEvent, secondEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 8, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(layout.timedItems.count, 2)
+        let first = try XCTUnwrap(layout.timedItems.first)
+        let second = try XCTUnwrap(layout.timedItems.last)
+        XCTAssertEqual(second.startMinutes - first.endMinutes, 90)
+        XCTAssertEqual(
+            second.yPosition(pointsPerMinute: 1) - (first.yPosition(pointsPerMinute: 1) + first.height(pointsPerMinute: 1)),
+            90
+        )
+    }
+
+    func testDayTimelineClipsCrossDayEventToSelectedDayStart() throws {
+        let event = CalendarItem.event(makeEvent(
+            title: "跨日维护",
+            start: makeDate(year: 2026, month: 3, day: 31, hour: 23, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 1, minute: 30)
+        ))
+
+        let layout = EventDayTimelineLayout.make(
+            items: [event],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 12, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 30),
+            calendar: .gregorianMondayFirst
+        )
+
+        let positionedItem = try XCTUnwrap(layout.timedItems.first)
+        XCTAssertEqual(positionedItem.startMinutes, 0)
+        XCTAssertEqual(positionedItem.endMinutes, 90)
+    }
+
+    func testDayTimelineClipsCrossDayEventToSelectedDayEnd() throws {
+        let event = CalendarItem.event(makeEvent(
+            title: "夜间发布",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 23, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 2, hour: 1, minute: 0)
+        ))
+
+        let layout = EventDayTimelineLayout.make(
+            items: [event],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 12, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 22, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        let positionedItem = try XCTUnwrap(layout.timedItems.first)
+        XCTAssertEqual(positionedItem.startMinutes, 23 * 60)
+        XCTAssertEqual(positionedItem.endMinutes, 24 * 60)
+    }
+
+    func testDayTimelineModelsTimedReminderAsPointAtDueMinute() throws {
+        let reminder = CalendarItem.reminder(makeReminder(
+            year: 2026,
+            month: 4,
+            day: 1,
+            hour: 17,
+            minute: 15,
+            title: "发布版本"
+        ))
+
+        let layout = EventDayTimelineLayout.make(
+            items: [reminder],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 12, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 8, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        let positionedItem = try XCTUnwrap(layout.timedItems.first)
+        XCTAssertTrue(positionedItem.isPoint)
+        XCTAssertEqual(positionedItem.startMinutes, 17 * 60 + 15)
+        XCTAssertEqual(positionedItem.endMinutes, 17 * 60 + 15)
+        XCTAssertEqual(positionedItem.height(pointsPerMinute: 1), 0)
+    }
+
+    func testDayTimelineAssignsLanesOnlyToOverlappingItems() throws {
+        let firstEvent = CalendarItem.event(makeEvent(
+            title: "长会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        ))
+        let overlappingEvent = CalendarItem.event(makeEvent(
+            title: "并行会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 30),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 30)
+        ))
+        let adjacentEvent = CalendarItem.event(makeEvent(
+            title: "后续会",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 30),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 11, minute: 0)
+        ))
+
+        let layout = EventDayTimelineLayout.make(
+            items: [firstEvent, overlappingEvent, adjacentEvent],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 12, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 8, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        let first = try XCTUnwrap(layout.timedItems.first { $0.item.selectionIdentifier == firstEvent.selectionIdentifier })
+        let overlapping = try XCTUnwrap(layout.timedItems.first { $0.item.selectionIdentifier == overlappingEvent.selectionIdentifier })
+        let adjacent = try XCTUnwrap(layout.timedItems.first { $0.item.selectionIdentifier == adjacentEvent.selectionIdentifier })
+
+        XCTAssertEqual(first.laneCount, 2)
+        XCTAssertEqual(overlapping.laneCount, 2)
+        XCTAssertNotEqual(first.laneIndex, overlapping.laneIndex)
+        XCTAssertEqual(adjacent.laneIndex, 0)
+        XCTAssertEqual(adjacent.laneCount, 1)
+    }
+
+    func testDayTimelinePositionsCurrentTimeAtNinetyPercentOfEvent() throws {
+        let event = CalendarItem.event(makeEvent(
+            title: "专注工作",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 11, minute: 0)
+        ))
+
+        let layout = EventDayTimelineLayout.make(
+            items: [event],
+            selectedDate: makeDate(year: 2026, month: 4, day: 1, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 54),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(layout.currentMinutes, 10 * 60 + 54)
+        let positionedItem = try XCTUnwrap(layout.timedItems.first)
+        XCTAssertEqual(try XCTUnwrap(positionedItem.currentProgress), 0.9, accuracy: 0.001)
+        XCTAssertEqual(layout.initialScrollMinutes, 10 * 60 + 54)
+        XCTAssertTrue(layout.centersInitialScrollTarget)
+    }
+
+    func testDayTimelineUsesContextBeforeFirstItemForNonTodaySelection() {
+        let event = CalendarItem.event(makeEvent(
+            title: "明日计划",
+            start: makeDate(year: 2026, month: 4, day: 2, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 2, hour: 10, minute: 0)
+        ))
+
+        let layout = EventDayTimelineLayout.make(
+            items: [event],
+            selectedDate: makeDate(year: 2026, month: 4, day: 2, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertNil(layout.currentMinutes)
+        XCTAssertEqual(layout.initialScrollMinutes, 8 * 60 + 30)
+        XCTAssertFalse(layout.centersInitialScrollTarget)
+    }
+
     func testTimelineSnapshotPrefersOngoingGroupForMarker() {
         let ongoingEvent = CalendarItem.event(makeEvent(
             title: "评审会",

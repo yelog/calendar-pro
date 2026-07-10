@@ -59,14 +59,6 @@ private struct EventTimelineItemSpan {
     let endMinutes: Int
 }
 
-private struct EventTimelineItemBoundsPreferenceKey: PreferenceKey {
-    static let defaultValue: [String: Anchor<CGRect>] = [:]
-
-    static func reduce(value: inout [String: Anchor<CGRect>], nextValue: () -> [String: Anchor<CGRect>]) {
-        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
-    }
-}
-
 struct EventTimelineSnapshot {
     let timedGroups: [EventTimelineGroup]
     let allDayItems: [CalendarItem]
@@ -463,33 +455,324 @@ struct EventTimelineSnapshot {
     }
 }
 
-struct EventListView: View {
-    private struct WithinItemMarkerPlacement {
-        let frame: CGRect
-        let y: CGFloat
+struct EventDayTimelineItem: Identifiable {
+    let id: String
+    let item: CalendarItem
+    let startMinutes: Int
+    let endMinutes: Int
+    let laneIndex: Int
+    let laneCount: Int
+    let clusterID: String
+    let currentProgress: Double?
+
+    var durationMinutes: Int {
+        max(endMinutes - startMinutes, 0)
     }
 
+    var isPoint: Bool {
+        durationMinutes == 0
+    }
+
+    func yPosition(pointsPerMinute: CGFloat) -> CGFloat {
+        CGFloat(startMinutes) * pointsPerMinute
+    }
+
+    func height(pointsPerMinute: CGFloat) -> CGFloat {
+        CGFloat(durationMinutes) * pointsPerMinute
+    }
+}
+
+private struct EventDayTimelineSpan {
+    let item: CalendarItem
+    let sourceIndex: Int
+    let startMinutes: Int
+    let endMinutes: Int
+
+    var effectiveEndMinutes: Int {
+        max(endMinutes, startMinutes + 1)
+    }
+}
+
+struct EventDayTimelineLayout {
+    static let minutesPerDay = 24 * 60
+
+    let timedItems: [EventDayTimelineItem]
+    let allDayItems: [CalendarItem]
+    let untimedItems: [CalendarItem]
+    let currentMinutes: Int?
+    let initialScrollMinutes: Int?
+    let centersInitialScrollTarget: Bool
+
+    var maximumLaneCount: Int {
+        max(timedItems.map(\.laneCount).max() ?? 1, 1)
+    }
+
+    static func make(
+        items: [CalendarItem],
+        selectedDate: Date?,
+        now: Date,
+        calendar: Calendar = .autoupdatingCurrent
+    ) -> EventDayTimelineLayout {
+        let allDayItems = items.filter(\.isAllDay)
+        let untimedItems = items.filter { item in
+            if item.isAllDay {
+                return false
+            }
+            if case .timed = item.timelinePlacement(using: calendar) {
+                return false
+            }
+            return true
+        }
+
+        guard let selectedDate else {
+            return EventDayTimelineLayout(
+                timedItems: [],
+                allDayItems: allDayItems,
+                untimedItems: untimedItems,
+                currentMinutes: nil,
+                initialScrollMinutes: nil,
+                centersInitialScrollTarget: false
+            )
+        }
+
+        let dayStart = calendar.startOfDay(for: selectedDate)
+        let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart)
+            ?? dayStart.addingTimeInterval(24 * 60 * 60)
+        let currentMinutes = calendar.isDate(selectedDate, inSameDayAs: now)
+            ? minuteOfDay(for: now, dayStart: dayStart, dayEnd: dayEnd, calendar: calendar)
+            : nil
+        let spans = items.enumerated().compactMap { offset, item in
+            makeSpan(
+                for: item,
+                sourceIndex: offset,
+                dayStart: dayStart,
+                dayEnd: dayEnd,
+                calendar: calendar
+            )
+        }
+        .sorted { lhs, rhs in
+            if lhs.startMinutes != rhs.startMinutes {
+                return lhs.startMinutes < rhs.startMinutes
+            }
+            if lhs.effectiveEndMinutes != rhs.effectiveEndMinutes {
+                return lhs.effectiveEndMinutes > rhs.effectiveEndMinutes
+            }
+            return lhs.sourceIndex < rhs.sourceIndex
+        }
+
+        let positionedItems = makePositionedItems(from: spans, currentMinutes: currentMinutes)
+        let initialScrollMinutes: Int?
+        let centersInitialScrollTarget: Bool
+
+        if let currentMinutes {
+            initialScrollMinutes = currentMinutes
+            centersInitialScrollTarget = true
+        } else if let firstStart = positionedItems.first?.startMinutes {
+            initialScrollMinutes = max(firstStart - 30, 0)
+            centersInitialScrollTarget = false
+        } else {
+            initialScrollMinutes = nil
+            centersInitialScrollTarget = false
+        }
+
+        return EventDayTimelineLayout(
+            timedItems: positionedItems,
+            allDayItems: allDayItems,
+            untimedItems: untimedItems,
+            currentMinutes: currentMinutes,
+            initialScrollMinutes: initialScrollMinutes,
+            centersInitialScrollTarget: centersInitialScrollTarget
+        )
+    }
+
+    private static func makeSpan(
+        for item: CalendarItem,
+        sourceIndex: Int,
+        dayStart: Date,
+        dayEnd: Date,
+        calendar: Calendar
+    ) -> EventDayTimelineSpan? {
+        switch item {
+        case .event(let event):
+            guard !event.isAllDay else { return nil }
+
+            if event.endDate <= event.startDate {
+                guard event.startDate >= dayStart, event.startDate < dayEnd else {
+                    return nil
+                }
+                let minute = minuteOfDay(
+                    for: event.startDate,
+                    dayStart: dayStart,
+                    dayEnd: dayEnd,
+                    calendar: calendar
+                )
+                return EventDayTimelineSpan(
+                    item: item,
+                    sourceIndex: sourceIndex,
+                    startMinutes: minute,
+                    endMinutes: minute
+                )
+            }
+
+            guard event.startDate < dayEnd, event.endDate > dayStart else {
+                return nil
+            }
+
+            let clippedStart = max(event.startDate, dayStart)
+            let clippedEnd = min(event.endDate, dayEnd)
+            let startMinutes = minuteOfDay(
+                for: clippedStart,
+                dayStart: dayStart,
+                dayEnd: dayEnd,
+                calendar: calendar
+            )
+            let endMinutes = minuteOfDay(
+                for: clippedEnd,
+                dayStart: dayStart,
+                dayEnd: dayEnd,
+                calendar: calendar
+            )
+
+            return EventDayTimelineSpan(
+                item: item,
+                sourceIndex: sourceIndex,
+                startMinutes: startMinutes,
+                endMinutes: max(endMinutes, startMinutes)
+            )
+
+        case .reminder:
+            guard case .timed(let minutes) = item.timelinePlacement(using: calendar) else {
+                return nil
+            }
+            let clampedMinutes = min(max(minutes, 0), minutesPerDay)
+            return EventDayTimelineSpan(
+                item: item,
+                sourceIndex: sourceIndex,
+                startMinutes: clampedMinutes,
+                endMinutes: clampedMinutes
+            )
+        }
+    }
+
+    private static func makePositionedItems(
+        from spans: [EventDayTimelineSpan],
+        currentMinutes: Int?
+    ) -> [EventDayTimelineItem] {
+        makeClusters(from: spans).flatMap { cluster in
+            var laneEndMinutes: [Int] = []
+            var assignments: [(span: EventDayTimelineSpan, laneIndex: Int)] = []
+
+            for span in cluster {
+                let laneIndex: Int
+                if let reusableLane = laneEndMinutes.firstIndex(where: { $0 <= span.startMinutes }) {
+                    laneIndex = reusableLane
+                    laneEndMinutes[reusableLane] = span.effectiveEndMinutes
+                } else {
+                    laneIndex = laneEndMinutes.count
+                    laneEndMinutes.append(span.effectiveEndMinutes)
+                }
+                assignments.append((span, laneIndex))
+            }
+
+            let laneCount = max(laneEndMinutes.count, 1)
+            let clusterStart = cluster.map(\.startMinutes).min() ?? 0
+            let clusterEnd = cluster.map(\.effectiveEndMinutes).max() ?? clusterStart
+            let clusterID = "\(clusterStart)-\(clusterEnd)-\(cluster.map { $0.item.selectionIdentifier }.joined(separator: "|"))"
+
+            return assignments.map { assignment in
+                let span = assignment.span
+                let currentProgress: Double?
+                if let currentMinutes,
+                   span.endMinutes > span.startMinutes,
+                   currentMinutes >= span.startMinutes,
+                   currentMinutes <= span.endMinutes {
+                    currentProgress = Double(currentMinutes - span.startMinutes)
+                        / Double(span.endMinutes - span.startMinutes)
+                } else {
+                    currentProgress = nil
+                }
+
+                return EventDayTimelineItem(
+                    id: span.item.selectionIdentifier,
+                    item: span.item,
+                    startMinutes: span.startMinutes,
+                    endMinutes: span.endMinutes,
+                    laneIndex: assignment.laneIndex,
+                    laneCount: laneCount,
+                    clusterID: clusterID,
+                    currentProgress: currentProgress
+                )
+            }
+        }
+    }
+
+    private static func makeClusters(from spans: [EventDayTimelineSpan]) -> [[EventDayTimelineSpan]] {
+        var clusters: [[EventDayTimelineSpan]] = []
+        var currentCluster: [EventDayTimelineSpan] = []
+        var currentStartMinutes: Int?
+        var currentEndMinutes: Int?
+
+        for span in spans {
+            guard let clusterStart = currentStartMinutes,
+                  let clusterEnd = currentEndMinutes else {
+                currentCluster = [span]
+                currentStartMinutes = span.startMinutes
+                currentEndMinutes = span.effectiveEndMinutes
+                continue
+            }
+
+            if span.startMinutes == clusterStart || span.startMinutes < clusterEnd {
+                currentCluster.append(span)
+                currentEndMinutes = max(clusterEnd, span.effectiveEndMinutes)
+            } else {
+                clusters.append(currentCluster)
+                currentCluster = [span]
+                currentStartMinutes = span.startMinutes
+                currentEndMinutes = span.effectiveEndMinutes
+            }
+        }
+
+        if !currentCluster.isEmpty {
+            clusters.append(currentCluster)
+        }
+
+        return clusters
+    }
+
+    private static func minuteOfDay(
+        for date: Date,
+        dayStart: Date,
+        dayEnd: Date,
+        calendar: Calendar
+    ) -> Int {
+        if date <= dayStart {
+            return 0
+        }
+        if date >= dayEnd {
+            return minutesPerDay
+        }
+
+        let components = calendar.dateComponents([.hour, .minute], from: date)
+        return min(max((components.hour ?? 0) * 60 + (components.minute ?? 0), 0), minutesPerDay)
+    }
+}
+
+struct EventListView: View {
     private enum Metrics {
         static let timeLaneWidth: CGFloat = 46
-        static let railLaneWidth: CGFloat = 12
-        static let laneSpacing: CGFloat = 6
         static let contentSpacing: CGFloat = 8
-        static let timelineColumnWidth: CGFloat = timeLaneWidth + laneSpacing + railLaneWidth
         static let markerDotSize: CGFloat = 8
         static let markerChipHeight: CGFloat = 18
         static let markerChipHorizontalPadding: CGFloat = 6
-        static let markerMinimumInset: CGFloat = 12
         static let markerChipCornerRadius: CGFloat = 6
-        static let markerConnectorHeight: CGFloat = 1
-        static let markerLineTrailingInset: CGFloat = 10
-        static let overlapGridMinimumHeight: CGFloat = 82
-        static let overlapGridMaximumHeight: CGFloat = 180
-        static let overlapMinuteHeight: CGFloat = 2.2
-        static let overlapLaneSpacing: CGFloat = 6
-        static let overlapLaneMinimumWidth: CGFloat = 72
-        static let overlapCardMinimumHeight: CGFloat = 46
-        static let overlapTimeTickWidth: CGFloat = 5
-        static let overlapNowLineHeight: CGFloat = 1
+        static let pointsPerMinute: CGFloat = 1
+        static let dayTimelineHeight: CGFloat = CGFloat(EventDayTimelineLayout.minutesPerDay) * pointsPerMinute
+        static let halfHourMinutes = 30
+        static let pointItemHeight: CGFloat = 24
+        static let dayLaneMinimumWidth: CGFloat = 72
+        static let dayLaneSpacing: CGFloat = 3
+        static let majorGridLineOpacity = 0.26
+        static let minorGridLineOpacity = 0.12
     }
 
     let items: [CalendarItem]
@@ -519,54 +802,45 @@ struct EventListView: View {
                 .padding(.vertical, 12)
         } else {
             ScrollViewReader { proxy in
-                ScrollView {
-                    timelineContent
+                ScrollView(.vertical) {
+                    dayTimelineContent
                 }
                 .onAppear {
                     timeRefreshCoordinator.refreshNow()
-                    scrollToActiveGroup(using: proxy)
+                    scrollToInitialTimelineContext(using: proxy)
                 }
                 .onChange(of: selectedDate) { _, _ in
-                    scrollToActiveGroup(using: proxy)
+                    scrollToInitialTimelineContext(using: proxy)
                 }
                 .onChange(of: items.map(\.selectionIdentifier)) { _, _ in
-                    scrollToActiveGroup(using: proxy)
+                    scrollToInitialTimelineContext(using: proxy)
                 }
             }
         }
     }
 
-    private var timelineContent: some View {
+    private var dayTimelineContent: some View {
         VStack(alignment: .leading, spacing: 12) {
-            ForEach(Array(timelineSnapshot.timedGroups.enumerated()), id: \.element.id) { index, group in
-                timedGroupView(
-                    group,
-                    isFirst: index == timelineSnapshot.timedGroups.startIndex,
-                    isLast: index == timelineSnapshot.timedGroups.index(before: timelineSnapshot.timedGroups.endIndex),
-                    markerPosition: markerPosition(for: group.id)
-                )
-                .id(group.id)
+            if !dayTimelineLayout.allDayItems.isEmpty {
+                auxiliarySection(title: L("All Day"), items: dayTimelineLayout.allDayItems)
             }
 
-            if !timelineSnapshot.allDayItems.isEmpty {
-                auxiliarySection(title: L("All Day"), items: timelineSnapshot.allDayItems)
+            if !dayTimelineLayout.untimedItems.isEmpty {
+                auxiliarySection(title: L("No Time"), items: dayTimelineLayout.untimedItems)
             }
 
-            if !timelineSnapshot.untimedItems.isEmpty {
-                auxiliarySection(title: L("No Time"), items: timelineSnapshot.untimedItems)
-            }
-        }
-        .overlayPreferenceValue(EventTimelineItemBoundsPreferenceKey.self) { anchors in
-            GeometryReader { proxy in
-                if let placement = withinItemMarkerPlacement(using: anchors, in: proxy) {
-                    withinItemMarkerOverlay(placement: placement)
-                }
+            if !dayTimelineLayout.timedItems.isEmpty {
+                dayTimelineCanvas(for: dayTimelineLayout)
             }
         }
     }
 
-    private var timelineSnapshot: EventTimelineSnapshot {
-        EventTimelineSnapshot.make(
+    private var currentTime: Date {
+        timeRefreshCoordinator.currentDate
+    }
+
+    private var dayTimelineLayout: EventDayTimelineLayout {
+        EventDayTimelineLayout.make(
             items: items,
             selectedDate: selectedDate,
             now: currentTime,
@@ -574,168 +848,136 @@ struct EventListView: View {
         )
     }
 
-    private var currentTime: Date {
-        timeRefreshCoordinator.currentDate
-    }
+    private func dayTimelineCanvas(for layout: EventDayTimelineLayout) -> some View {
+        ZStack(alignment: .topLeading) {
+            HStack(alignment: .top, spacing: Metrics.contentSpacing) {
+                dayTimelineTimeScale(for: layout)
 
-    private func timedGroupView(
-        _ group: EventTimelineGroup,
-        isFirst: Bool,
-        isLast: Bool,
-        markerPosition: EventTimelineMarkerPosition?
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if markerPosition == .beforeGroup {
-                nowMarkerView
-            }
+                GeometryReader { proxy in
+                    let containerWidth = max(proxy.size.width, 1)
+                    let minimumContentWidth = dayTimelineMinimumContentWidth(for: layout.maximumLaneCount)
+                    let contentWidth = max(containerWidth, minimumContentWidth)
 
-            if group.overlapSummary != nil {
-                overlapGroupView(group, markerPosition: markerPosition)
-            } else {
-                HStack(alignment: .top, spacing: Metrics.contentSpacing) {
-                    timelineColumn(for: group, isFirst: isFirst)
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(group.items) { item in
-                            itemButton(item, timelineState: timelineState(for: item))
-                        }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        dayTimelineGrid(
+                            for: layout,
+                            containerWidth: containerWidth,
+                            contentWidth: contentWidth
+                        )
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
 
-            if markerPosition == .afterGroup, isLast {
-                nowMarkerView
+            initialScrollAnchorLayer(for: layout)
+        }
+        .frame(height: Metrics.dayTimelineHeight)
+    }
+
+    private func dayTimelineTimeScale(for layout: EventDayTimelineLayout) -> some View {
+        ZStack(alignment: .topTrailing) {
+            ForEach(0..<24, id: \.self) { hour in
+                Text(timeText(minutes: hour * 60))
+                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                    .foregroundStyle(Color(nsColor: .secondaryLabelColor))
+                    .monospacedDigit()
+                    .frame(width: Metrics.timeLaneWidth, height: 14, alignment: .trailing)
+                    .offset(y: clampedDayLabelOffset(for: CGFloat(hour * 60)))
+            }
+
+            if let currentMinutes = layout.currentMinutes {
+                markerTimeChip
+                    .frame(width: Metrics.timeLaneWidth, alignment: .trailing)
+                    .offset(
+                        y: clampedDayLabelOffset(
+                            for: CGFloat(currentMinutes),
+                            labelHeight: Metrics.markerChipHeight
+                        )
+                    )
             }
         }
+        .frame(width: Metrics.timeLaneWidth, height: Metrics.dayTimelineHeight, alignment: .topTrailing)
     }
 
-    private func overlapGroupView(_ group: EventTimelineGroup, markerPosition: EventTimelineMarkerPosition?) -> some View {
-        let markerProgress = groupMarkerProgress(from: markerPosition)
-        let gridHeight = overlapGridHeight(for: group)
-
-        return HStack(alignment: .top, spacing: Metrics.contentSpacing) {
-            overlapTimeScale(for: group, markerProgress: markerProgress, height: gridHeight)
-
-            overlapLaneGrid(for: group, markerProgress: markerProgress, height: gridHeight)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    private func groupMarkerProgress(from markerPosition: EventTimelineMarkerPosition?) -> Double? {
-        guard case .withinGroup(let progress) = markerPosition else {
-            return nil
-        }
-        return min(max(progress, 0), 1)
-    }
-
-    private func overlapGridHeight(for group: EventTimelineGroup) -> CGFloat {
-        let duration = max(group.endMinutes - group.startMinutes, 1)
-        let naturalHeight = CGFloat(duration) * Metrics.overlapMinuteHeight
-        return min(max(naturalHeight, Metrics.overlapGridMinimumHeight), Metrics.overlapGridMaximumHeight)
-    }
-
-    private func overlapTimeScale(
-        for group: EventTimelineGroup,
-        markerProgress: Double?,
-        height: CGFloat
+    private func dayTimelineGrid(
+        for layout: EventDayTimelineLayout,
+        containerWidth: CGFloat,
+        contentWidth: CGFloat
     ) -> some View {
-        let ticks = overlapTimeTicks(for: group)
-        let railCenterX = Metrics.timeLaneWidth + Metrics.laneSpacing + (Metrics.railLaneWidth / 2)
+        ZStack(alignment: .topLeading) {
+            dayTimelineGridLines(width: contentWidth)
 
-        return GeometryReader { proxy in
-            ZStack(alignment: .topLeading) {
+            ForEach(layout.timedItems) { positionedItem in
+                dayTimelineItemButton(
+                    positionedItem,
+                    containerWidth: containerWidth
+                )
+            }
+
+            if let currentMinutes = layout.currentMinutes {
+                let markerY = CGFloat(currentMinutes) * Metrics.pointsPerMinute
+
                 Rectangle()
-                    .fill(Color(nsColor: .separatorColor).opacity(0.28))
-                    .frame(width: 1, height: proxy.size.height)
-                    .offset(x: railCenterX)
+                    .fill(Color.red.opacity(0.78))
+                    .frame(width: contentWidth, height: 1)
+                    .offset(y: markerY)
 
-                ForEach(ticks, id: \.self) { minute in
-                    let y = overlapYPosition(for: minute, in: group, height: proxy.size.height)
-
-                    Text(timeText(minutes: minute))
-                        .font(.system(size: 9, weight: .medium, design: .rounded))
-                        .foregroundStyle(timeLabelColor(for: group))
-                        .monospacedDigit()
-                        .frame(width: Metrics.timeLaneWidth, alignment: .trailing)
-                        .offset(y: clampedLabelOffset(for: y, labelHeight: 14, height: proxy.size.height))
-
-                    Rectangle()
-                        .fill(Color(nsColor: .separatorColor).opacity(0.42))
-                        .frame(width: Metrics.overlapTimeTickWidth, height: 1)
-                        .offset(x: railCenterX - (Metrics.overlapTimeTickWidth / 2), y: y)
-                }
-
-                if let markerProgress {
-                    let y = proxy.size.height * CGFloat(markerProgress)
-
-                    markerTimeChip
-                        .frame(width: Metrics.timeLaneWidth, alignment: .trailing)
-                        .offset(y: clampedLabelOffset(for: y, labelHeight: Metrics.markerChipHeight, height: proxy.size.height))
-
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: Metrics.markerDotSize, height: Metrics.markerDotSize)
-                        .offset(
-                            x: railCenterX - (Metrics.markerDotSize / 2),
-                            y: y - (Metrics.markerDotSize / 2)
-                        )
-                }
+                Circle()
+                    .fill(Color.red)
+                    .frame(width: Metrics.markerDotSize, height: Metrics.markerDotSize)
+                    .offset(
+                        x: -(Metrics.markerDotSize / 2),
+                        y: markerY - (Metrics.markerDotSize / 2)
+                    )
             }
         }
-        .frame(width: Metrics.timelineColumnWidth, height: height)
+        .frame(width: contentWidth, height: Metrics.dayTimelineHeight, alignment: .topLeading)
     }
 
-    private func overlapLaneGrid(
-        for group: EventTimelineGroup,
-        markerProgress: Double?,
-        height: CGFloat
+    private func dayTimelineGridLines(width: CGFloat) -> some View {
+        ZStack(alignment: .topLeading) {
+            ForEach(0...24, id: \.self) { hour in
+                Rectangle()
+                    .fill(Color(nsColor: .separatorColor).opacity(Metrics.majorGridLineOpacity))
+                    .frame(width: width, height: 1)
+                    .offset(y: CGFloat(hour * 60) * Metrics.pointsPerMinute)
+            }
+
+            ForEach(0..<24, id: \.self) { hour in
+                Rectangle()
+                    .fill(Color(nsColor: .separatorColor).opacity(Metrics.minorGridLineOpacity))
+                    .frame(width: width, height: 1)
+                    .offset(
+                        y: CGFloat(hour * 60 + Metrics.halfHourMinutes) * Metrics.pointsPerMinute
+                    )
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private func dayTimelineItemButton(
+        _ positionedItem: EventDayTimelineItem,
+        containerWidth: CGFloat
     ) -> some View {
-        GeometryReader { proxy in
-            let laneCount = max(group.laneCount, 1)
-            let contentWidth = overlapGridContentWidth(containerWidth: proxy.size.width, laneCount: laneCount)
-            let laneWidth = overlapLaneWidth(contentWidth: contentWidth, laneCount: laneCount)
-            let ticks = overlapTimeTicks(for: group)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                ZStack(alignment: .topLeading) {
-                    ForEach(ticks, id: \.self) { minute in
-                        let y = overlapYPosition(for: minute, in: group, height: height)
-
-                        Rectangle()
-                            .fill(Color(nsColor: .separatorColor).opacity(0.18))
-                            .frame(width: contentWidth, height: 1)
-                            .offset(y: y)
-                    }
-
-                    ForEach(group.laneItems) { laneItem in
-                        let y = height * CGFloat(laneItem.startRatio)
-                        let itemHeight = max(
-                            Metrics.overlapCardMinimumHeight,
-                            height * CGFloat(max(laneItem.endRatio - laneItem.startRatio, 0.02))
-                        )
-                        let x = CGFloat(laneItem.laneIndex) * (laneWidth + Metrics.overlapLaneSpacing)
-
-                        overlapLaneButton(laneItem, itemHeight: itemHeight)
-                            .frame(width: laneWidth, height: itemHeight)
-                            .offset(x: x, y: min(y, max(height - itemHeight, 0)))
-                    }
-
-                    if let markerProgress {
-                        Rectangle()
-                            .fill(Color.red.opacity(0.78))
-                            .frame(width: contentWidth, height: Metrics.overlapNowLineHeight)
-                            .offset(y: height * CGFloat(markerProgress))
-                    }
-                }
-                .frame(width: contentWidth, height: height, alignment: .topLeading)
-            }
-        }
-        .frame(height: height)
-    }
-
-    private func overlapLaneButton(_ laneItem: EventTimelineLaneItem, itemHeight: CGFloat) -> some View {
-        let item = laneItem.item
+        let laneCount = max(positionedItem.laneCount, 1)
+        let clusterWidth = max(containerWidth, dayTimelineMinimumContentWidth(for: laneCount))
+        let totalSpacing = CGFloat(max(laneCount - 1, 0)) * Metrics.dayLaneSpacing
+        let laneWidth = max(
+            Metrics.dayLaneMinimumWidth,
+            (clusterWidth - totalSpacing) / CGFloat(laneCount)
+        )
+        let x = CGFloat(positionedItem.laneIndex) * (laneWidth + Metrics.dayLaneSpacing)
+        let semanticY = positionedItem.yPosition(pointsPerMinute: Metrics.pointsPerMinute)
+        let renderedHeight = positionedItem.isPoint
+            ? Metrics.pointItemHeight
+            : positionedItem.height(pointsPerMinute: Metrics.pointsPerMinute)
+        let visualY = positionedItem.isPoint
+            ? semanticY - (Metrics.pointItemHeight / 2)
+            : semanticY
+        let clampedY = min(
+            max(visualY, 0),
+            max(Metrics.dayTimelineHeight - renderedHeight, 0)
+        )
+        let item = positionedItem.item
 
         return Button {
             switch item {
@@ -745,104 +987,73 @@ struct EventListView: View {
                 onOpenReminder(reminder)
             }
         } label: {
-            OverlapLaneCardView(
+            EventDayTimelineCardView(
                 item: item,
                 isSelected: selectedEventIdentifier == item.selectionIdentifier,
                 timelineState: timelineState(for: item),
-                currentProgress: laneItem.currentProgress,
-                isCondensed: itemHeight < 58
+                currentProgress: positionedItem.currentProgress,
+                renderedHeight: renderedHeight,
+                isPoint: positionedItem.isPoint,
+                onToggleReminder: onToggleReminder
             )
         }
         .buttonStyle(.plain)
-        .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .frame(width: laneWidth, height: renderedHeight)
+        .contentShape(Rectangle())
+        .offset(x: x, y: clampedY)
+        .zIndex(positionedItem.currentProgress == nil ? 1 : 2)
     }
 
-    private func overlapGridContentWidth(containerWidth: CGFloat, laneCount: Int) -> CGFloat {
-        let totalSpacing = CGFloat(max(laneCount - 1, 0)) * Metrics.overlapLaneSpacing
-        let minimumWidth = CGFloat(laneCount) * Metrics.overlapLaneMinimumWidth + totalSpacing
-        return max(containerWidth, minimumWidth)
+    private func dayTimelineMinimumContentWidth(for laneCount: Int) -> CGFloat {
+        let count = max(laneCount, 1)
+        let spacing = CGFloat(max(count - 1, 0)) * Metrics.dayLaneSpacing
+        return CGFloat(count) * Metrics.dayLaneMinimumWidth + spacing
     }
 
-    private func overlapLaneWidth(contentWidth: CGFloat, laneCount: Int) -> CGFloat {
-        let totalSpacing = CGFloat(max(laneCount - 1, 0)) * Metrics.overlapLaneSpacing
-        return max(Metrics.overlapLaneMinimumWidth, (contentWidth - totalSpacing) / CGFloat(max(laneCount, 1)))
+    private func clampedDayLabelOffset(
+        for centerY: CGFloat,
+        labelHeight: CGFloat = 14
+    ) -> CGFloat {
+        min(
+            max(centerY - (labelHeight / 2), 0),
+            max(Metrics.dayTimelineHeight - labelHeight, 0)
+        )
     }
 
-    private func overlapTimeTicks(for group: EventTimelineGroup) -> [Int] {
-        var ticks = Set([group.startMinutes, group.endMinutes])
-        group.laneItems.forEach { laneItem in
-            ticks.insert(laneItem.startMinutes)
-            ticks.insert(laneItem.endMinutes)
-        }
+    @ViewBuilder
+    private func initialScrollAnchorLayer(for layout: EventDayTimelineLayout) -> some View {
+        if let targetMinutes = layout.initialScrollMinutes {
+            let targetY = CGFloat(targetMinutes) * Metrics.pointsPerMinute
 
-        let sortedTicks = ticks.sorted()
-        guard sortedTicks.count > 4 else {
-            return sortedTicks
-        }
-
-        var filteredTicks: [Int] = []
-        for tick in sortedTicks {
-            if tick == group.startMinutes || tick == group.endMinutes {
-                filteredTicks.append(tick)
-            } else if let last = filteredTicks.last, tick - last >= 15 {
-                filteredTicks.append(tick)
-            }
-        }
-
-        if filteredTicks.last != group.endMinutes {
-            filteredTicks.append(group.endMinutes)
-        }
-
-        return filteredTicks
-    }
-
-    private func overlapYPosition(for minute: Int, in group: EventTimelineGroup, height: CGFloat) -> CGFloat {
-        let duration = max(group.endMinutes - group.startMinutes, 1)
-        let progress = Double(minute - group.startMinutes) / Double(duration)
-        return height * CGFloat(min(max(progress, 0), 1))
-    }
-
-    private func clampedLabelOffset(for centerY: CGFloat, labelHeight: CGFloat, height: CGFloat) -> CGFloat {
-        min(max(centerY - (labelHeight / 2), 0), max(height - labelHeight, 0))
-    }
-
-    private func timelineColumn(for group: EventTimelineGroup, isFirst: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: Metrics.laneSpacing) {
-                Text(timelineLabel(for: group))
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(timeLabelColor(for: group))
-                    .frame(width: Metrics.timeLaneWidth, alignment: .trailing)
+            VStack(spacing: 0) {
+                Color.clear
+                    .frame(height: targetY)
 
                 Color.clear
-                    .frame(width: Metrics.railLaneWidth, height: 1)
-            }
+                    .frame(height: 1)
+                    .id(dayTimelineScrollAnchorID(minutes: targetMinutes))
 
-            HStack(alignment: .top, spacing: Metrics.laneSpacing) {
                 Color.clear
-                    .frame(width: Metrics.timeLaneWidth, height: 1)
-
-                ZStack(alignment: .top) {
-                    Rectangle()
-                        .fill(Color(nsColor: .separatorColor).opacity(0.25))
-                        .frame(width: 1)
-
-                    timelineNode(for: group)
-                        .padding(.top, isFirst ? 0 : 2)
-                }
-                .frame(width: Metrics.railLaneWidth)
-                .frame(maxHeight: .infinity)
+                    .frame(height: max(Metrics.dayTimelineHeight - targetY - 1, 0))
             }
+            .allowsHitTesting(false)
         }
-        .frame(width: Metrics.timelineColumnWidth, alignment: .topLeading)
     }
 
-    private func timelineLabel(for group: EventTimelineGroup) -> String {
-        guard group.overlapSummary != nil else {
-            return group.displayTime
+    private func dayTimelineScrollAnchorID(minutes: Int) -> String {
+        "day-timeline-minute-\(minutes)"
+    }
+
+    private func scrollToInitialTimelineContext(using proxy: ScrollViewProxy) {
+        guard let targetMinutes = dayTimelineLayout.initialScrollMinutes else {
+            return
         }
-        return timeText(minutes: group.startMinutes)
+        let anchor: UnitPoint = dayTimelineLayout.centersInitialScrollTarget ? .center : .top
+        let targetID = dayTimelineScrollAnchorID(minutes: targetMinutes)
+
+        DispatchQueue.main.async {
+            proxy.scrollTo(targetID, anchor: anchor)
+        }
     }
 
     private func timeText(minutes: Int) -> String {
@@ -857,48 +1068,6 @@ struct EventListView: View {
         return formatter.string(from: date)
     }
 
-    @ViewBuilder
-    private func timelineNode(for group: EventTimelineGroup) -> some View {
-        let referenceItem = group.items.first(where: { !$0.isReminder }) ?? group.items.first
-        let nodeColor = Color(nsColor: referenceItem?.color ?? .secondaryLabelColor)
-
-        if group.items.allSatisfy(\.isReminder) {
-            if group.items.allSatisfy(\.isCompleted) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 10))
-                    .foregroundStyle(nodeColor)
-            } else {
-                Circle()
-                    .stroke(nodeColor, lineWidth: 1.6)
-                    .frame(width: 8, height: 8)
-                    .background(Color(nsColor: .windowBackgroundColor), in: Circle())
-            }
-        } else {
-            Circle()
-                .fill(nodeColor)
-                .frame(width: 8, height: 8)
-        }
-    }
-
-    private var nowMarkerView: some View {
-        HStack(alignment: .center, spacing: Metrics.contentSpacing) {
-            HStack(alignment: .center, spacing: Metrics.laneSpacing) {
-                markerTimeChip
-                    .frame(width: Metrics.timeLaneWidth, alignment: .trailing)
-
-                Circle()
-                    .fill(Color.red)
-                    .frame(width: Metrics.markerDotSize, height: Metrics.markerDotSize)
-                    .frame(width: Metrics.railLaneWidth)
-            }
-            .frame(width: Metrics.timelineColumnWidth, alignment: .leading)
-
-            Rectangle()
-                .fill(Color.red.opacity(0.7))
-                .frame(height: Metrics.markerConnectorHeight)
-        }
-        .padding(.vertical, 2)
-    }
 
     private func auxiliarySection(title: String, items: [CalendarItem]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -930,9 +1099,6 @@ struct EventListView: View {
                 )
             }
             .buttonStyle(.plain)
-            .anchorPreference(key: EventTimelineItemBoundsPreferenceKey.self, value: .bounds) {
-                [item.selectionIdentifier: $0]
-            }
         case .reminder(let reminder):
             Button {
                 onOpenReminder(reminder)
@@ -946,9 +1112,6 @@ struct EventListView: View {
                 )
             }
             .buttonStyle(.plain)
-            .anchorPreference(key: EventTimelineItemBoundsPreferenceKey.self, value: .bounds) {
-                [item.selectionIdentifier: $0]
-            }
         }
     }
 
@@ -967,47 +1130,6 @@ struct EventListView: View {
         }
     }
 
-    private func markerPosition(for groupID: String) -> EventTimelineMarkerPosition? {
-        guard let marker = timelineSnapshot.marker, marker.groupID == groupID else {
-            return nil
-        }
-        return marker.position
-    }
-
-    private func withinItemMarkerPlacement(
-        using anchors: [String: Anchor<CGRect>],
-        in proxy: GeometryProxy
-    ) -> WithinItemMarkerPlacement? {
-        guard let marker = timelineSnapshot.marker else { return nil }
-        guard case let .withinItem(selectionIdentifier, progress) = marker.position else {
-            return nil
-        }
-        guard let anchor = anchors[selectionIdentifier] else {
-            return nil
-        }
-        let frame = proxy[anchor]
-        let y = markerY(for: frame, progress: progress)
-        return WithinItemMarkerPlacement(frame: frame, y: y)
-    }
-
-    private func scrollToActiveGroup(using proxy: ScrollViewProxy) {
-        guard let targetID = timelineSnapshot.scrollTargetGroupID else { return }
-        let anchor: UnitPoint = timelineSnapshot.shouldAnchorBottom ? .bottom : .top
-
-        DispatchQueue.main.async {
-            proxy.scrollTo(targetID, anchor: anchor)
-        }
-    }
-
-    private func timeLabelColor(for group: EventTimelineGroup) -> Color {
-        if group.containsOngoingItem {
-            return .red
-        }
-        if group.isPast {
-            return Color(nsColor: .tertiaryLabelColor)
-        }
-        return .secondary
-    }
 
     private var formattedCurrentTime: String {
         let formatter = DateFormatter()
@@ -1017,43 +1139,6 @@ struct EventListView: View {
         return formatter.string(from: currentTime)
     }
 
-    private func markerY(for frame: CGRect, progress: Double) -> CGFloat {
-        let clampedProgress = min(max(progress, 0), 1)
-        let inset = min(Metrics.markerMinimumInset, frame.height / 2)
-        let usableHeight = max(frame.height - inset * 2, 0)
-        return frame.minY + inset + usableHeight * clampedProgress
-    }
-
-    private func withinItemMarkerOverlay(placement: WithinItemMarkerPlacement) -> some View {
-        let railCenterX = Metrics.timeLaneWidth + Metrics.laneSpacing + (Metrics.railLaneWidth / 2)
-        let lineEndX = max(railCenterX, placement.frame.maxX - Metrics.markerLineTrailingInset)
-        let connectorWidth = max(0, lineEndX - railCenterX)
-
-        return ZStack(alignment: .topLeading) {
-            markerTimeChip
-                .frame(width: Metrics.timeLaneWidth, alignment: .trailing)
-                .offset(y: placement.y - (Metrics.markerChipHeight / 2))
-
-            Circle()
-                .fill(Color.red)
-                .frame(width: Metrics.markerDotSize, height: Metrics.markerDotSize)
-                .offset(
-                    x: railCenterX - (Metrics.markerDotSize / 2),
-                    y: placement.y - (Metrics.markerDotSize / 2)
-                )
-
-            if connectorWidth > 0 {
-                Rectangle()
-                    .fill(Color.red.opacity(0.7))
-                    .frame(width: connectorWidth, height: Metrics.markerConnectorHeight)
-                    .offset(
-                        x: railCenterX,
-                        y: placement.y
-                    )
-            }
-        }
-        .allowsHitTesting(false)
-    }
 
     private var markerTimeChip: some View {
         Text(formattedCurrentTime)
@@ -1069,91 +1154,147 @@ struct EventListView: View {
     }
 }
 
-private struct OverlapLaneCardView: View {
+private struct EventDayTimelineCardView: View {
+    private enum Density {
+        case full
+        case compact
+        case minimal
+    }
+
     let item: CalendarItem
     let isSelected: Bool
     let timelineState: EventCardTimelineState
     let currentProgress: Double?
-    let isCondensed: Bool
+    let renderedHeight: CGFloat
+    let isPoint: Bool
+    let onToggleReminder: (EKReminder) -> Void
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        HStack(alignment: .top, spacing: 6) {
-            marker
-                .padding(.top, 3)
-
-            VStack(alignment: .leading, spacing: isCondensed ? 2 : 3) {
-                Text(timeRangeText)
-                    .font(.system(size: 9, weight: .semibold, design: .rounded))
-                    .foregroundStyle(timeTextColor)
-                    .monospacedDigit()
-                    .lineLimit(1)
-
-                Text(item.title)
-                    .font(.system(size: isCondensed ? 10 : 11, weight: .semibold))
-                    .foregroundStyle(titleColor)
-                    .lineLimit(isCondensed ? 1 : 2)
-                    .strikethrough(item.isCompleted || item.isCanceled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                if !isCondensed, let secondaryText {
-                    Text(secondaryText)
-                        .font(.system(size: 9))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+        content
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background {
+                ZStack(alignment: .top) {
+                    baseCardColor
+                    progressFill
+                    backgroundTintColor
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(.horizontal, 7)
-        .padding(.vertical, 6)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background {
-            ZStack(alignment: .top) {
-                baseCardColor
-                progressFill
-                backgroundTintColor
+            .overlay(alignment: .top) {
+                progressLine
             }
+            .overlay(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                    .fill(railColor)
+                    .frame(width: density == .minimal ? 2 : 3)
+                    .padding(.vertical, min(4, renderedHeight / 4))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(borderColor, lineWidth: 1)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .opacity(contentOpacity)
+            .help(accessibilityText)
+            .accessibilityLabel(accessibilityText)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch density {
+        case .full:
+            HStack(alignment: .top, spacing: 6) {
+                marker
+                    .padding(.top, 2)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(timeRangeText)
+                        .font(.system(size: 9, weight: .semibold, design: .rounded))
+                        .foregroundStyle(timeTextColor)
+                        .monospacedDigit()
+                        .lineLimit(1)
+
+                    Text(item.title)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(titleColor)
+                        .lineLimit(renderedHeight >= 68 ? 2 : 1)
+                        .strikethrough(item.isCompleted || item.isCanceled)
+
+                    if renderedHeight >= 62, let secondaryText {
+                        Text(secondaryText)
+                            .font(.system(size: 9))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 7)
+            .padding(.vertical, 5)
+
+        case .compact:
+            HStack(alignment: .top, spacing: 5) {
+                marker
+                    .padding(.top, 2)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(timeRangeText)
+                        .font(.system(size: 8, weight: .semibold, design: .rounded))
+                        .foregroundStyle(timeTextColor)
+                        .monospacedDigit()
+                        .lineLimit(1)
+
+                    Text(item.title)
+                        .font(.system(size: 9.5, weight: .semibold))
+                        .foregroundStyle(titleColor)
+                        .lineLimit(1)
+                        .strikethrough(item.isCompleted || item.isCanceled)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+
+        case .minimal:
+            HStack(alignment: .center, spacing: 4) {
+                marker
+
+                Text(item.title)
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(titleColor)
+                    .lineLimit(1)
+                    .strikethrough(item.isCompleted || item.isCanceled)
+            }
+            .padding(.horizontal, 5)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         }
-        .overlay(alignment: .top) {
-            progressLine
-        }
-        .overlay(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 2, style: .continuous)
-                .fill(railColor)
-                .frame(width: 3)
-                .padding(.vertical, 5)
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(borderColor, lineWidth: 1)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .opacity(contentOpacity)
-        .accessibilityLabel(accessibilityText)
     }
 
     @ViewBuilder
     private var marker: some View {
-        if item.isReminder {
-            Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundStyle(itemAccentColor)
+        if let reminder = item.ekReminder {
+            Button {
+                onToggleReminder(reminder)
+            } label: {
+                Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: density == .minimal ? 9 : 10, weight: .semibold))
+                    .foregroundStyle(item.isCompleted ? itemAccentColor : .secondary)
+            }
+            .buttonStyle(.plain)
         } else {
             Circle()
                 .fill(indicatorColor)
-                .frame(width: 5, height: 5)
+                .frame(width: density == .minimal ? 4 : 5, height: density == .minimal ? 4 : 5)
         }
     }
 
     @ViewBuilder
     private var progressFill: some View {
-        if let currentProgress {
+        if let currentProgress, !isPoint {
             GeometryReader { proxy in
                 Rectangle()
-                    .fill(Color.red.opacity(colorScheme == .dark ? 0.18 : 0.12))
-                    .frame(height: proxy.size.height * CGFloat(min(max(currentProgress, 0), 1)))
+                    .fill(Color.red.opacity(colorScheme == .dark ? 0.18 : 0.11))
+                    .frame(height: proxy.size.height * CGFloat(clampedProgress(currentProgress)))
                     .frame(maxHeight: .infinity, alignment: .top)
             }
         }
@@ -1161,21 +1302,36 @@ private struct OverlapLaneCardView: View {
 
     @ViewBuilder
     private var progressLine: some View {
-        if let currentProgress {
+        if let currentProgress, !isPoint {
             GeometryReader { proxy in
                 Rectangle()
-                    .fill(Color.red.opacity(0.76))
+                    .fill(Color.red.opacity(0.72))
                     .frame(height: 1)
-                    .offset(y: proxy.size.height * CGFloat(min(max(currentProgress, 0), 1)))
+                    .offset(
+                        y: min(
+                            proxy.size.height * CGFloat(clampedProgress(currentProgress)),
+                            max(proxy.size.height - 1, 0)
+                        )
+                    )
             }
         }
     }
 
-    private var timeRangeText: String {
-        if item.isAllDay {
-            return L("All Day")
+    private var density: Density {
+        if isPoint || renderedHeight < 24 {
+            return .minimal
         }
+        if renderedHeight < 44 {
+            return .compact
+        }
+        return .full
+    }
 
+    private var cornerRadius: CGFloat {
+        max(min(8, renderedHeight / 3), 1)
+    }
+
+    private var timeRangeText: String {
         guard let startDate = item.timelineDate else {
             return L("No Time")
         }
@@ -1184,12 +1340,11 @@ private struct OverlapLaneCardView: View {
         formatter.locale = AppLocalization.locale
         formatter.dateStyle = .none
         formatter.timeStyle = .short
-
         let start = formatter.string(from: startDate)
+
         guard let endDate = item.endDate else {
             return start
         }
-
         return "\(start)-\(formatter.string(from: endDate))"
     }
 
@@ -1197,17 +1352,20 @@ private struct OverlapLaneCardView: View {
         if let location = item.location, !location.isEmpty {
             return location
         }
-
         let sourceTitle = item.sourceTitle
         return sourceTitle.isEmpty ? nil : sourceTitle
     }
 
     private var accessibilityText: String {
         if let currentProgress {
-            let elapsedPercent = Int((min(max(currentProgress, 0), 1) * 100).rounded())
+            let elapsedPercent = Int((clampedProgress(currentProgress) * 100).rounded())
             return "\(timeRangeText), \(item.title), \(elapsedPercent)%"
         }
         return "\(timeRangeText), \(item.title)"
+    }
+
+    private func clampedProgress(_ progress: Double) -> Double {
+        min(max(progress, 0), 1)
     }
 
     private var backgroundTintColor: Color {
