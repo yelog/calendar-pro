@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.2.2</title>
+            <pubDate>Thu, 16 Jul 2026 03:03:01 +0000</pubDate>
+            <sparkle:version>02299</sparkle:version>
+            <sparkle:shortVersionString>0.2.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.2.2&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;render real-height event timeline&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Changed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;supersede compact timeline design&lt;/li&gt;&lt;li&gt;plan real-height event timeline&lt;/li&gt;&lt;li&gt;design real-height event timeline&lt;/li&gt;&lt;li&gt;add 0.2.1 release entry [skip ci]&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.2.2/CalendarPro-0.2.2-universal.dmg" length="7586335" type="application/octet-stream" sparkle:edSignature="DYq1Z2Ack8QF1SMDa8P+BCzbZgGEhCWNMRTgVpvaaci6gACYeBYEcu4OPBK2ahO6bm81NG6/4BFLz0TwnqjaDA==" />
+        </item>
+        <item>
             <title>Version 0.2.1</title>
             <pubDate>Fri, 03 Jul 2026 10:11:41 +0000</pubDate>
             <sparkle:version>02199</sparkle:version>
