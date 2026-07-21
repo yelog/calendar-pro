@@ -2,7 +2,11 @@ import SwiftUI
 import EventKit
 
 enum CalendarItemComposerMode {
-    case create(kind: CalendarItemCreationKind, selectedDate: Date)
+    case create(
+        kind: CalendarItemCreationKind,
+        selectedDate: Date,
+        initialTimeRange: CalendarItemCreationTimeRange?
+    )
     case editEvent(EKEvent)
     case editReminder(EKReminder)
 }
@@ -337,7 +341,7 @@ struct CalendarItemComposerView: View {
         }
     }
 
-    private struct InitialValues {
+    struct InitialValues {
         let kind: CalendarItemCreationKind
         let selectedDate: Date
         let title: String
@@ -351,23 +355,29 @@ struct CalendarItemComposerView: View {
         let notes: String
     }
 
-    private static func initialValues(
+    static func initialValues(
         for mode: CalendarItemComposerMode,
         eventCalendars: [EKCalendar],
-        reminderCalendars: [EKCalendar]
+        reminderCalendars: [EKCalendar],
+        calendar: Calendar = .autoupdatingCurrent,
+        now: Date = Date()
     ) -> InitialValues {
         let eventCalendarID = eventCalendars.first?.calendarIdentifier ?? ""
         let reminderCalendarID = reminderCalendars.first?.calendarIdentifier ?? ""
 
         switch mode {
-        case .create(let kind, let selectedDate):
+        case .create(let kind, let selectedDate, let initialTimeRange):
             let eventRequest = CalendarEventCreationRequest.makeDefault(
                 selectedDate: selectedDate,
-                calendarIdentifier: eventCalendarID
+                calendarIdentifier: eventCalendarID,
+                calendar: calendar,
+                now: now
             )
             let reminderRequest = ReminderCreationRequest.makeDefault(
                 selectedDate: selectedDate,
-                calendarIdentifier: reminderCalendarID
+                calendarIdentifier: reminderCalendarID,
+                calendar: calendar,
+                now: now
             )
 
             return InitialValues(
@@ -376,18 +386,20 @@ struct CalendarItemComposerView: View {
                 title: "",
                 eventCalendarIdentifier: eventCalendarID,
                 reminderCalendarIdentifier: reminderCalendarID,
-                startDate: eventRequest.startDate,
-                endDate: eventRequest.endDate,
+                startDate: initialTimeRange?.startDate ?? eventRequest.startDate,
+                endDate: initialTimeRange?.endDate ?? eventRequest.endDate,
                 isAllDay: eventRequest.isAllDay,
-                dueDate: reminderRequest.dueDate,
-                reminderIncludesTime: reminderRequest.includesTime,
+                dueDate: initialTimeRange?.startDate ?? reminderRequest.dueDate,
+                reminderIncludesTime: initialTimeRange != nil || reminderRequest.includesTime,
                 notes: ""
             )
         case .editEvent(let event):
             let eventRequest = CalendarEventCreationRequest.makeEditing(event)
             let reminderRequest = ReminderCreationRequest.makeDefault(
                 selectedDate: event.startDate,
-                calendarIdentifier: reminderCalendarID
+                calendarIdentifier: reminderCalendarID,
+                calendar: calendar,
+                now: now
             )
 
             return InitialValues(
@@ -407,7 +419,9 @@ struct CalendarItemComposerView: View {
             let reminderRequest = ReminderCreationRequest.makeEditing(reminder)
             let eventRequest = CalendarEventCreationRequest.makeDefault(
                 selectedDate: reminderRequest.dueDate,
-                calendarIdentifier: eventCalendarID
+                calendarIdentifier: eventCalendarID,
+                calendar: calendar,
+                now: now
             )
 
             return InitialValues(

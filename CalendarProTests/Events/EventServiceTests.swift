@@ -71,6 +71,49 @@ final class EventServiceTests: XCTestCase {
         XCTAssertTrue(request.includesTime)
     }
 
+    func testComposerInitialValuesUseTimelineRangeForEventAndReminder() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let selectedDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 29))!
+        let startDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 29, hour: 10, minute: 30))!
+        let endDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 29, hour: 11))!
+        let timeRange = CalendarItemCreationTimeRange(startDate: startDate, endDate: endDate)
+
+        let values = CalendarItemComposerView.initialValues(
+            for: .create(kind: .event, selectedDate: selectedDate, initialTimeRange: timeRange),
+            eventCalendars: [],
+            reminderCalendars: [],
+            calendar: calendar,
+            now: selectedDate
+        )
+
+        XCTAssertEqual(values.kind, .event)
+        XCTAssertEqual(values.startDate, startDate)
+        XCTAssertEqual(values.endDate, endDate)
+        XCTAssertEqual(values.dueDate, startDate)
+        XCTAssertTrue(values.reminderIncludesTime)
+    }
+
+    func testComposerInitialValuesWithoutTimelineRangeKeepDefaultTimes() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let selectedDate = calendar.date(from: DateComponents(year: 2026, month: 4, day: 29))!
+        let now = calendar.date(from: DateComponents(year: 2026, month: 4, day: 28, hour: 15))!
+
+        let values = CalendarItemComposerView.initialValues(
+            for: .create(kind: .event, selectedDate: selectedDate, initialTimeRange: nil),
+            eventCalendars: [],
+            reminderCalendars: [],
+            calendar: calendar,
+            now: now
+        )
+
+        XCTAssertEqual(calendar.component(.hour, from: values.startDate), 9)
+        XCTAssertEqual(calendar.component(.hour, from: values.endDate), 10)
+        XCTAssertEqual(calendar.component(.hour, from: values.dueDate), 9)
+        XCTAssertTrue(values.reminderIncludesTime)
+    }
+
     func testEditingEventRequestPreservesExistingValues() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!

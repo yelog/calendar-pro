@@ -172,10 +172,11 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                         onClose: onClose
                     )
                 },
-                onPresentItemComposer: { [weak self] kind, selectedDate, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
+                onPresentItemComposer: { [weak self] kind, selectedDate, initialTimeRange, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
                     self?.showItemComposer(
                         kind: kind,
                         selectedDate: selectedDate,
+                        initialTimeRange: initialTimeRange,
                         eventCalendars: eventCalendars,
                         reminderCalendars: reminderCalendars,
                         onSaveEvent: onSaveEvent,
@@ -289,6 +290,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     func showItemComposer(
         kind: CalendarItemCreationKind,
         selectedDate: Date,
+        initialTimeRange: CalendarItemCreationTimeRange?,
         eventCalendars: [EKCalendar],
         reminderCalendars: [EKCalendar],
         onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
@@ -301,6 +303,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         eventDetailPresenter.showComposer(
             kind: kind,
             selectedDate: selectedDate,
+            initialTimeRange: initialTimeRange,
             eventCalendars: eventCalendars,
             reminderCalendars: reminderCalendars,
             anchoredTo: popover.contentViewController?.view.window,

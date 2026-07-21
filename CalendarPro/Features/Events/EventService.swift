@@ -8,6 +8,11 @@ enum CalendarItemCreationKind: Equatable {
     case reminder
 }
 
+struct CalendarItemCreationTimeRange: Equatable {
+    let startDate: Date
+    let endDate: Date
+}
+
 struct CalendarEventCreationRequest: Equatable {
     var title: String
     var calendarIdentifier: String

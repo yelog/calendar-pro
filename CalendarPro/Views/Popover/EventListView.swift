@@ -482,6 +482,44 @@ struct EventDayTimelineItem: Identifiable {
     }
 }
 
+struct EventTimelineCreationSlot {
+    static let durationMinutes = 30
+
+    static func make(
+        yPosition: CGFloat,
+        selectedDate: Date,
+        pointsPerMinute: CGFloat,
+        calendar: Calendar = .autoupdatingCurrent
+    ) -> CalendarItemCreationTimeRange? {
+        guard pointsPerMinute > 0 else { return nil }
+
+        let rawMinute = Int(floor(yPosition / pointsPerMinute))
+        let minute = min(
+            max(rawMinute, 0),
+            EventDayTimelineLayout.minutesPerDay - 1
+        )
+        let startMinute = (minute / durationMinutes) * durationMinutes
+        let dayStart = calendar.startOfDay(for: selectedDate)
+
+        guard let startDate = calendar.date(
+            byAdding: .minute,
+            value: startMinute,
+            to: dayStart
+        ), let endDate = calendar.date(
+            byAdding: .minute,
+            value: durationMinutes,
+            to: startDate
+        ) else {
+            return nil
+        }
+
+        return CalendarItemCreationTimeRange(
+            startDate: startDate,
+            endDate: endDate
+        )
+    }
+}
+
 private struct EventDayTimelineSpan {
     let item: CalendarItem
     let sourceIndex: Int
@@ -571,7 +609,7 @@ struct EventDayTimelineLayout {
             initialScrollMinutes = max(firstStart - 30, 0)
             centersInitialScrollTarget = false
         } else {
-            initialScrollMinutes = nil
+            initialScrollMinutes = 9 * 60
             centersInitialScrollTarget = false
         }
 
@@ -767,7 +805,7 @@ struct EventListView: View {
         static let markerChipCornerRadius: CGFloat = 6
         static let pointsPerMinute: CGFloat = 1
         static let dayTimelineHeight: CGFloat = CGFloat(EventDayTimelineLayout.minutesPerDay) * pointsPerMinute
-        static let halfHourMinutes = 30
+        static let halfHourMinutes = EventTimelineCreationSlot.durationMinutes
         static let pointItemHeight: CGFloat = 24
         static let dayLaneMinimumWidth: CGFloat = 72
         static let dayLaneSpacing: CGFloat = 3
@@ -781,9 +819,11 @@ struct EventListView: View {
     let selectedDate: Date?
     let selectedEventIdentifier: String?
     @ObservedObject var timeRefreshCoordinator: TimeRefreshCoordinator
+    let canCreateEvent: Bool
     let onSelectEvent: (EKEvent) -> Void
     let onToggleReminder: (EKReminder) -> Void
     let onOpenReminder: (EKReminder) -> Void
+    let onCreateEventAt: (CalendarItemCreationTimeRange) -> Void
 
     var body: some View {
         if isLoading {
@@ -794,12 +834,6 @@ struct EventListView: View {
                 Spacer()
             }
             .frame(height: 60)
-        } else if items.isEmpty {
-            Text(emptyStateText)
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
         } else {
             ScrollViewReader { proxy in
                 ScrollView(.vertical) {
@@ -821,6 +855,14 @@ struct EventListView: View {
 
     private var dayTimelineContent: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if items.isEmpty {
+                Text(emptyStateText)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+            }
+
             if !dayTimelineLayout.allDayItems.isEmpty {
                 auxiliarySection(title: L("All Day"), items: dayTimelineLayout.allDayItems)
             }
@@ -829,9 +871,7 @@ struct EventListView: View {
                 auxiliarySection(title: L("No Time"), items: dayTimelineLayout.untimedItems)
             }
 
-            if !dayTimelineLayout.timedItems.isEmpty {
-                dayTimelineCanvas(for: dayTimelineLayout)
-            }
+            dayTimelineCanvas(for: dayTimelineLayout)
         }
     }
 
@@ -904,6 +944,16 @@ struct EventListView: View {
         contentWidth: CGFloat
     ) -> some View {
         ZStack(alignment: .topLeading) {
+            Color.clear
+                .contentShape(Rectangle())
+                .gesture(
+                    SpatialTapGesture(count: 2)
+                        .onEnded { value in
+                            createEvent(at: value.location.y)
+                        }
+                )
+                .allowsHitTesting(canCreateEvent)
+
             dayTimelineGridLines(width: contentWidth)
 
             ForEach(layout.timedItems) { positionedItem in
@@ -931,6 +981,20 @@ struct EventListView: View {
             }
         }
         .frame(width: contentWidth, height: Metrics.dayTimelineHeight, alignment: .topLeading)
+    }
+
+    private func createEvent(at yPosition: CGFloat) {
+        guard canCreateEvent,
+              let selectedDate,
+              let timeRange = EventTimelineCreationSlot.make(
+                  yPosition: yPosition,
+                  selectedDate: selectedDate,
+                  pointsPerMinute: Metrics.pointsPerMinute
+              ) else {
+            return
+        }
+
+        onCreateEventAt(timeRange)
     }
 
     private func dayTimelineGridLines(width: CGFloat) -> some View {

@@ -656,6 +656,98 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertFalse(layout.centersInitialScrollTarget)
     }
 
+    func testDayTimelineUsesNineAMContextForEmptyNonTodaySelection() {
+        let layout = EventDayTimelineLayout.make(
+            items: [],
+            selectedDate: makeDate(year: 2026, month: 4, day: 2, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertNil(layout.currentMinutes)
+        XCTAssertEqual(layout.initialScrollMinutes, 9 * 60)
+        XCTAssertFalse(layout.centersInitialScrollTarget)
+    }
+
+    func testDayTimelineCentersCurrentTimeForEmptyTodaySelection() {
+        let layout = EventDayTimelineLayout.make(
+            items: [],
+            selectedDate: makeDate(year: 2026, month: 4, day: 2, hour: 0, minute: 0),
+            now: makeDate(year: 2026, month: 4, day: 2, hour: 14, minute: 20),
+            calendar: .gregorianMondayFirst
+        )
+
+        XCTAssertEqual(layout.currentMinutes, 14 * 60 + 20)
+        XCTAssertEqual(layout.initialScrollMinutes, 14 * 60 + 20)
+        XCTAssertTrue(layout.centersInitialScrollTarget)
+    }
+
+    func testTimelineCreationSlotUsesFirstHalfHourForTenTwenty() throws {
+        let range = try XCTUnwrap(EventTimelineCreationSlot.make(
+            yPosition: 10 * 60 + 20,
+            selectedDate: makeDate(year: 2026, month: 4, day: 2, hour: 0, minute: 0),
+            pointsPerMinute: 1,
+            calendar: .gregorianMondayFirst
+        ))
+
+        XCTAssertEqual(range.startDate, makeDate(year: 2026, month: 4, day: 2, hour: 10, minute: 0))
+        XCTAssertEqual(range.endDate, makeDate(year: 2026, month: 4, day: 2, hour: 10, minute: 30))
+    }
+
+    func testTimelineCreationSlotUsesSecondHalfHourForTenForty() throws {
+        let range = try XCTUnwrap(EventTimelineCreationSlot.make(
+            yPosition: 10 * 60 + 40,
+            selectedDate: makeDate(year: 2026, month: 4, day: 2, hour: 0, minute: 0),
+            pointsPerMinute: 1,
+            calendar: .gregorianMondayFirst
+        ))
+
+        XCTAssertEqual(range.startDate, makeDate(year: 2026, month: 4, day: 2, hour: 10, minute: 30))
+        XCTAssertEqual(range.endDate, makeDate(year: 2026, month: 4, day: 2, hour: 11, minute: 0))
+    }
+
+    func testTimelineCreationSlotTreatsExactHalfHourAsSecondSlot() throws {
+        let range = try XCTUnwrap(EventTimelineCreationSlot.make(
+            yPosition: 10 * 60 + 30,
+            selectedDate: makeDate(year: 2026, month: 4, day: 2, hour: 0, minute: 0),
+            pointsPerMinute: 1,
+            calendar: .gregorianMondayFirst
+        ))
+
+        XCTAssertEqual(range.startDate, makeDate(year: 2026, month: 4, day: 2, hour: 10, minute: 30))
+        XCTAssertEqual(range.endDate, makeDate(year: 2026, month: 4, day: 2, hour: 11, minute: 0))
+    }
+
+    func testTimelineCreationSlotClampsOutsideCoordinatesToDayBounds() throws {
+        let selectedDate = makeDate(year: 2026, month: 4, day: 2, hour: 0, minute: 0)
+        let beforeDay = try XCTUnwrap(EventTimelineCreationSlot.make(
+            yPosition: -20,
+            selectedDate: selectedDate,
+            pointsPerMinute: 1,
+            calendar: .gregorianMondayFirst
+        ))
+        let afterDay = try XCTUnwrap(EventTimelineCreationSlot.make(
+            yPosition: 1_500,
+            selectedDate: selectedDate,
+            pointsPerMinute: 1,
+            calendar: .gregorianMondayFirst
+        ))
+
+        XCTAssertEqual(beforeDay.startDate, makeDate(year: 2026, month: 4, day: 2, hour: 0, minute: 0))
+        XCTAssertEqual(beforeDay.endDate, makeDate(year: 2026, month: 4, day: 2, hour: 0, minute: 30))
+        XCTAssertEqual(afterDay.startDate, makeDate(year: 2026, month: 4, day: 2, hour: 23, minute: 30))
+        XCTAssertEqual(afterDay.endDate, makeDate(year: 2026, month: 4, day: 3, hour: 0, minute: 0))
+    }
+
+    func testTimelineCreationSlotRejectsInvalidScale() {
+        XCTAssertNil(EventTimelineCreationSlot.make(
+            yPosition: 600,
+            selectedDate: makeDate(year: 2026, month: 4, day: 2, hour: 0, minute: 0),
+            pointsPerMinute: 0,
+            calendar: .gregorianMondayFirst
+        ))
+    }
+
     func testTimelineSnapshotPrefersOngoingGroupForMarker() {
         let ongoingEvent = CalendarItem.event(makeEvent(
             title: "评审会",

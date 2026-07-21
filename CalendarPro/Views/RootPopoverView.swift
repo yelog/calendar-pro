@@ -25,6 +25,7 @@ struct RootPopoverView: View {
     let onPresentItemComposer: (
         CalendarItemCreationKind,
         Date,
+        CalendarItemCreationTimeRange?,
         [EKCalendar],
         [EKCalendar],
         @escaping (CalendarEventCreationRequest) throws -> Void,
@@ -176,6 +177,9 @@ struct RootPopoverView: View {
             },
             onCreateItem: {
                 handleCreateItem()
+            },
+            onCreateEventAt: { timeRange in
+                handleCreateItem(initialTimeRange: timeRange)
             },
             onOpenWeatherDetails: handleOpenWeatherDetails,
             onOpenVacationGuide: handleOpenVacationGuide,
@@ -574,9 +578,16 @@ struct RootPopoverView: View {
         alert.runModal()
     }
 
-    private func handleCreateItem() {
+    private func handleCreateItem(
+        initialTimeRange: CalendarItemCreationTimeRange? = nil
+    ) {
         guard let selectedDate = viewModel.selectedDate else { return }
-        let initialKind: CalendarItemCreationKind = canCreateEvent ? .event : .reminder
+        if initialTimeRange != nil, !canCreateEvent {
+            return
+        }
+        let initialKind: CalendarItemCreationKind = initialTimeRange != nil || canCreateEvent
+            ? .event
+            : .reminder
 
         dismissEventDetail()
         if eventService.isAuthorized {
@@ -589,6 +600,7 @@ struct RootPopoverView: View {
         onPresentItemComposer(
             initialKind,
             selectedDate,
+            initialTimeRange,
             eventService.writableCalendars,
             eventService.writableReminderCalendars,
             { request in

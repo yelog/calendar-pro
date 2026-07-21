@@ -66,6 +66,7 @@ struct CalendarPopoverView: View {
     let onToggleReminder: (EKReminder) -> Void
     let onOpenReminder: (EKReminder) -> Void
     let onCreateItem: () -> Void
+    let onCreateEventAt: (CalendarItemCreationTimeRange) -> Void
     let onOpenWeatherDetails: () -> Void
     let onOpenVacationGuide: () -> Void
     let onResetToToday: () -> Void
@@ -211,9 +212,11 @@ struct CalendarPopoverView: View {
                     selectedDate: date,
                     selectedEventIdentifier: selectedEventIdentifier,
                     timeRefreshCoordinator: timeRefreshCoordinator,
+                    canCreateEvent: canCreateEvent,
                     onSelectEvent: onSelectEvent,
                     onToggleReminder: onToggleReminder,
-                    onOpenReminder: onOpenReminder
+                    onOpenReminder: onOpenReminder,
+                    onCreateEventAt: onCreateEventAt
                 )
                 .frame(maxHeight: 200)
             }

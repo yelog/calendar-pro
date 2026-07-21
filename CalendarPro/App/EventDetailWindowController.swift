@@ -23,6 +23,7 @@ protocol EventDetailWindowPresenting: AnyObject {
     func showComposer(
         kind: CalendarItemCreationKind,
         selectedDate: Date,
+        initialTimeRange: CalendarItemCreationTimeRange?,
         eventCalendars: [EKCalendar],
         reminderCalendars: [EKCalendar],
         anchoredTo anchorWindow: NSWindow?,
@@ -120,6 +121,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     func showComposer(
         kind: CalendarItemCreationKind,
         selectedDate: Date,
+        initialTimeRange: CalendarItemCreationTimeRange?,
         eventCalendars: [EKCalendar],
         reminderCalendars: [EKCalendar],
         anchoredTo anchorWindow: NSWindow?,
@@ -131,7 +133,11 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         self.onClose = onClose
         let hostingController = NSHostingController(
             rootView: CalendarItemComposerView(
-                mode: .create(kind: kind, selectedDate: selectedDate),
+                mode: .create(
+                    kind: kind,
+                    selectedDate: selectedDate,
+                    initialTimeRange: initialTimeRange
+                ),
                 eventCalendars: eventCalendars,
                 reminderCalendars: reminderCalendars,
                 onSaveEvent: onSaveEvent,

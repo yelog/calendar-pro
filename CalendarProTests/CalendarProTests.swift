@@ -130,6 +130,7 @@ final class PopoverControllerTests: XCTestCase {
         controller.showItemComposer(
             kind: .event,
             selectedDate: Date(),
+            initialTimeRange: nil,
             eventCalendars: [],
             reminderCalendars: [],
             onSaveEvent: { _ in },
@@ -142,6 +143,36 @@ final class PopoverControllerTests: XCTestCase {
         presenter.lastOnClose?()
 
         XCTAssertEqual(popover.behavior, .transient)
+    }
+
+    func testShowingComposerPassesTimelineTimeRangeToPresenter() {
+        let popover = FakePopover()
+        let presenter = FakeEventDetailWindowPresenter()
+        let controller = makeController(
+            name: #function,
+            popover: popover,
+            interactionMonitor: FakePopoverInteractionMonitor(),
+            eventDetailPresenter: presenter
+        )
+        let startDate = Date(timeIntervalSince1970: 1_800)
+        let endDate = Date(timeIntervalSince1970: 3_600)
+        let timeRange = CalendarItemCreationTimeRange(
+            startDate: startDate,
+            endDate: endDate
+        )
+
+        controller.showItemComposer(
+            kind: .event,
+            selectedDate: startDate,
+            initialTimeRange: timeRange,
+            eventCalendars: [],
+            reminderCalendars: [],
+            onSaveEvent: { _ in },
+            onSaveReminder: { _ in },
+            onClose: {}
+        )
+
+        XCTAssertEqual(presenter.lastComposerTimeRange, timeRange)
     }
 
     func testShowingEditorSuspendsTransientPopoverUntilEditorCloses() {
@@ -402,6 +433,7 @@ private final class FakeEventDetailWindowPresenter: EventDetailWindowPresenting 
     private(set) var lastEvent: EKEvent?
     private(set) var lastAnchorWindow: NSWindow?
     private(set) var lastOnClose: (() -> Void)?
+    private(set) var lastComposerTimeRange: CalendarItemCreationTimeRange?
 
     func show(
         event: EKEvent,
@@ -432,6 +464,7 @@ private final class FakeEventDetailWindowPresenter: EventDetailWindowPresenting 
     func showComposer(
         kind: CalendarItemCreationKind,
         selectedDate: Date,
+        initialTimeRange: CalendarItemCreationTimeRange?,
         eventCalendars: [EKCalendar],
         reminderCalendars: [EKCalendar],
         anchoredTo anchorWindow: NSWindow?,
@@ -442,6 +475,7 @@ private final class FakeEventDetailWindowPresenter: EventDetailWindowPresenting 
         showCallCount += 1
         lastAnchorWindow = anchorWindow
         lastOnClose = onClose
+        lastComposerTimeRange = initialTimeRange
     }
 
     func showEditor(

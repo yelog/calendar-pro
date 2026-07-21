@@ -190,12 +190,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                         onClose: onClose
                     )
                 },
-                onPresentItemComposer: { [weak self] kind, selectedDate, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
+                onPresentItemComposer: { [weak self] kind, selectedDate, initialTimeRange, eventCalendars, reminderCalendars, onSaveEvent, onSaveReminder, onClose in
                     self?.uiTestVacationGuideWindowController.close()
                     self?.uiTestWeatherDetailWindowController.close()
                     self?.uiTestEventDetailWindowController.showComposer(
                         kind: kind,
                         selectedDate: selectedDate,
+                        initialTimeRange: initialTimeRange,
                         eventCalendars: eventCalendars,
                         reminderCalendars: reminderCalendars,
                         anchoredTo: self?.uiTestWindow,
