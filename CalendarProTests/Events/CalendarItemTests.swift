@@ -229,6 +229,16 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertTrue(event.isRecurringParticipationSeries)
     }
 
+    func testIsRecurringParticipationSeries_falseForNonRecurringInvite() {
+        let event = makeEvent(
+            title: "单次会议",
+            start: makeDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+            end: makeDate(year: 2026, month: 4, day: 1, hour: 10, minute: 0)
+        )
+
+        XCTAssertFalse(event.isRecurringParticipationSeries)
+    }
+
     // MARK: - timeline
 
     func testHasExplicitTime_trueForTimedReminder() {

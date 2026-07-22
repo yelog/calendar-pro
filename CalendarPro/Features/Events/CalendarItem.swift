@@ -191,7 +191,7 @@ extension EKEvent {
     }
 
     var isRecurringParticipationSeries: Bool {
-        hasRecurrenceRules || occurrenceDate != nil
+        hasRecurrenceRules
     }
 
     func updateCurrentUserParticipationChoice(_ choice: EventParticipationChoice, span: EKSpan) throws {
