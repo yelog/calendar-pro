@@ -100,8 +100,10 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private let eventDetailPresenter: EventDetailWindowPresenting
     private let vacationGuidePresenter: VacationGuideWindowPresenting
     private let weatherDetailPresenter: WeatherDetailWindowPresenting
+    private let pomodoroStatisticsPresenter: PomodoroStatisticsWindowPresenting
     private let timeRefreshCoordinator: TimeRefreshCoordinator
     private let pomodoroTimer: PomodoroTimerController
+    private let pomodoroStatsStore: PomodoroStatsStore
     private let viewModel: CalendarPopoverViewModel
     private var isComposerPresented = false
 
@@ -113,8 +115,10 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         eventDetailPresenter: EventDetailWindowPresenting = EventDetailWindowController(),
         vacationGuidePresenter: VacationGuideWindowPresenting = VacationGuideWindowController(),
         weatherDetailPresenter: WeatherDetailWindowPresenting = WeatherDetailWindowController(),
+        pomodoroStatisticsPresenter: PomodoroStatisticsWindowPresenting = PomodoroStatisticsWindowController(),
         timeRefreshCoordinator: TimeRefreshCoordinator = TimeRefreshCoordinator(),
         pomodoroTimer: PomodoroTimerController = PomodoroTimerController(),
+        pomodoroStatsStore: PomodoroStatsStore = PomodoroStatsStore(),
         viewModel: CalendarPopoverViewModel? = nil
     ) {
         self.popover = popover
@@ -124,8 +128,10 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         self.eventDetailPresenter = eventDetailPresenter
         self.vacationGuidePresenter = vacationGuidePresenter
         self.weatherDetailPresenter = weatherDetailPresenter
+        self.pomodoroStatisticsPresenter = pomodoroStatisticsPresenter
         self.timeRefreshCoordinator = timeRefreshCoordinator
         self.pomodoroTimer = pomodoroTimer
+        self.pomodoroStatsStore = pomodoroStatsStore
         self.viewModel = viewModel ?? CalendarPopoverViewModel(now: { timeRefreshCoordinator.currentDate })
         super.init()
 
@@ -160,6 +166,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                 viewModel: viewModel,
                 timeRefreshCoordinator: timeRefreshCoordinator,
                 pomodoroTimer: pomodoroTimer,
+                pomodoroStatsStore: pomodoroStatsStore,
                 onPresentEventDetailWindow: { [weak self] event, onEdit, onDelete, onClose in
                     self?.showEventDetailWindow(for: event, onEdit: onEdit, onDelete: onDelete, onClose: onClose)
                 },
@@ -200,11 +207,17 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                 onPresentWeatherDetailWindow: { [weak self] overview, onClose in
                     self?.showWeatherDetailWindow(overview: overview, onClose: onClose)
                 },
+                onPresentPomodoroStatisticsWindow: { [weak self] onClose in
+                    self?.showPomodoroStatisticsWindow(onClose: onClose)
+                },
                 onDismissEventDetailWindow: { [weak self] in
                     self?.closeEventDetailWindow()
                 },
                 onDismissWeatherDetailWindow: { [weak self] in
                     self?.closeWeatherDetailWindow()
+                },
+                onDismissPomodoroStatisticsWindow: { [weak self] in
+                    self?.closePomodoroStatisticsWindow()
                 },
                 onQuit: { [weak self] in
                     self?.quitApp()
@@ -232,6 +245,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         interactionMonitor.stop()
         closeVacationGuideWindow()
         closeWeatherDetailWindow()
+        closePomodoroStatisticsWindow()
         popover.performClose(nil)
     }
 
@@ -239,6 +253,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         closeEventDetailWindow()
         closeVacationGuideWindow()
         closeWeatherDetailWindow()
+        closePomodoroStatisticsWindow()
         return true
     }
 
@@ -256,6 +271,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     ) {
         closeVacationGuideWindow()
         closeWeatherDetailWindow()
+        closePomodoroStatisticsWindow()
         eventDetailPresenter.show(
             event: event,
             anchoredTo: popover.contentViewController?.view.window,
@@ -277,6 +293,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     ) {
         closeVacationGuideWindow()
         closeWeatherDetailWindow()
+        closePomodoroStatisticsWindow()
         eventDetailPresenter.show(
             reminder: reminder,
             anchoredTo: popover.contentViewController?.view.window,
@@ -299,6 +316,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     ) {
         closeVacationGuideWindow()
         closeWeatherDetailWindow()
+        closePomodoroStatisticsWindow()
         suspendTransientPopoverBehaviorForComposer()
         eventDetailPresenter.showComposer(
             kind: kind,
@@ -326,6 +344,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     ) {
         closeVacationGuideWindow()
         closeWeatherDetailWindow()
+        closePomodoroStatisticsWindow()
         suspendTransientPopoverBehaviorForComposer()
         eventDetailPresenter.showEditor(
             mode: mode,
@@ -353,9 +372,14 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         weatherDetailPresenter.close()
     }
 
+    func closePomodoroStatisticsWindow() {
+        pomodoroStatisticsPresenter.close()
+    }
+
     private func showVacationGuide(forMonth month: Date, onLocateDate: @escaping (Date) -> Void) {
         closeEventDetailWindow()
         closeWeatherDetailWindow()
+        closePomodoroStatisticsWindow()
         vacationGuidePresenter.show(
             referenceMonth: month,
             settingsStore: settingsStore,
@@ -367,8 +391,20 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private func showWeatherDetailWindow(overview: WeatherForecastOverview, onClose: @escaping () -> Void) {
         closeEventDetailWindow()
         closeVacationGuideWindow()
+        closePomodoroStatisticsWindow()
         weatherDetailPresenter.show(
             overview: overview,
+            anchoredTo: popover.contentViewController?.view.window,
+            onClose: onClose
+        )
+    }
+
+    private func showPomodoroStatisticsWindow(onClose: @escaping () -> Void) {
+        closeEventDetailWindow()
+        closeVacationGuideWindow()
+        closeWeatherDetailWindow()
+        pomodoroStatisticsPresenter.show(
+            statsStore: pomodoroStatsStore,
             anchoredTo: popover.contentViewController?.view.window,
             onClose: onClose
         )
@@ -378,6 +414,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         closePopover()
         closeEventDetailWindow()
         closeWeatherDetailWindow()
+        closePomodoroStatisticsWindow()
         NSApp.terminate(nil)
     }
 

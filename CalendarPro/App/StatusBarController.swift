@@ -36,7 +36,8 @@ final class StatusBarController {
             settingsStore: settingsStore,
             eventService: eventService,
             timeRefreshCoordinator: timeRefreshCoordinator,
-            pomodoroTimer: pomodoroTimer
+            pomodoroTimer: pomodoroTimer,
+            pomodoroStatsStore: pomodoroStatsStore
         )
         menuBarViewModel = MenuBarViewModel(
             settingsStore: settingsStore,

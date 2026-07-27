@@ -9,6 +9,7 @@ struct RootPopoverView: View {
     @ObservedObject var viewModel: CalendarPopoverViewModel
     @ObservedObject var timeRefreshCoordinator: TimeRefreshCoordinator
     @ObservedObject var pomodoroTimer: PomodoroTimerController
+    @ObservedObject var pomodoroStatsStore: PomodoroStatsStore
     let onPresentEventDetailWindow: (
         EKEvent,
         @escaping (EKEvent) -> Void,
@@ -42,8 +43,10 @@ struct RootPopoverView: View {
     ) -> Void
     let onPresentVacationGuide: (Date, @escaping (Date) -> Void) -> Void
     let onPresentWeatherDetailWindow: (WeatherForecastOverview, @escaping () -> Void) -> Void
+    let onPresentPomodoroStatisticsWindow: (@escaping () -> Void) -> Void
     let onDismissEventDetailWindow: () -> Void
     let onDismissWeatherDetailWindow: () -> Void
+    let onDismissPomodoroStatisticsWindow: () -> Void
     let onQuit: () -> Void
 
     @State private var itemsForSelectedDate: [CalendarItem] = []
@@ -60,6 +63,7 @@ struct RootPopoverView: View {
     @State private var lastWeatherRequestedDate: Date?
     @State private var isLoadingWeatherDetails = false
     @State private var isWeatherDetailPresented = false
+    @State private var isPomodoroStatisticsPresented = false
 
     private let almanacService = AlmanacService()
     private let weatherAutoRefreshInterval: TimeInterval = 15 * 60
@@ -108,6 +112,7 @@ struct RootPopoverView: View {
             .onDisappear {
                 cancelWeatherLoad()
                 dismissWeatherDetail()
+                dismissPomodoroStatistics()
             }
     }
 
@@ -184,6 +189,7 @@ struct RootPopoverView: View {
             onOpenWeatherDetails: handleOpenWeatherDetails,
             onOpenVacationGuide: handleOpenVacationGuide,
             onResetToToday: handleResetToToday,
+            onOpenPomodoroStatistics: handleOpenPomodoroStatistics,
             onStartPomodoroFocus: {
                 pomodoroTimer.startFocus()
             },
@@ -315,6 +321,25 @@ struct RootPopoverView: View {
 
         dismissEventDetail()
         loadWeatherDetails()
+    }
+
+    private func handleOpenPomodoroStatistics() {
+        if isPomodoroStatisticsPresented {
+            dismissPomodoroStatistics()
+            return
+        }
+
+        dismissEventDetail()
+        dismissWeatherDetail()
+        isPomodoroStatisticsPresented = true
+        onPresentPomodoroStatisticsWindow {
+            isPomodoroStatisticsPresented = false
+        }
+    }
+
+    private func dismissPomodoroStatistics() {
+        isPomodoroStatisticsPresented = false
+        onDismissPomodoroStatisticsWindow()
     }
 
     private func loadWeatherDetails() {

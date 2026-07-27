@@ -70,6 +70,7 @@ struct CalendarPopoverView: View {
     let onOpenWeatherDetails: () -> Void
     let onOpenVacationGuide: () -> Void
     let onResetToToday: () -> Void
+    let onOpenPomodoroStatistics: () -> Void
     let onStartPomodoroFocus: () -> Void
     let onPausePomodoro: () -> Void
     let onResumePomodoro: () -> Void
@@ -141,6 +142,7 @@ struct CalendarPopoverView: View {
             if pomodoroPreferences.isEnabled {
                 PomodoroStripView(
                     state: pomodoroState,
+                    onOpenStatistics: onOpenPomodoroStatistics,
                     onStartFocus: onStartPomodoroFocus,
                     onPause: onPausePomodoro,
                     onResume: onResumePomodoro,

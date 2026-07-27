@@ -67,6 +67,30 @@ final class PomodoroStatsStoreTests: XCTestCase {
         XCTAssertEqual(summary.bestDay?.dayKey, "2026-05-11")
     }
 
+    func testSevenDaySummaryProvidesPopoverKeyMetrics() {
+        let clock = PomodoroTestClock(makeDate(year: 2026, month: 5, day: 6))
+        let store = makeStore(now: { clock.value })
+
+        store.recordFocusStarted()
+        store.recordFocusCompleted()
+
+        clock.value = makeDate(year: 2026, month: 5, day: 12)
+        store.recordFocusStarted()
+        store.recordFocusStarted()
+        store.recordFocusCompleted()
+        store.recordFocusInterrupted()
+
+        let summary = store.summary(forRecentDays: 7)
+
+        XCTAssertEqual(summary.days.count, 7)
+        XCTAssertEqual(summary.completedFocusCount, 2)
+        XCTAssertEqual(summary.completedFocusMinutes, 50)
+        XCTAssertEqual(summary.focusStartedCount, 3)
+        XCTAssertEqual(summary.completionRate, 2.0 / 3.0, accuracy: 0.01)
+        XCTAssertEqual(summary.days.first?.dayKey, "2026-05-06")
+        XCTAssertEqual(summary.days.last?.dayKey, "2026-05-12")
+    }
+
     func testPrunesStatsOlderThanRetentionWindow() {
         let clock = PomodoroTestClock(makeDate(year: 2026, month: 5, day: 12))
         let suiteName = "PomodoroStatsStoreTests-\(UUID().uuidString)"

@@ -19,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let uiTestEventDetailWindowController = EventDetailWindowController()
     private let uiTestVacationGuideWindowController = VacationGuideWindowController()
     private let uiTestWeatherDetailWindowController = WeatherDetailWindowController()
+    private let uiTestPomodoroStatisticsWindowController = PomodoroStatisticsWindowController()
     private let uiTestPopoverViewModel = CalendarPopoverViewModel()
     private let uiTestTimeRefreshCoordinator = TimeRefreshCoordinator()
     private let uiTestPomodoroTimer = PomodoroTimerController()
@@ -167,6 +168,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 viewModel: uiTestPopoverViewModel,
                 timeRefreshCoordinator: uiTestTimeRefreshCoordinator,
                 pomodoroTimer: uiTestPomodoroTimer,
+                pomodoroStatsStore: pomodoroStatsStore,
                 onPresentEventDetailWindow: { [weak self] event, onEdit, onDelete, onClose in
                     self?.uiTestVacationGuideWindowController.close()
                     self?.uiTestWeatherDetailWindowController.close()
@@ -240,11 +242,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                         onClose: onClose
                     )
                 },
+                onPresentPomodoroStatisticsWindow: { [weak self] onClose in
+                    self?.uiTestPomodoroStatisticsWindowController.show(
+                        statsStore: self?.pomodoroStatsStore ?? PomodoroStatsStore(),
+                        anchoredTo: self?.uiTestWindow,
+                        onClose: onClose
+                    )
+                },
                 onDismissEventDetailWindow: { [weak self] in
                     self?.uiTestEventDetailWindowController.close()
                 },
                 onDismissWeatherDetailWindow: { [weak self] in
                     self?.uiTestWeatherDetailWindowController.close()
+                },
+                onDismissPomodoroStatisticsWindow: { [weak self] in
+                    self?.uiTestPomodoroStatisticsWindowController.close()
                 },
                 onQuit: { NSApp.terminate(nil) }
             )
