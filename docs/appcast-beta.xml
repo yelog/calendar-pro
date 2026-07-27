@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.2.3</title>
+            <pubDate>Mon, 27 Jul 2026 08:31:10 +0000</pubDate>
+            <sparkle:version>02399</sparkle:version>
+            <sparkle:shortVersionString>0.2.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.2.3&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add standalone statistics window&lt;/li&gt;&lt;li&gt;create items from timeline double-click&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Changed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;design timeline double-click creation&lt;/li&gt;&lt;li&gt;add 0.2.2 release entry [skip ci]&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;limit response scope prompt to recurring invites&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.2.3/CalendarPro-0.2.3-universal.dmg" length="7641318" type="application/octet-stream" sparkle:edSignature="oVU23eX5FuLawtHfcHVViBMk9wQIORUWCo0gcK3OzXpn6IP5JfgvwguLMqQ9Q/D294tR3IX2nfbqwkXEaRgQAQ==" />
+        </item>
+        <item>
             <title>Version 0.2.2</title>
             <pubDate>Thu, 16 Jul 2026 03:03:02 +0000</pubDate>
             <sparkle:version>02299</sparkle:version>
