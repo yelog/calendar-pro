@@ -5,6 +5,19 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-07-27
+
+### Added
+- add standalone statistics window
+- create items from timeline double-click
+
+### Changed
+- design timeline double-click creation
+- add 0.2.2 release entry [skip ci]
+
+### Fixed
+- limit response scope prompt to recurring invites
+
 ## [0.2.2] - 2026-07-16
 
 ### Added
