@@ -154,6 +154,18 @@ final class CalendarDayFactoryTests: XCTestCase {
         XCTAssertEqual(day.lunarTextSemantic, .solarTerm)
     }
 
+    func testDayFactoryMarksQixiAsFestivalSemantic() throws {
+        let factory = CalendarDayFactory.makePreview()
+        let day = try factory.makeDay(
+            for: makeDate(year: 2026, month: 8, day: 19),
+            displayedMonth: makeDate(year: 2026, month: 8, day: 1)
+        )
+
+        XCTAssertEqual(day.lunarText, "七夕")
+        XCTAssertEqual(day.subtitleText, "七夕")
+        XCTAssertEqual(day.lunarTextSemantic, .festival)
+    }
+
     func testDayFactoryMarksRegularLunarTextAsNonSolarTerm() throws {
         let factory = CalendarDayFactory.makePreview()
         let day = try factory.makeDay(

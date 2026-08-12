@@ -348,7 +348,7 @@ private struct CalendarDayCellView: View {
             return day.isInDisplayedMonth ? semanticStyle.subtitle : semanticStyle.subtitle.opacity(colorScheme == .dark ? 0.82 : 0.56)
         }
 
-        if day.lunarTextSemantic == .solarTerm {
+        if day.lunarTextSemantic == .festival || day.lunarTextSemantic == .solarTerm {
             if day.isInDisplayedMonth {
                 return colorScheme == .dark
                     ? Color(red: 1.0, green: 0.50, blue: 0.50)

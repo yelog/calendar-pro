@@ -8,6 +8,7 @@ enum LunarDisplayStyle: String, Codable, CaseIterable {
 
 enum LunarTextSemantic: Equatable {
     case regular
+    case festival
     case solarTerm
 }
 
@@ -23,7 +24,11 @@ struct LunarDateDescriptor: Equatable {
     let solarTermName: String?
 
     var displaySemantic: LunarTextSemantic {
-        if festivalName == nil, solarTermName != nil {
+        if festivalName != nil {
+            return .festival
+        }
+
+        if solarTermName != nil {
             return .solarTerm
         }
 

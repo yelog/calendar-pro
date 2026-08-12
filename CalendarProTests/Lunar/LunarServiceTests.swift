@@ -20,6 +20,15 @@ final class LunarServiceTests: XCTestCase {
         XCTAssertEqual(result.festivalName, "春节")
     }
 
+    func testLunarServiceMarksQixiAsFestivalSemantic() {
+        let service = LunarService()
+        let result = service.describe(date: makeDate(year: 2026, month: 8, day: 19))
+
+        XCTAssertEqual(result.festivalName, "七夕")
+        XCTAssertEqual(result.displayText(), "七夕")
+        XCTAssertEqual(result.displaySemantic, .festival)
+    }
+
     func testLunarServiceResolvesBeginningOfSpringSolarTerm() {
         let service = LunarService()
         let result = service.describe(date: makeDate(year: 2026, month: 2, day: 4))
