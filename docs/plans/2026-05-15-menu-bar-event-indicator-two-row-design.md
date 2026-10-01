@@ -2,7 +2,7 @@
 
 ## Context
 
-CalendarPro renders its menu bar text and upcoming event indicators into a single `NSImage` through `MenuBarTextImageRenderer`. Upcoming and ongoing events are represented as colored circular dots to the right of the date and time text. The event monitor already caps visible dots at three active items.
+CalendarPro renders its menu bar text and upcoming event indicators through `MenuBarTextImageRenderer`. The default menu bar text remains a system-tinted template image while upcoming and ongoing events are represented as colored circular dots in a separate transparent overlay, composited in the same status bar button. The event monitor already caps visible dots at three active items.
 
 The current horizontal dot layout consumes unnecessary menu bar width when two or three events are active.
 
@@ -11,6 +11,7 @@ The current horizontal dot layout consumes unnecessary menu bar width when two o
 - Keep the existing maximum of three visible event dots.
 - Keep the existing event filtering, color, filled/outlined status, tooltip, and accessibility behavior.
 - Keep the single-dot layout unchanged.
+- Preserve the default text's system template tint when colored indicator dots are present.
 - When at least two dots are present, render dots in two rows.
 - Preserve the visual order as column-major: first top, second bottom, third top in the next column.
 - Reduce horizontal space used by two or three dots without adding user-facing settings.
@@ -45,6 +46,7 @@ This is the chosen option because it preserves the existing semantics while redu
 - Main file: `CalendarPro/Features/MenuBar/ClockRenderService.swift`.
 - Tests: `CalendarProTests/MenuBar/ClockRenderServiceTests.swift`.
 - The change should stay local to image rendering.
+- Default template text and colored indicator overlay share the same image rect and button; the overlay must not intercept button actions.
 - No preference schema changes are needed.
 - No Xcode project regeneration is needed because no source or test files are added.
 

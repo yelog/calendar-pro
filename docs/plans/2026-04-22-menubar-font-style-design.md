@@ -26,14 +26,16 @@
 
 - 在 `MenuBarPreferences` 中新增 `MenuBarTextStyle`，保存 `isBold`、`foregroundColorHex`、`usesFilledBackground`、`backgroundColorHex`。
 - `foregroundColorHex == nil` 表示跟随系统，不破坏现有模板图片适配能力。
+- 当菜单栏同时显示日程色点时，默认文字继续使用系统模板图；原色色点使用独立透明覆盖图层，二者共享同一状态栏按钮。
 - 旧 JSON 解码时 `textStyle` 缺省为 `.default`。
 - `SettingsStore` 增加样式更新和重置方法，所有设置实时持久化。
 - `MenuBarSettingsView` 新增字体样式分组，并用同一份偏好渲染预览。
-- `StatusBarController` 默认继续生成 template image；当用户启用自定义颜色或填充背景时，生成彩色 `NSImage`。
+- `StatusBarController` 默认继续生成 template image；当用户启用自定义颜色或填充背景时，生成彩色 `NSImage`。日程色点不再迫使默认文字转为固定白色彩色图，使用按钮内非交互原色覆盖层绘制。
 
 ## 风险与取舍
 
 - 自定义颜色会绕过系统模板着色，因此在菜单栏高亮态不会像默认模式那样完全由系统接管。该行为只在用户显式选择自定义颜色/填充时发生。
+- 原色色点覆盖层不改变模板文字图的系统着色；覆盖层须与按钮 image rect 对齐且不截获按钮事件。
 - 逐字段样式会显著增加 UI 和绘制复杂度，也不符合当前单字符串渲染模型，暂不纳入本次范围。
 - 填充背景使用固定圆角胶囊，不提供圆角、透明度、字体族等高级选项，避免设置过载。
 

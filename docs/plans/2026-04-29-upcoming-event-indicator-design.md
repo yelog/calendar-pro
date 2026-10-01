@@ -28,10 +28,11 @@ UpcomingEventMonitor (@MainActor, ObservableObject)
   └─ 发布 @Published var activeIndicator: MenuBarEventIndicator?
 
 MenuBarTextImageRenderer.render()
-  └─ 文字右侧绘制 6pt 彩色圆点
+  ├─ 默认模板文字图预留 6pt 彩色圆点布局空间
+  └─ 彩色圆点单独绘制为透明原色覆盖图
 
 StatusBarController.bindViewModel()
-  └─ 订阅 indicator 合并到渲染管线
+  └─ 订阅 indicator 合并到渲染管线；覆盖图叠加在同一状态栏按钮内
 ```
 
 ## Settings

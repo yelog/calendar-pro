@@ -170,6 +170,7 @@ struct ClockRenderService {
 struct MenuBarTextImageRenderResult {
     let image: NSImage
     let usesTemplateColor: Bool
+    let indicatorOverlayImage: NSImage?
 }
 
 struct MenuBarTextImageRenderer {
@@ -178,19 +179,9 @@ struct MenuBarTextImageRenderer {
         let dots = indicator?.dots ?? []
         let hasDot = !dots.isEmpty
 
-        let textColor: NSColor
-        if style.foregroundColorHex != nil {
-            textColor = foregroundColor(for: style)
-        } else if showsFilledBackground {
-            textColor = foregroundColor(for: style)
-        } else {
-            textColor = Self.menuBarAdaptiveTextColor
-        }
-
         let hasEmoji = text.containsEmoji
         let usesTemplateColor = style.foregroundColorHex == nil
             && !showsFilledBackground
-            && !hasDot
             && !hasEmoji
 
         let actualTextColor: NSColor
@@ -201,7 +192,7 @@ struct MenuBarTextImageRenderer {
         } else if hasEmoji {
             actualTextColor = NSColor.labelColor
         } else {
-            actualTextColor = Self.menuBarAdaptiveTextColor
+            actualTextColor = usesTemplateColor ? .black : Self.menuBarAdaptiveTextColor
         }
 
         let attributes: [NSAttributedString.Key: Any] = [
@@ -238,54 +229,109 @@ struct MenuBarTextImageRenderer {
                 ).fill()
             }
 
-            let textDrawRect = NSRect(
-                x: horizontalPadding,
-                y: (rect.height - textSize.height) / 2,
-                width: textSize.width,
-                height: textSize.height
+            self.drawText(
+                attributedText,
+                size: textSize,
+                in: rect,
+                horizontalPadding: horizontalPadding
             )
-            attributedText.draw(in: textDrawRect)
 
-            if hasDot {
-                let dotStartX = horizontalPadding + textSize.width + dotGap
-                let usesTwoRows = dots.count > 1
-                let dotBlockHeight = usesTwoRows ? dotSize * 2 + dotRowSpacing : dotSize
-                let dotStartY = (rect.height - dotBlockHeight) / 2
-
-                for (index, dot) in dots.enumerated() {
-                    let column = usesTwoRows ? index / 2 : 0
-                    let row = usesTwoRows ? index % 2 : 0
-                    let dotX = dotStartX + CGFloat(column) * (dotSize + dotSpacing)
-                    let dotY = dotStartY + (usesTwoRows ? CGFloat(1 - row) * (dotSize + dotRowSpacing) : 0)
-                    let dotRect = NSRect(x: dotX, y: dotY, width: dotSize, height: dotSize)
-
-                    let baseColor: NSColor
-                    if let parsed = NSColor(menuBarHex: dot.colorHex) {
-                        baseColor = parsed
-                    } else {
-                        baseColor = NSColor.systemBlue
-                    }
-
-                    let dotPath = NSBezierPath(ovalIn: dotRect)
-                    switch dot.status {
-                    case .ongoing:
-                        baseColor.setFill()
-                        dotPath.fill()
-                    case .upcoming:
-                        baseColor.setStroke()
-                        dotPath.lineWidth = 1.5
-                        dotPath.stroke()
-                    }
-                }
+            if hasDot && !usesTemplateColor {
+                self.drawIndicators(
+                    dots,
+                    in: rect,
+                    textWidth: textSize.width,
+                    horizontalPadding: horizontalPadding,
+                    dotSize: dotSize,
+                    dotSpacing: dotSpacing,
+                    dotGap: dotGap,
+                    dotRowSpacing: dotRowSpacing
+                )
             }
             return true
         }
         image.isTemplate = usesTemplateColor
 
-        return MenuBarTextImageRenderResult(image: image, usesTemplateColor: usesTemplateColor)
+        let indicatorOverlayImage: NSImage?
+        if usesTemplateColor && hasDot {
+            let overlay = NSImage(size: imageSize, flipped: false) { rect in
+                self.drawIndicators(
+                    dots,
+                    in: rect,
+                    textWidth: textSize.width,
+                    horizontalPadding: horizontalPadding,
+                    dotSize: dotSize,
+                    dotSpacing: dotSpacing,
+                    dotGap: dotGap,
+                    dotRowSpacing: dotRowSpacing
+                )
+                return true
+            }
+            overlay.isTemplate = false
+            indicatorOverlayImage = overlay
+        } else {
+            indicatorOverlayImage = nil
+        }
+
+        return MenuBarTextImageRenderResult(
+            image: image,
+            usesTemplateColor: usesTemplateColor,
+            indicatorOverlayImage: indicatorOverlayImage
+        )
+    }
+
+    private func drawText(
+        _ attributedText: NSAttributedString,
+        size: NSSize,
+        in rect: NSRect,
+        horizontalPadding: CGFloat
+    ) {
+        let textDrawRect = NSRect(
+            x: horizontalPadding,
+            y: (rect.height - size.height) / 2,
+            width: size.width,
+            height: size.height
+        )
+        attributedText.draw(in: textDrawRect)
     }
 
     private static let menuBarAdaptiveTextColor = NSColor.white.withAlphaComponent(0.92)
+
+    private func drawIndicators(
+        _ dots: [MenuBarEventIndicatorDot],
+        in rect: NSRect,
+        textWidth: CGFloat,
+        horizontalPadding: CGFloat,
+        dotSize: CGFloat,
+        dotSpacing: CGFloat,
+        dotGap: CGFloat,
+        dotRowSpacing: CGFloat
+    ) {
+        let dotStartX = horizontalPadding + textWidth + dotGap
+        let usesTwoRows = dots.count > 1
+        let dotBlockHeight = usesTwoRows ? dotSize * 2 + dotRowSpacing : dotSize
+        let dotStartY = (rect.height - dotBlockHeight) / 2
+
+        for (index, dot) in dots.enumerated() {
+            let column = usesTwoRows ? index / 2 : 0
+            let row = usesTwoRows ? index % 2 : 0
+            let dotX = dotStartX + CGFloat(column) * (dotSize + dotSpacing)
+            let dotY = dotStartY + (usesTwoRows ? CGFloat(1 - row) * (dotSize + dotRowSpacing) : 0)
+            let dotRect = NSRect(x: dotX, y: dotY, width: dotSize, height: dotSize)
+
+            let baseColor = NSColor(menuBarHex: dot.colorHex) ?? .systemBlue
+            let dotPath = NSBezierPath(ovalIn: dotRect)
+            switch dot.status {
+            case .ongoing:
+                baseColor.setFill()
+                dotPath.fill()
+            case .upcoming:
+                baseColor.setStroke()
+                dotPath.lineWidth = 1.5
+                dotPath.stroke()
+            }
+        }
+    }
 
     private func statusBarFont(for style: MenuBarTextStyle) -> NSFont {
         .monospacedDigitSystemFont(

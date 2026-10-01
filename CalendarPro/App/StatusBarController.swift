@@ -1,6 +1,31 @@
 import AppKit
 import Combine
 
+private final class StatusIndicatorOverlayView: NSView {
+    var image: NSImage? {
+        didSet { needsDisplay = true }
+    }
+    weak var statusButton: NSStatusBarButton?
+
+    override func layout() {
+        super.layout()
+        guard let statusButton else { return }
+        let imageRect = statusButton.cell?.imageRect(forBounds: statusButton.bounds) ?? statusButton.bounds
+        if frame != imageRect {
+            frame = imageRect
+        }
+    }
+
+    override var isFlipped: Bool { false }
+
+    override func draw(_ dirtyRect: NSRect) {
+        guard let image else { return }
+        image.draw(in: bounds, from: .zero, operation: .sourceOver, fraction: 1)
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+}
+
 private let statusItemAutosaveName = "CalendarProStatusBarItem"
 
 @MainActor
@@ -16,6 +41,7 @@ final class StatusBarController {
     private let pomodoroStatsStore: PomodoroStatsStore
     private let pomodoroReminderService = PomodoroReminderService()
     private let pomodoroTimer: PomodoroTimerController
+    private var indicatorOverlayViews: [ObjectIdentifier: StatusIndicatorOverlayView] = [:]
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -157,6 +183,7 @@ final class StatusBarController {
     ) {
         let renderResult = textImageRenderer.render(text: text, style: style, indicator: indicator)
         button.image = renderResult.image
+        applyIndicatorOverlay(renderResult.indicatorOverlayImage, to: button)
         let tooltip = tooltipText(
             text: text,
             indicator: indicator,
@@ -165,6 +192,25 @@ final class StatusBarController {
         )
         button.toolTip = tooltip
         button.setAccessibilityLabel(tooltip)
+    }
+
+    private func applyIndicatorOverlay(_ image: NSImage?, to button: NSStatusBarButton) {
+        let key = ObjectIdentifier(button)
+        guard let image else {
+            indicatorOverlayViews.removeValue(forKey: key)?.removeFromSuperview()
+            return
+        }
+
+        let overlay = indicatorOverlayViews[key] ?? {
+            let view = StatusIndicatorOverlayView(frame: .zero)
+            view.statusButton = button
+            button.addSubview(view)
+            indicatorOverlayViews[key] = view
+            return view
+        }()
+
+        overlay.image = image
+        overlay.frame = button.cell?.imageRect(forBounds: button.bounds) ?? button.bounds
     }
 
     private func tooltipText(

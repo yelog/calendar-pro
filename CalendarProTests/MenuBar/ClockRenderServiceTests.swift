@@ -43,7 +43,7 @@ final class ClockRenderServiceTests: XCTestCase {
         XCTAssertGreaterThan(result.image.size.height, 0)
     }
 
-    func testTextImageRendererUsesOriginalImageForCalendarColorIndicator() {
+    func testTextImageRendererKeepsTemplateTextWithCalendarColorIndicator() {
         let renderer = MenuBarTextImageRenderer()
         let indicator = MenuBarEventIndicator(
             dots: [
@@ -56,9 +56,92 @@ final class ClockRenderServiceTests: XCTestCase {
         let plainResult = renderer.render(text: "10:30 Tue 04/22", style: .default)
         let indicatorResult = renderer.render(text: "10:30 Tue 04/22", style: .default, indicator: indicator)
 
-        XCTAssertFalse(indicatorResult.usesTemplateColor)
-        XCTAssertFalse(indicatorResult.image.isTemplate)
+        XCTAssertTrue(indicatorResult.usesTemplateColor)
+        XCTAssertTrue(indicatorResult.image.isTemplate)
+        XCTAssertNotNil(indicatorResult.indicatorOverlayImage)
         XCTAssertGreaterThan(indicatorResult.image.size.width, plainResult.image.size.width)
+    }
+
+    func testTextImageRendererRemovesIndicatorOverlayWhenIndicatorDisappears() {
+        let renderer = MenuBarTextImageRenderer()
+        let indicator = MenuBarEventIndicator(
+            dots: [MenuBarEventIndicatorDot(colorHex: "#34C759", status: .ongoing)],
+            tooltipText: "会议",
+            count: 1
+        )
+
+        XCTAssertNotNil(renderer.render(text: "10:30", style: .default, indicator: indicator).indicatorOverlayImage)
+        XCTAssertNil(renderer.render(text: "10:30", style: .default, indicator: nil).indicatorOverlayImage)
+        XCTAssertNil(
+            renderer.render(
+                text: "10:30",
+                style: .default,
+                indicator: MenuBarEventIndicator(dots: [], tooltipText: "", count: 0)
+            ).indicatorOverlayImage
+        )
+    }
+
+    func testTextImageRendererKeepsCalendarDotColorInOverlay() {
+        let indicator = MenuBarEventIndicator(
+            dots: [MenuBarEventIndicatorDot(colorHex: "#34C759", status: .ongoing)],
+            tooltipText: "会议",
+            count: 1
+        )
+        let result = MenuBarTextImageRenderer().render(text: "10:30", style: .default, indicator: indicator)
+        let overlay = result.indicatorOverlayImage!
+
+        let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: Int(ceil(overlay.size.width)),
+            pixelsHigh: Int(ceil(overlay.size.height)),
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        )!
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
+        overlay.draw(in: NSRect(origin: .zero, size: overlay.size))
+        NSGraphicsContext.restoreGraphicsState()
+
+        let dotX = Int(ceil(overlay.size.width)) - 5
+        let dotY = Int(ceil(overlay.size.height)) / 2
+        let color = bitmap.colorAt(x: dotX, y: dotY)?.usingColorSpace(.deviceRGB)
+        XCTAssertEqual(color?.alphaComponent ?? 0, 1, accuracy: 0.05)
+        XCTAssertEqual(color?.greenComponent ?? 0, 0.78, accuracy: 0.12)
+        XCTAssertEqual(color?.redComponent ?? 1, 0.20, accuracy: 0.12)
+    }
+
+    func testTextImageRendererKeepsTemplateImageTransparentWhereIndicatorIsDrawn() {
+        let indicator = MenuBarEventIndicator(
+            dots: [MenuBarEventIndicatorDot(colorHex: "#34C759", status: .ongoing)],
+            tooltipText: "会议",
+            count: 1
+        )
+        let image = MenuBarTextImageRenderer().render(text: "10:30", style: .default, indicator: indicator).image
+        let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: Int(ceil(image.size.width)),
+            pixelsHigh: Int(ceil(image.size.height)),
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        )!
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
+        image.draw(in: NSRect(origin: .zero, size: image.size))
+        NSGraphicsContext.restoreGraphicsState()
+
+        let dotX = Int(ceil(image.size.width)) - 5
+        let dotY = Int(ceil(image.size.height)) / 2
+        XCTAssertEqual(bitmap.colorAt(x: dotX, y: dotY)?.alphaComponent ?? 1, 0, accuracy: 0.05)
     }
 
     func testTextImageRendererUsesCompactTwoRowLayoutForMultipleIndicators() {
@@ -99,8 +182,11 @@ final class ClockRenderServiceTests: XCTestCase {
             )
         )
 
-        XCTAssertFalse(twoDotResult.usesTemplateColor)
-        XCTAssertFalse(twoDotResult.image.isTemplate)
+        XCTAssertTrue(oneDotResult.usesTemplateColor)
+        XCTAssertTrue(twoDotResult.usesTemplateColor)
+        XCTAssertTrue(threeDotResult.usesTemplateColor)
+        XCTAssertTrue(twoDotResult.image.isTemplate)
+        XCTAssertNotNil(twoDotResult.indicatorOverlayImage)
         XCTAssertEqual(twoDotResult.image.size.width, oneDotResult.image.size.width, accuracy: 0.5)
         XCTAssertLessThan(threeDotResult.image.size.width, oneDotResult.image.size.width + 20)
     }
