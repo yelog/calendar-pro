@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.2.4</title>
+            <pubDate>Fri, 02 Oct 2026 06:05:16 +0000</pubDate>
+            <sparkle:version>02499</sparkle:version>
+            <sparkle:shortVersionString>0.2.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.2.4&lt;/h2&gt;&lt;h4&gt;Changed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add event indicator text color plan&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;distinguish sidebar selection from keyboard focus&lt;/li&gt;&lt;li&gt;preserve text tint with event indicators&lt;/li&gt;&lt;li&gt;highlight traditional lunar festivals&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.2.4/CalendarPro-0.2.4-universal.dmg" length="7652224" type="application/octet-stream" sparkle:edSignature="SZRWBysn0acfNX21uvAQkZSRHjGpwPdCBiyX/V9MUAjyoz0DMGdqL8UwWr6GBIsHByIxCYP8pk8syzz4fYUiDA==" />
+        </item>
+        <item>
             <title>Version 0.2.3</title>
             <pubDate>Mon, 27 Jul 2026 08:31:10 +0000</pubDate>
             <sparkle:version>02399</sparkle:version>
