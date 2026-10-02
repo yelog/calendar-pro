@@ -73,6 +73,7 @@ struct SettingsRootView: View {
     @ObservedObject var pomodoroStatsStore: PomodoroStatsStore
     @StateObject private var regionViewModel: RegionSettingsViewModel
     @State private var selectedItem: SettingsSidebarItem = .general
+    @FocusState private var focusedSidebarItem: SettingsSidebarItem?
 
     init(store: SettingsStore, eventService: EventService, pomodoroStatsStore: PomodoroStatsStore) {
         self.store = store
@@ -124,10 +125,13 @@ struct SettingsRootView: View {
                 ForEach(SettingsSidebarItem.allCases) { item in
                     Button {
                         selectedItem = item
+                        focusedSidebarItem = item
                     } label: {
                         SettingsSidebarButton(item: item, isSelected: item == selectedItem)
                     }
                     .buttonStyle(.plain)
+                    .focused($focusedSidebarItem, equals: item)
+                    .accessibilityAddTraits(item == selectedItem ? .isSelected : [])
                 }
             }
 
@@ -199,7 +203,6 @@ private enum SettingsWindowPalette {
     static var windowBackground: Color { Color(nsColor: .windowBackgroundColor) }
     static var separator: Color { Color(nsColor: .separatorColor).opacity(0.18) }
     static var selectedFill: Color { Color.accentColor.opacity(0.10) }
-    static var selectedStroke: Color { Color.accentColor.opacity(0.16) }
     static var iconSelectedFill: Color { Color.accentColor.opacity(0.13) }
     static var iconUnselectedFill: Color { Color.primary.opacity(0.045) }
 }
@@ -247,15 +250,16 @@ private struct SettingsSidebarButton: View {
                         : Color.clear
                 )
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(
-                    isSelected
-                        ? SettingsWindowPalette.selectedStroke
-                        : Color.clear,
-                    lineWidth: isSelected ? 1 : 0
-                )
-        )
+        .overlay(alignment: .leading) {
+            if isSelected {
+                Capsule()
+                    .fill(Color.accentColor)
+                    .frame(width: 3, height: 18)
+                    .padding(.leading, 4)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+        }
         .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
