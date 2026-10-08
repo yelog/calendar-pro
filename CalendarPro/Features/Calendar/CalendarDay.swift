@@ -38,7 +38,8 @@ enum CalendarDayDisplayMetadata {
         enum Style: String, Equatable {
             case primary
             case supplemental
-            case status
+            case dayOff
+            case workday
         }
 
         let text: String
@@ -57,16 +58,19 @@ enum CalendarDayDisplayMetadata {
     static func selectedDaySummaryTitle(
         for date: Date,
         calendar: Calendar = .autoupdatingCurrent,
-        locale: Locale = .autoupdatingCurrent
+        locale: Locale = .autoupdatingCurrent,
+        includesYear: Bool = false
     ) -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.calendar = calendar
         dateFormatter.locale = locale
-        dateFormatter.setLocalizedDateFormatFromTemplate("MMMd")
+        dateFormatter.timeZone = calendar.timeZone
+        dateFormatter.setLocalizedDateFormatFromTemplate(includesYear ? "yMMMd" : "MMMd")
 
         let weekdayFormatter = DateFormatter()
         weekdayFormatter.calendar = calendar
         weekdayFormatter.locale = locale
+        weekdayFormatter.timeZone = calendar.timeZone
         weekdayFormatter.setLocalizedDateFormatFromTemplate("EEE")
 
         return "\(dateFormatter.string(from: date)) \(weekdayFormatter.string(from: date))"
@@ -97,11 +101,11 @@ enum CalendarDayDisplayMetadata {
         }
 
         if day.badges.contains(where: { $0.kind == .publicHoliday || $0.kind == .statutoryHoliday }) {
-            appendUnique(Chip(text: offText, style: .status), to: &chips)
+            appendUnique(Chip(text: offText, style: .dayOff), to: &chips)
         }
 
         if day.badges.contains(where: { $0.kind == .workingAdjustmentDay }) {
-            appendUnique(Chip(text: workText, style: .status), to: &chips)
+            appendUnique(Chip(text: workText, style: .workday), to: &chips)
         }
 
         return chips

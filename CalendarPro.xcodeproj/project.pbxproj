@@ -142,6 +142,10 @@
 		F9D140AAC822D95F5A9C417E /* mainland-cn-2021.json in Resources */ = {isa = PBXBuildFile; fileRef = 48D5833FB92D1A384CDD3CB8 /* mainland-cn-2021.json */; };
 		FC0303E54F84EFB0CB7A2DCC /* LaunchAtLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E1E5F06FBE1771E36C34A7 /* LaunchAtLoginController.swift */; };
 		FEF542C7AC0E0BC3C75864D1 /* MonthPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27D5B08EAAF6762C038DC80 /* MonthPickerView.swift */; };
+		A11000000000000000000001 /* SelectedDateSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11000000000000000000001 /* SelectedDateSummary.swift */; };
+		A11000000000000000000002 /* SelectedDateSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11000000000000000000002 /* SelectedDateSummaryView.swift */; };
+		A11000000000000000000003 /* SelectedDateSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11000000000000000000003 /* SelectedDateSummaryTests.swift */; };
+		A11000000000000000000004 /* SelectedDateSummaryLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11000000000000000000004 /* SelectedDateSummaryLayoutTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -299,6 +303,10 @@
 		F9135A4BE5AB084B3BAFE0D1 /* SettingsStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		FEAC00DB0FBDB46DB4D9F41A /* HolidayOccurrence.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayOccurrence.swift; sourceTree = "<group>"; };
 		FF83B8180CADDC942779AC18 /* RegionSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RegionSettingsView.swift; sourceTree = "<group>"; };
+		B11000000000000000000001 /* SelectedDateSummary.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SelectedDateSummary.swift; sourceTree = "<group>"; };
+		B11000000000000000000002 /* SelectedDateSummaryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SelectedDateSummaryView.swift; sourceTree = "<group>"; };
+		B11000000000000000000003 /* SelectedDateSummaryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SelectedDateSummaryTests.swift; sourceTree = "<group>"; };
+		B11000000000000000000004 /* SelectedDateSummaryLayoutTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SelectedDateSummaryLayoutTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -395,6 +403,7 @@
 			children = (
 				63E3909029650151830EEF83 /* CalendarDayFactoryTests.swift */,
 				D07DB5DA0CBBC1366605DB46 /* MonthCalendarServiceTests.swift */,
+				B11000000000000000000003 /* SelectedDateSummaryTests.swift */,
 			);
 			name = Calendar;
 			path = Calendar;
@@ -529,6 +538,7 @@
 				45ADFB89FB16C93B77172AA9 /* CalendarDay.swift */,
 				B483F7CD5EABB3BDB05372FA /* CalendarDayFactory.swift */,
 				847034D1F2AF5CDD1A9EB431 /* MonthCalendarService.swift */,
+				B11000000000000000000001 /* SelectedDateSummary.swift */,
 			);
 			name = Calendar;
 			path = Calendar;
@@ -602,6 +612,7 @@
 			isa = PBXGroup;
 			children = (
 				5C03EA7A18862CEFBDFD42E9 /* CalendarPopoverViewModelTests.swift */,
+				B11000000000000000000004 /* SelectedDateSummaryLayoutTests.swift */,
 			);
 			name = Popover;
 			path = Popover;
@@ -700,6 +711,7 @@
 				81383A7AA32687D8F346B223 /* CalendarGridView.swift */,
 				058DF2388AFACD2ED06366F4 /* CalendarItemComposerView.swift */,
 				5F80D3EC2412EE827E88753C /* CalendarPopoverView.swift */,
+				B11000000000000000000002 /* SelectedDateSummaryView.swift */,
 				53A9A9A814107C2EF9E18978 /* CalendarPopoverViewModel.swift */,
 				F12061AA584D1E37647DA93B /* EventCardView.swift */,
 				67ECAF3026087C17356C51FB /* EventDetailWindowView.swift */,
@@ -1013,6 +1025,8 @@
 				1E75FBA55D5DB913B1C64E30 /* UpdateCheckerTests.swift in Sources */,
 				7BA24B4BBEF1769D5B7F2BD3 /* WeatherDetailWindowSizingTests.swift in Sources */,
 				23121980C9C5AD09F1E4792E /* CalendarDayFactoryTests.swift in Sources */,
+				A11000000000000000000003 /* SelectedDateSummaryTests.swift in Sources */,
+				A11000000000000000000004 /* SelectedDateSummaryLayoutTests.swift in Sources */,
 				490DA1AED5113E9F44098BB2 /* MonthCalendarServiceTests.swift in Sources */,
 				519374F044F6A3B4184703B2 /* CalendarProTests.swift in Sources */,
 				A082B1C7949F28B959386DD7 /* HolidayFeedClientTests.swift in Sources */,
@@ -1060,6 +1074,7 @@
 				788A1337B72F44E8E7878AC6 /* AlmanacService.swift in Sources */,
 				4321B22641F49D547461D2DB /* CalendarDay.swift in Sources */,
 				EBB0A6DE3DC11436A2DCF9F2 /* CalendarDayFactory.swift in Sources */,
+				A11000000000000000000001 /* SelectedDateSummary.swift in Sources */,
 				CBCA52C61BBEEC40EC024C55 /* MonthCalendarService.swift in Sources */,
 				AD82BAEFBF499BDB34C8AC2D /* CalendarItem.swift in Sources */,
 				C8A50EFB60FE6AE4CF59F9D5 /* EventService.swift in Sources */,
@@ -1103,6 +1118,7 @@
 				6AC02A85F6D65D1CC7BE1E83 /* CalendarGridView.swift in Sources */,
 				1DF50203C5FF7F5C674AB579 /* CalendarItemComposerView.swift in Sources */,
 				DD7C672FE501B190D8D17CAD /* CalendarPopoverView.swift in Sources */,
+				A11000000000000000000002 /* SelectedDateSummaryView.swift in Sources */,
 				D12CB9A3447517C7BD8AD4BA /* CalendarPopoverViewModel.swift in Sources */,
 				0EB3B42F9316E9BAEC05C097 /* EventCardView.swift in Sources */,
 				E644502159E02D40E2F1E24B /* EventDetailWindowView.swift in Sources */,

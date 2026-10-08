@@ -24,6 +24,7 @@ final class CalendarPopoverUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["previous-month-button"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["next-month-button"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["calendar-popover-selected-date-summary"].exists)
     }
 
     @MainActor

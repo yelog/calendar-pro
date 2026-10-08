@@ -99,7 +99,26 @@ final class CalendarDayFactoryTests: XCTestCase {
         )
 
         XCTAssertEqual(chips.map(\.text), ["夏至", "父亲节", "休"])
-        XCTAssertEqual(chips.map(\.style), [.primary, .supplemental, .status])
+        XCTAssertEqual(chips.map(\.style), [.primary, .supplemental, .dayOff])
+    }
+
+    func testSelectedDayMetadataUsesWorkdayStyleForAdjustmentWorkday() throws {
+        var preferences = MenuBarPreferences.default
+        preferences.activeRegionIDs = ["mainland-cn"]
+        let factory = CalendarDayFactory.makePreview()
+        let day = try factory.makeDay(
+            for: makeDate(year: 2026, month: 10, day: 10),
+            displayedMonth: makeDate(year: 2026, month: 10, day: 1),
+            preferences: preferences
+        )
+        let chips = CalendarDayDisplayMetadata.selectedDayMetadataChips(
+            for: day,
+            offText: "休",
+            workText: "班"
+        )
+
+        XCTAssertEqual(chips.map(\.text), ["班"])
+        XCTAssertEqual(chips.map(\.style), [.workday])
     }
 
     func testSelectedDaySummaryTitleUsesCompactDateAnchor() {
@@ -110,6 +129,41 @@ final class CalendarDayFactoryTests: XCTestCase {
         )
 
         XCTAssertEqual(title, "6月21日 周日")
+    }
+
+    func testSelectedDaySummaryTitleCanIncludeYear() {
+        let title = CalendarDayDisplayMetadata.selectedDaySummaryTitle(
+            for: makeDate(year: 2026, month: 6, day: 21),
+            calendar: .gregorianMondayFirst,
+            locale: Locale(identifier: "zh-Hans"),
+            includesYear: true
+        )
+
+        XCTAssertTrue(title.contains("2026"))
+        XCTAssertTrue(title.contains("周日"))
+    }
+
+    func testSelectedDaySummaryTitleUsesCalendarTimeZone() {
+        let date = ISO8601DateFormatter().date(from: "2026-02-16T16:30:00Z")!
+        var shanghaiCalendar = Calendar(identifier: .gregorian)
+        shanghaiCalendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+        var utcCalendar = Calendar(identifier: .gregorian)
+        utcCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
+
+        let shanghaiTitle = CalendarDayDisplayMetadata.selectedDaySummaryTitle(
+            for: date,
+            calendar: shanghaiCalendar,
+            locale: Locale(identifier: "zh-Hans")
+        )
+        let utcTitle = CalendarDayDisplayMetadata.selectedDaySummaryTitle(
+            for: date,
+            calendar: utcCalendar,
+            locale: Locale(identifier: "zh-Hans")
+        )
+
+        XCTAssertNotEqual(shanghaiTitle, utcTitle)
+        XCTAssertTrue(shanghaiTitle.contains("2月17日"))
+        XCTAssertTrue(utcTitle.contains("2月16日"))
     }
 
     func testSelectedDayMetadataChipsHideRegularLunarSubtitle() throws {

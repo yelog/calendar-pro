@@ -45,8 +45,9 @@ struct LunarService {
         let gan = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
         let zhi = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
         
-        let ganIndex = (year - 4) % 10
-        let zhiIndex = (year - 4) % 12
+        // Chinese calendar years are numbered 1...60, starting with 甲子.
+        let ganIndex = (year - 1) % 10
+        let zhiIndex = (year - 1) % 12
         
         return gan[max(0, min(9, ganIndex))] + zhi[max(0, min(11, zhiIndex))] + "年"
     }

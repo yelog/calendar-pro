@@ -117,7 +117,10 @@ struct RootPopoverView: View {
     }
 
     private var popoverContent: some View {
-        CalendarPopoverView(
+        let displayedMonthDays = monthDays
+        let selectedDateSummary = makeSelectedDateSummary(visibleDays: displayedMonthDays)
+
+        return CalendarPopoverView(
             displayedMonth: viewModel.displayedMonth,
             displayedYear: viewModel.displayedYear,
             displayedMonthNumber: viewModel.displayedMonthNumber,
@@ -126,7 +129,7 @@ struct RootPopoverView: View {
             selectionMode: viewModel.selectionMode,
             weekdaySymbols: viewModel.weekdaySymbols(using: displayCalendar),
             weekendIndices: Self.weekendColumnIndices(for: displayCalendar),
-            monthDays: monthDays,
+            monthDays: displayedMonthDays,
             highlightWeekends: settingsStore.menuBarPreferences.highlightWeekends,
             showEvents: settingsStore.menuBarPreferences.showEvents,
             emptyStateText: settingsStore.menuBarPreferences.eventListEmptyStateText,
@@ -135,6 +138,7 @@ struct RootPopoverView: View {
             selectedEventIdentifier: viewModel.selectedEventIdentifier,
             isLoadingEvents: isLoadingEvents,
             timeRefreshCoordinator: timeRefreshCoordinator,
+            selectedDateSummary: selectedDateSummary,
             almanac: almanacDescriptor,
             showAlmanac: settingsStore.menuBarPreferences.showAlmanac,
             weather: weatherDescriptor,
@@ -651,6 +655,20 @@ struct RootPopoverView: View {
         var calendar = Calendar.autoupdatingCurrent
         calendar.firstWeekday = settingsStore.menuBarPreferences.weekStart == .monday ? 2 : 1
         return calendar
+    }
+
+    private func makeSelectedDateSummary(visibleDays: [CalendarDay]) -> SelectedDateSummary {
+        SelectedDateSummaryFactory(calendar: displayCalendar, registry: .live).make(
+            selectedDate: viewModel.selectedDate,
+            currentDate: timeRefreshCoordinator.currentDate,
+            displayedMonth: viewModel.displayedMonth,
+            preferences: settingsStore.menuBarPreferences,
+            locale: AppLocalization.locale,
+            showsLunarDate: LocaleFeatureAvailability.showLunarFeatures,
+            offText: L("OFF"),
+            workText: L("WRK"),
+            visibleDays: visibleDays
+        )
     }
 
     private var preferredWeatherLocation: WeatherLocation? {

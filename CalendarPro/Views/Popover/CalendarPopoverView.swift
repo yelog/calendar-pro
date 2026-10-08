@@ -21,8 +21,6 @@ enum CalendarPopoverEventCountFormatter {
 }
 
 struct CalendarPopoverView: View {
-    @Environment(\.colorScheme) private var colorScheme
-
     let displayedMonth: Date
     let displayedYear: Int
     let displayedMonthNumber: Int
@@ -40,6 +38,7 @@ struct CalendarPopoverView: View {
     let selectedEventIdentifier: String?
     let isLoadingEvents: Bool
     let timeRefreshCoordinator: TimeRefreshCoordinator
+    let selectedDateSummary: SelectedDateSummary
     let almanac: AlmanacDescriptor?
     let showAlmanac: Bool
     let weather: WeatherDescriptor?
@@ -135,7 +134,7 @@ struct CalendarPopoverView: View {
                 onSelectDate: onSelectDate
             )
 
-            selectedDayInfoSection
+            SelectedDateSummaryView(summary: selectedDateSummary)
 
             infoStripsSection
 
@@ -226,53 +225,6 @@ struct CalendarPopoverView: View {
     }
 
     @ViewBuilder
-    private var selectedDayInfoSection: some View {
-        if let selectedDate, !selectedDayMetadataChips.isEmpty {
-            HStack(alignment: .center, spacing: 8) {
-                Text(selectedDaySummaryTitle(for: selectedDate))
-                    .font(.system(size: 10.5, weight: .medium, design: .rounded))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .fixedSize(horizontal: true, vertical: false)
-
-                HStack(spacing: 4) {
-                    ForEach(selectedDayMetadataChips) { chip in
-                        selectedDayMetadataChip(chip)
-                    }
-                }
-                .layoutPriority(1)
-
-                Spacer(minLength: 0)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, -3)
-            .padding(.bottom, 0)
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(Text(selectedDayMetadataAccessibilityText))
-            .accessibilityIdentifier("calendar-popover-selected-day-metadata")
-        }
-    }
-
-    private func selectedDayMetadataChip(_ chip: CalendarDayDisplayMetadata.Chip) -> some View {
-        Text(chip.text)
-            .font(.system(size: chip.style == .status ? 9.5 : 10, weight: .medium, design: .rounded))
-            .foregroundStyle(selectedDayMetadataForegroundColor(for: chip.style))
-            .lineLimit(1)
-            .truncationMode(.tail)
-            .padding(.horizontal, chip.style == .status ? 5 : 6)
-            .frame(height: chip.style == .status ? 17 : 19)
-            .layoutPriority(chip.style == .status ? 0 : 1)
-            .background {
-                Capsule()
-                    .fill(selectedDayMetadataFillColor(for: chip.style))
-            }
-            .overlay {
-                Capsule()
-                    .strokeBorder(selectedDayMetadataBorderColor(for: chip.style), lineWidth: 0.5)
-            }
-    }
-
-    @ViewBuilder
     private var creationButton: some View {
         if canCreateEvent || canCreateReminder {
             Button {
@@ -335,76 +287,6 @@ struct CalendarPopoverView: View {
             itemCount: items.count,
             activeTimedItemIndex: activeInfo.activeIndex,
             timedItemCount: activeInfo.timedCount
-        )
-    }
-
-    private var selectedCalendarDay: CalendarDay? {
-        guard let selectedDate else { return nil }
-        return monthDays.first { Calendar.autoupdatingCurrent.isDate($0.date, inSameDayAs: selectedDate) }
-    }
-
-    private var selectedDayMetadataChips: [CalendarDayDisplayMetadata.Chip] {
-        guard let selectedCalendarDay else { return [] }
-        return CalendarDayDisplayMetadata.selectedDayMetadataChips(
-            for: selectedCalendarDay,
-            offText: L("OFF"),
-            workText: L("WRK")
-        )
-    }
-
-    private var selectedDayMetadataAccessibilityText: String {
-        var components: [String] = []
-        if let selectedDate {
-            components.append(selectedDaySummaryTitle(for: selectedDate))
-        }
-        components.append(contentsOf: selectedDayMetadataChips.map(\.text))
-        return components.joined(separator: ", ")
-    }
-
-    private func selectedDayMetadataForegroundColor(for style: CalendarDayDisplayMetadata.Chip.Style) -> Color {
-        switch style {
-        case .primary:
-            return colorScheme == .dark
-                ? Color(red: 1.0, green: 0.64, blue: 0.64)
-                : Color(red: 0.70, green: 0.20, blue: 0.23)
-        case .supplemental:
-            return colorScheme == .dark
-                ? Color(red: 1.0, green: 0.70, blue: 0.46)
-                : Color(red: 0.58, green: 0.32, blue: 0.08)
-        case .status:
-            return colorScheme == .dark
-                ? Color(red: 1.0, green: 0.68, blue: 0.70)
-                : Color(red: 0.74, green: 0.19, blue: 0.25)
-        }
-    }
-
-    private func selectedDayMetadataFillColor(for style: CalendarDayDisplayMetadata.Chip.Style) -> Color {
-        switch style {
-        case .primary:
-            return Color(red: 1.0, green: 0.24, blue: 0.30).opacity(colorScheme == .dark ? 0.13 : 0.07)
-        case .supplemental:
-            return Color(red: 1.0, green: 0.58, blue: 0.18).opacity(colorScheme == .dark ? 0.12 : 0.07)
-        case .status:
-            return Color(red: 1.0, green: 0.22, blue: 0.30).opacity(colorScheme == .dark ? 0.16 : 0.08)
-        }
-    }
-
-    private func selectedDayMetadataBorderColor(for style: CalendarDayDisplayMetadata.Chip.Style) -> Color {
-        switch style {
-        case .primary:
-            return Color(red: 0.88, green: 0.20, blue: 0.26).opacity(colorScheme == .dark ? 0.24 : 0.15)
-        case .supplemental:
-            return Color(red: 0.86, green: 0.42, blue: 0.04).opacity(colorScheme == .dark ? 0.22 : 0.14)
-        case .status:
-            return Color(red: 0.88, green: 0.18, blue: 0.26).opacity(colorScheme == .dark ? 0.26 : 0.16)
-        }
-    }
-
-    private func selectedDaySummaryTitle(for date: Date) -> String {
-        CalendarDayDisplayMetadata.selectedDaySummaryTitle(
-            for: date,
-            calendar: Calendar.autoupdatingCurrent,
-            locale: AppLocalization.locale
         )
     }
 

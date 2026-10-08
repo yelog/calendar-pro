@@ -35,6 +35,10 @@ struct LunarDateDescriptor: Equatable {
         return .regular
     }
 
+    var fullDateText: String {
+        yearText + monthText + dayText
+    }
+
     func displayText(style: LunarDisplayStyle = .day) -> String {
         if let festivalName {
             return festivalName
@@ -50,7 +54,7 @@ struct LunarDateDescriptor: Equatable {
         case .monthDay:
             return monthText + dayText
         case .yearMonthDay:
-            return yearText + monthText + dayText
+            return fullDateText
         }
     }
 }

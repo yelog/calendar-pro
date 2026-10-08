@@ -140,3 +140,9 @@
 4. 验证传统节日仍优先显示，如 2026-02-17 继续显示“春节”。
 5. 验证非节气非节日日期继续显示普通农历日文本。
 6. 运行 `LunarServiceTests` 与 `CalendarDayFactoryTests`，再做整项目构建。
+
+## 后续演进：完整农历日期（Issue #5）
+
+紧凑显示继续遵循上文的“传统节日 > 节气 > 普通农历文本”优先级。完整农历日期由 `LunarDateDescriptor.fullDateText` 独立提供，不被节日或节气名称替换，并在月历弹层中单独展示。新增完整日期展示及循环干支年修正的实施计划见 [`2026-10-08-full-lunar-date-design.md`](2026-10-08-full-lunar-date-design.md)；此处记录为 Issue #5 的后续设计说明，不改变本计划原有的节气规则。
+
+2026-10-08：完整农历日期展示的后续 UI 已演进为统一所选日期摘要，公历、农历、节日及休班标签共用同一行布局；设计和验证记录见 [`2026-10-08-unified-date-summary-design.md`](2026-10-08-unified-date-summary-design.md)。完整文本模型、节日/节气紧凑显示优先级及干支年份修复保留。
