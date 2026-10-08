@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.2.5</title>
+            <pubDate>Thu, 08 Oct 2026 09:51:05 +0000</pubDate>
+            <sparkle:version>02599</sparkle:version>
+            <sparkle:shortVersionString>0.2.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.2.5&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;unify solar and lunar dates with holiday metadata in the selected-date summary&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;correct Chinese lunar cyclical year names&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.2.5/CalendarPro-0.2.5-universal.dmg" length="7687933" type="application/octet-stream" sparkle:edSignature="bDl9D4neU56iHzAgs6NmheVRidK+vO7nw9eE0Yeeb5epGXFzkNBPleq93+FuiF+bwfcYq/x48AI/umM1oZ/KDQ==" />
+        </item>
+        <item>
             <title>Version 0.2.4</title>
             <pubDate>Fri, 02 Oct 2026 06:05:16 +0000</pubDate>
             <sparkle:version>02499</sparkle:version>
