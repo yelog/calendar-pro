@@ -261,6 +261,67 @@ final class EventService: ObservableObject {
         return result
     }
     
+    /// Fetches board reminders, optionally merging completed items
+    /// (all of them, or only those completed after the given window start).
+    func fetchBoardReminders(
+        enabledCalendarIDs: [String],
+        includeCompleted: Bool,
+        recentCompletedWindowStart: Date? = nil
+    ) async -> [EKReminder] {
+        guard remindersAuthorized else { return [] }
+
+        let calendarsToFetch: [EKCalendar]
+        if enabledCalendarIDs.isEmpty {
+            calendarsToFetch = reminderCalendars
+        } else {
+            calendarsToFetch = reminderCalendars.filter { enabledCalendarIDs.contains($0.calendarIdentifier) }
+        }
+
+        guard !calendarsToFetch.isEmpty else { return [] }
+
+        let store = eventStore
+
+        // nil start/end fetches every incomplete reminder; the board needs the
+        // full set, not a single-day window.
+        let incompletePredicate = eventStore.predicateForIncompleteReminders(
+            withDueDateStarting: nil,
+            ending: nil,
+            calendars: calendarsToFetch
+        )
+
+        async let incompleteResult = withCheckedContinuation { (continuation: CheckedContinuation<[EKReminder], Never>) in
+            store.fetchReminders(matching: incompletePredicate) { reminders in
+                continuation.resume(returning: reminders ?? [])
+            }
+        }
+
+        let incomplete = await incompleteResult
+
+        guard includeCompleted || recentCompletedWindowStart != nil else { return incomplete }
+
+        let completedPredicate = eventStore.predicateForCompletedReminders(
+            withCompletionDateStarting: includeCompleted ? nil : recentCompletedWindowStart,
+            ending: nil,
+            calendars: calendarsToFetch
+        )
+
+        let completed = await withCheckedContinuation { (continuation: CheckedContinuation<[EKReminder], Never>) in
+            store.fetchReminders(matching: completedPredicate) { reminders in
+                continuation.resume(returning: reminders ?? [])
+            }
+        }
+
+        var seen = Set<String>()
+        var result: [EKReminder] = []
+        for reminder in incomplete + completed {
+            if seen.insert(reminder.calendarItemIdentifier).inserted {
+                result.append(reminder)
+            }
+        }
+
+        return result
+    }
+
     func fetchCalendarItems(
         for date: Date,
         enabledCalendarIDs: [String],

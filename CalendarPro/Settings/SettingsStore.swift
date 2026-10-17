@@ -405,6 +405,99 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
+    /// Toggles the reminders board section in the popover.
+    func setShowRemindersBoard(_ enabled: Bool) {
+        var prefs = menuBarPreferences
+        prefs.showRemindersBoard = enabled
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    /// Toggles one reminder list for the board; an empty ID array means all selected.
+    func setBoardReminderCalendarEnabled(
+        _ enabled: Bool,
+        calendarID: String,
+        allCalendarIDs: [String] = []
+    ) {
+        let hasAllCalendarIDs = !allCalendarIDs.isEmpty
+        var ids = menuBarPreferences.boardEnabledReminderCalendarIDs
+
+        if hasAllCalendarIDs && ids.isEmpty {
+            ids = allCalendarIDs
+        }
+
+        if enabled {
+            if !ids.contains(calendarID) {
+                ids.append(calendarID)
+            }
+        } else {
+            ids.removeAll { $0 == calendarID }
+        }
+
+        var prefs = menuBarPreferences
+        if hasAllCalendarIDs && Set(ids) == Set(allCalendarIDs) {
+            prefs.boardEnabledReminderCalendarIDs = []
+        } else if hasAllCalendarIDs {
+            prefs.boardEnabledReminderCalendarIDs = allCalendarIDs.filter { ids.contains($0) }
+        } else {
+            prefs.boardEnabledReminderCalendarIDs = ids
+        }
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    /// Sets the board grouping mode.
+    func setBoardGroupingMode(_ mode: RemindersBoardGroupingMode) {
+        var prefs = menuBarPreferences
+        prefs.boardGroupingMode = mode
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    /// Sets whether the board shows completed reminders.
+    func setBoardShowCompleted(_ enabled: Bool) {
+        var prefs = menuBarPreferences
+        prefs.boardShowCompleted = enabled
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    /// Sets the completed-row retention window in seconds (0 hides immediately).
+    func setBoardCompletedRetentionSeconds(_ seconds: Int) {
+        var prefs = menuBarPreferences
+        prefs.boardCompletedRetentionSeconds = seconds
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    /// Sets the board color mode.
+    func setBoardColorMode(_ mode: RemindersBoardColorMode) {
+        var prefs = menuBarPreferences
+        prefs.boardColorMode = mode
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    /// Applies a color preset; custom only flips the flag and keeps current colors.
+    func setBoardColorPreset(_ preset: BoardColorPreset) {
+        var prefs = menuBarPreferences
+        prefs.boardColorPreset = preset
+        if let palette = preset.colorPreferences {
+            prefs.boardColorPreferences = palette
+        }
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    /// Sets one board color; any edit flips the preset to custom.
+    func setBoardColorHex(_ colorHex: String, for key: BoardColorKey) {
+        var prefs = menuBarPreferences
+        prefs.boardColorPreferences.setColorHex(colorHex, for: key)
+        prefs.boardColorPreset = .custom
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
     func setLaunchAtLoginEnabled(_ enabled: Bool) {
         launchAtLoginStatusMessage = nil
 

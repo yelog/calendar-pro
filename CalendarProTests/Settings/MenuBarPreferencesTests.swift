@@ -60,6 +60,11 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertTrue(prefs.enabledCalendarIDs.isEmpty)
     }
 
+    func testDefaultBoardCompletedRetentionSecondsIsThree() {
+        let prefs = MenuBarPreferences.default
+        XCTAssertEqual(prefs.boardCompletedRetentionSeconds, 3)
+    }
+
     func testCodableRoundTrip() throws {
         let prefs = MenuBarPreferences.default
         let data = try JSONEncoder().encode(prefs)
@@ -107,6 +112,30 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertFalse(decoded.showCalendarEvents)
         XCTAssertTrue(decoded.showReminders)
         XCTAssertEqual(decoded.textStyle, .default)
+    }
+
+    func testLegacyDecodingDefaultsBoardCompletedRetentionSecondsToThree() throws {
+        let legacyJSON = """
+        {
+          "tokens": [
+            { "token": "date", "isEnabled": true, "order": 0, "style": "short" }
+          ],
+          "separator": " ",
+          "showLunarInMenuBar": false,
+          "activeRegionIDs": ["mainland-cn"],
+          "enabledHolidayIDs": [],
+          "weekStart": "monday",
+          "showEvents": true,
+          "enabledCalendarIDs": [],
+          "showReminders": true,
+          "enabledReminderCalendarIDs": [],
+          "showRemindersBoard": true,
+          "boardShowCompleted": false
+        }
+        """.data(using: .utf8)!
+        let decoded = try JSONDecoder().decode(MenuBarPreferences.self, from: legacyJSON)
+
+        XCTAssertEqual(decoded.boardCompletedRetentionSeconds, 3)
     }
 
     func testLegacyDecodingAddsMissingWeatherToken() throws {

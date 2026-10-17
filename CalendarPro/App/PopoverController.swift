@@ -105,6 +105,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private let pomodoroTimer: PomodoroTimerController
     private let pomodoroStatsStore: PomodoroStatsStore
     private let viewModel: CalendarPopoverViewModel
+    private var hostingController: PopoverSizingHostingController?
     private var isComposerPresented = false
 
     init(
@@ -159,8 +160,10 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     }
 
     private func updateContentView() {
-        let hostingController = NSHostingController(
-            rootView: RootPopoverView(
+        // 内容包一层 ScrollView：弹层高度被屏幕钳制后，超出的内容在弹层内滚动，
+        // 而不是把弹层顶出屏幕上缘。
+        let rootPopoverView =
+            RootPopoverView(
                 settingsStore: settingsStore,
                 eventService: eventService,
                 viewModel: viewModel,
@@ -222,23 +225,50 @@ final class PopoverController: NSObject, NSPopoverDelegate {
                 onQuit: { [weak self] in
                     self?.quitApp()
                 }
+        )
+        let controller = PopoverSizingHostingController(
+            rootView: AnyView(
+                ScrollView { rootPopoverView }
             )
         )
         if #available(macOS 13.0, *) {
-            hostingController.sizingOptions = .preferredContentSize
+            controller.sizingOptions = .preferredContentSize
         }
-        popover.contentViewController = hostingController
-        popover.contentSize = hostingController.view.fittingSize
+        hostingController = controller
+        popover.contentViewController = controller
+        popover.contentSize = controller.view.fittingSize
     }
 
     private func showPopover(relativeTo button: NSView) {
         timeRefreshCoordinator.refreshNow()
         viewModel.checkAndResetIfNeeded()
         viewModel.syncCurrentDaySelectionIfNeeded(calendar: .autoupdatingCurrent)
+        applyScreenHeightLimit(relativeTo: button)
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         interactionMonitor.start { [weak self] in
             self?.closePopover()
         }
+    }
+
+    /// 显示前按状态栏按钮下方的屏幕可用空间收紧弹层高度：内容超出时弹层取
+    /// 上限高度、内部 ScrollView 滚动；后续内容变化同样受上限约束，
+    /// 不再把弹层顶出屏幕上缘。
+    private func applyScreenHeightLimit(relativeTo button: NSView) {
+        guard let window = button.window else { return }
+        guard let screen = window.screen ?? NSScreen.main else { return }
+        let buttonFrameInScreen = window.convertToScreen(
+            button.convert(button.bounds, to: nil)
+        )
+        popover.contentSize = PopoverSizing.clampedContentSize(
+            fittingSize: popover.contentSize,
+            anchorButtonFrameInScreen: buttonFrameInScreen,
+            visibleFrame: screen.visibleFrame
+        )
+        // 上限取可用高度而非当前 clamp 结果，展开分节后弹层仍可在可用空间内增长。
+        hostingController?.maximumContentHeight = PopoverSizing.availableHeight(
+            anchorButtonFrameInScreen: buttonFrameInScreen,
+            visibleFrame: screen.visibleFrame
+        )
     }
 
     private func closePopover() {
