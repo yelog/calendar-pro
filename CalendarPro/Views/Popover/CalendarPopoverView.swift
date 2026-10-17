@@ -33,6 +33,19 @@ struct CalendarPopoverView: View {
     let highlightWeekends: Bool
     let showEvents: Bool
     let emptyStateText: String
+    let showUpcomingSection: Bool
+    let upcomingItems: [CalendarItem]
+    let isLoadingUpcomingPast: Bool
+    let isLoadingUpcomingFuture: Bool
+    let hasMoreUpcomingPast: Bool
+    let hasMoreUpcomingFuture: Bool
+    let upcomingDefaultExpanded: Bool
+    // Bumped on every pagination reset; the section scrolls back to its top
+    // anchor because data resets leave stale scroll offsets behind
+    let upcomingResetGeneration: Int
+    // Bumped by PopoverController on every show; drives the expansion reset
+    // on popover reopen (view instances survive reuse, onAppear does not)
+    let upcomingPresentationGeneration: Int
     let selectedDate: Date?
     let items: [CalendarItem]
     let selectedEventIdentifier: String?
@@ -66,6 +79,8 @@ struct CalendarPopoverView: View {
     let onOpenReminder: (EKReminder) -> Void
     let onCreateItem: () -> Void
     let onCreateEventAt: (CalendarItemCreationTimeRange) -> Void
+    let onLoadMoreUpcomingPast: () -> Void
+    let onLoadMoreUpcomingFuture: () -> Void
     let onOpenWeatherDetails: () -> Void
     let onOpenVacationGuide: () -> Void
     let onResetToToday: () -> Void
@@ -151,6 +166,29 @@ struct CalendarPopoverView: View {
             }
 
             eventsSection
+
+            if showUpcomingSection {
+                Divider()
+                    .padding(.horizontal, -PopoverSurfaceMetrics.outerPadding)
+
+                UpcomingEventsSection(
+                    items: upcomingItems,
+                    isLoadingPast: isLoadingUpcomingPast,
+                    isLoadingFuture: isLoadingUpcomingFuture,
+                    hasMorePast: hasMoreUpcomingPast,
+                    hasMoreFuture: hasMoreUpcomingFuture,
+                    defaultExpanded: upcomingDefaultExpanded,
+                    resetGeneration: upcomingResetGeneration,
+                    presentationGeneration: upcomingPresentationGeneration,
+                    timeRefreshCoordinator: timeRefreshCoordinator,
+                    selectedEventIdentifier: selectedEventIdentifier,
+                    onLoadMorePast: onLoadMoreUpcomingPast,
+                    onLoadMoreFuture: onLoadMoreUpcomingFuture,
+                    onSelectEvent: onSelectEvent,
+                    onOpenReminder: onOpenReminder,
+                    onToggleReminder: onToggleReminder
+                )
+            }
 
             Divider()
                 .padding(.horizontal, -PopoverSurfaceMetrics.outerPadding)

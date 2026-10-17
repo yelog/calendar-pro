@@ -7,6 +7,23 @@
     "·" : {
 
     },
+    "%d days" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 天"
+          }
+        }
+      }
+    },
     "%d days before" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -884,6 +901,23 @@
         }
       }
     },
+    "Choose Calendars for All Events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Calendars for All Events"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择全部日程包含的日历"
+          }
+        }
+      }
+    },
     "Choose Reminder Lists" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -897,6 +931,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择提醒事项列表"
+          }
+        }
+      }
+    },
+    "Choose Reminder Lists for All Events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Reminder Lists for All Events"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择全部日程包含的提醒列表"
           }
         }
       }
@@ -1101,6 +1152,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "配置地区与节假日数据"
+          }
+        }
+      }
+    },
+    "Configure All Events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configure the all events section"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "配置全部日程版块"
           }
         }
       }
@@ -1734,6 +1802,40 @@
         }
       }
     },
+    "Expand by Default" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expand by Default"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认展开版块"
+          }
+        }
+      }
+    },
+    "Expand by Default Description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expand the recent events section when the popover opens."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开弹层时默认展开近期日程版块。"
+          }
+        }
+      }
+    },
     "Events off" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2362,6 +2464,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "包含提醒事项"
+          }
+        }
+      }
+    },
+    "Include Reminders in All Events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include Reminders in All Events"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含有到期时间的提醒事项"
           }
         }
       }
@@ -3352,6 +3471,23 @@
         }
       }
     },
+    "No Limit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Limit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不限"
+          }
+        }
+      }
+    },
     "No Calendars Available" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3518,6 +3654,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未配置远程节假日数据源，当前使用内置数据"
+          }
+        }
+      }
+    },
+    "No Events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No events"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无日程"
           }
         }
       }
@@ -4287,6 +4440,23 @@
         }
       }
     },
+    "Load Earlier Events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load Earlier Events"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加载更早日程"
+          }
+        }
+      }
+    },
     "Quit" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5014,6 +5184,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在面板中显示日程"
+          }
+        }
+      }
+    },
+    "Show All Events Section" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show All Events Section"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示全部日程版块"
+          }
+        }
+      }
+    },
+    "Show All Events Section Description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show a collapsible section below the event list that lists all events."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在日程列表下方显示可折叠的全部日程版块。"
           }
         }
       }
@@ -5813,6 +6017,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "即将到来"
+          }
+        }
+      }
+    },
+    "All Events Day Limit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Events Day Limit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "时间范围"
+          }
+        }
+      }
+    },
+    "All Events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Events"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部日程"
+          }
+        }
+      }
+    },
+    "All Events Detail Description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose whether the all events section shows in the popover, its time window, and the sources included."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择全部日程版块是否在弹层中显示，以及时间范围与包含的数据来源。"
+          }
+        }
+      }
+    },
+    "All Today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天"
+          }
+        }
+      }
+    },
+    "All Tomorrow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明天"
+          }
+        }
+      }
+    },
+    "All Yesterday" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yesterday"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昨天"
           }
         }
       }

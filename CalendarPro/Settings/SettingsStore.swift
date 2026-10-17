@@ -377,6 +377,90 @@ final class SettingsStore: ObservableObject {
         persistMenuBarPreferences()
     }
 
+    func setShowUpcomingSection(_ enabled: Bool) {
+        var prefs = menuBarPreferences
+        prefs.showUpcomingSection = enabled
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setUpcomingDayLimit(_ days: Int) {
+        var prefs = menuBarPreferences
+        prefs.upcomingDayLimit = days
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setUpcomingIncludeReminders(_ enabled: Bool) {
+        var prefs = menuBarPreferences
+        prefs.upcomingIncludeReminders = enabled
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setUpcomingDefaultExpanded(_ enabled: Bool) {
+        var prefs = menuBarPreferences
+        prefs.upcomingDefaultExpanded = enabled
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setUpcomingCalendarEnabled(_ enabled: Bool, calendarID: String, allCalendarIDs: [String] = []) {
+        let hasAllCalendarIDs = !allCalendarIDs.isEmpty
+        var ids = menuBarPreferences.upcomingEnabledCalendarIDs
+
+        if hasAllCalendarIDs && ids.isEmpty {
+            ids = allCalendarIDs
+        }
+
+        if enabled {
+            if !ids.contains(calendarID) {
+                ids.append(calendarID)
+            }
+        } else {
+            ids.removeAll { $0 == calendarID }
+        }
+
+        var prefs = menuBarPreferences
+        if hasAllCalendarIDs && Set(ids) == Set(allCalendarIDs) {
+            prefs.upcomingEnabledCalendarIDs = []
+        } else if hasAllCalendarIDs {
+            prefs.upcomingEnabledCalendarIDs = allCalendarIDs.filter { ids.contains($0) }
+        } else {
+            prefs.upcomingEnabledCalendarIDs = ids
+        }
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
+    func setUpcomingReminderCalendarEnabled(_ enabled: Bool, calendarID: String, allCalendarIDs: [String] = []) {
+        let hasAllCalendarIDs = !allCalendarIDs.isEmpty
+        var ids = menuBarPreferences.upcomingEnabledReminderCalendarIDs
+
+        if hasAllCalendarIDs && ids.isEmpty {
+            ids = allCalendarIDs
+        }
+
+        if enabled {
+            if !ids.contains(calendarID) {
+                ids.append(calendarID)
+            }
+        } else {
+            ids.removeAll { $0 == calendarID }
+        }
+
+        var prefs = menuBarPreferences
+        if hasAllCalendarIDs && Set(ids) == Set(allCalendarIDs) {
+            prefs.upcomingEnabledReminderCalendarIDs = []
+        } else if hasAllCalendarIDs {
+            prefs.upcomingEnabledReminderCalendarIDs = allCalendarIDs.filter { ids.contains($0) }
+        } else {
+            prefs.upcomingEnabledReminderCalendarIDs = ids
+        }
+        menuBarPreferences = prefs
+        persistMenuBarPreferences()
+    }
+
     func setReminderCalendarEnabled(_ enabled: Bool, calendarID: String, allCalendarIDs: [String] = []) {
         let hasAllCalendarIDs = !allCalendarIDs.isEmpty
         var ids = menuBarPreferences.enabledReminderCalendarIDs

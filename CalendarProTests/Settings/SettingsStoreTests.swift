@@ -157,6 +157,59 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertTrue(store.menuBarPreferences.enabledReminderCalendarIDs.isEmpty)
     }
 
+    func testSetUpcomingSectionPreferencesPersist() {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        let store = makeStore(userDefaults: userDefaults)
+
+        XCTAssertTrue(store.menuBarPreferences.showUpcomingSection)
+        XCTAssertEqual(store.menuBarPreferences.upcomingDayLimit, 90)
+        XCTAssertTrue(store.menuBarPreferences.upcomingIncludeReminders)
+        XCTAssertTrue(store.menuBarPreferences.upcomingDefaultExpanded)
+
+        store.setShowUpcomingSection(false)
+        store.setUpcomingDayLimit(180)
+        store.setUpcomingIncludeReminders(false)
+        store.setUpcomingDefaultExpanded(false)
+        store.setUpcomingCalendarEnabled(
+            false,
+            calendarID: "calendar-1",
+            allCalendarIDs: ["calendar-1", "calendar-2"]
+        )
+        store.setUpcomingReminderCalendarEnabled(
+            false,
+            calendarID: "reminder-1",
+            allCalendarIDs: ["reminder-1", "reminder-2"]
+        )
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertFalse(reloaded.menuBarPreferences.showUpcomingSection)
+        XCTAssertEqual(reloaded.menuBarPreferences.upcomingDayLimit, 180)
+        XCTAssertFalse(reloaded.menuBarPreferences.upcomingIncludeReminders)
+        XCTAssertFalse(reloaded.menuBarPreferences.upcomingDefaultExpanded)
+        XCTAssertEqual(reloaded.menuBarPreferences.upcomingEnabledCalendarIDs, ["calendar-2"])
+        XCTAssertEqual(reloaded.menuBarPreferences.upcomingEnabledReminderCalendarIDs, ["reminder-2"])
+    }
+
+    func testSetUpcomingCalendarEnabledRestoresEmptyMeansAllSelected() {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+
+        store.setUpcomingCalendarEnabled(
+            true,
+            calendarID: "calendar-1",
+            allCalendarIDs: ["calendar-1", "calendar-2"]
+        )
+        XCTAssertTrue(store.menuBarPreferences.upcomingEnabledCalendarIDs.isEmpty)
+
+        store.setUpcomingReminderCalendarEnabled(
+            true,
+            calendarID: "reminder-1",
+            allCalendarIDs: ["reminder-1", "reminder-2"]
+        )
+        XCTAssertTrue(store.menuBarPreferences.upcomingEnabledReminderCalendarIDs.isEmpty)
+    }
+
     func testTokenStylePersistsForChineseFormats() {
         let suiteName = #function
         let userDefaults = makeIsolatedUserDefaults(name: suiteName)
