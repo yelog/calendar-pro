@@ -70,7 +70,7 @@ struct RemindersBoardSection: View {
                     .foregroundStyle(.secondary)
                     .frame(width: Metrics.chevronWidth)
 
-                Text(L("提醒事项看板"))
+                Text(verbatim: "提醒事项看板")
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .lineLimit(1)
 
@@ -159,10 +159,12 @@ struct RemindersBoardSection: View {
             .disabled(reminder == nil)
             .help(L("已完成"))
 
-            Circle()
-                .fill(Color(boardColorHex: priorityDotColorHex(for: row)))
-                .frame(width: Metrics.priorityDotSize, height: Metrics.priorityDotSize)
-                .help(row.priority.displayTitle)
+            if row.priority != .none {
+                Circle()
+                    .fill(Color(boardColorHex: priorityDotColorHex(for: row)))
+                    .frame(width: Metrics.priorityDotSize, height: Metrics.priorityDotSize)
+                    .help(row.priority.displayTitle)
+            }
 
             Text(row.title)
                 .font(.system(size: 12))
