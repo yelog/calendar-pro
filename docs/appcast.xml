@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.2.7</title>
+            <pubDate>Mon, 19 Oct 2026 06:42:54 +0000</pubDate>
+            <sparkle:version>02799</sparkle:version>
+            <sparkle:shortVersionString>0.2.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.2.7&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;switch between day and overview event views&lt;/li&gt;&lt;li&gt;browse all events in a bidirectional, paginated list&lt;/li&gt;&lt;li&gt;add collapsible upcoming events and reminders boards&lt;/li&gt;&lt;li&gt;customize board behavior, calendar filters, and row colors in dedicated settings pages&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;keep the popover within screen bounds and reset expanded sections on reopen&lt;/li&gt;&lt;li&gt;handle empty states, paging boundaries, and overlapping event requests&lt;/li&gt;&lt;li&gt;show reminder titles and completion colors correctly&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.2.7/CalendarPro-0.2.7-universal.dmg" length="8061779" type="application/octet-stream" sparkle:edSignature="tQCoN77dPXV9GGNjCbxJdY/ITk0r+2Akvcd5t2larLU6mwcwoCKg1fw3OX4LbSAWRvySH1G+MXY9JVdGBbHNBw==" />
+        </item>
+        <item>
             <title>Version 0.2.6</title>
             <pubDate>Thu, 15 Oct 2026 03:15:41 +0000</pubDate>
             <sparkle:version>02699</sparkle:version>
