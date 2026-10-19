@@ -5,6 +5,19 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.7] - 2026-10-19
+
+### Added
+- switch between day and overview event views
+- browse all events in a bidirectional, paginated list
+- add collapsible upcoming events and reminders boards
+- customize board behavior, calendar filters, and row colors in dedicated settings pages
+
+### Fixed
+- keep the popover within screen bounds and reset expanded sections on reopen
+- handle empty states, paging boundaries, and overlapping event requests
+- show reminder titles and completion colors correctly
+
 ## [0.2.6] - 2026-10-15
 
 ### Added
