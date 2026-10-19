@@ -13,6 +13,11 @@ final class CalendarPopoverViewModel: ObservableObject {
     @Published private(set) var selectedEventIdentifier: String?
     @Published private(set) var selectionMode: SelectionMode = .calendar
     @Published var lastClosedTime: Date?
+    // Bumped by PopoverController on every show: popover reopen resets are
+    // driven by this explicit presentation channel because the popover
+    // reuses its content view controller, so SwiftUI onAppear is not a
+    // reliable reopen signal on real hardware.
+    @Published private(set) var popoverPresentationGeneration = 0
     private let autoResetInterval: TimeInterval
     private let now: () -> Date
     private var followsCurrentDaySelection = false
@@ -126,6 +131,10 @@ final class CalendarPopoverViewModel: ObservableObject {
     func resetToToday() {
         displayedMonth = now()
         selectionMode = .calendar
+    }
+
+    func markPopoverPresented() {
+        popoverPresentationGeneration += 1
     }
 
     func popoverDidClose() {

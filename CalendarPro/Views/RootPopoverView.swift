@@ -51,7 +51,33 @@ struct RootPopoverView: View {
 
     @State private var itemsForSelectedDate: [CalendarItem] = []
     @State private var isLoadingEvents: Bool = false
+    @State private var eventsRequestID = UUID()
     @State private var boardReminders: [EKReminder] = []
+    @State private var upcomingItems: [CalendarItem] = []
+    @State private var isLoadingUpcomingPast: Bool = false
+    @State private var isLoadingUpcomingFuture: Bool = false
+    // Count-based paging cursors: the future cursor is the next window start
+    // (advancing up from today's midnight), the past cursor the next window
+    // upper bound (advancing down); nil = that direction's end is proven
+    // (user limit / empty window / loop cap). Reset to page one on every
+    // popover presentation.
+    @State private var upcomingFutureCursor: Date?
+    @State private var upcomingPastCursor: Date?
+    // Bumped on every pagination reset; the section scrolls back to its top
+    // anchor because data resets leave stale scroll offsets behind
+    @State private var upcomingResetGeneration: Int = 0
+    // Per-direction race IDs: each entry bumps its own and each completion
+    // block validates and resets only its own direction, so a concurrent
+    // past load and future load never cancel each other; reset/clear bumps
+    // both IDs to invalidate everything in flight
+    @State private var upcomingPastRequestID = UUID()
+    @State private var upcomingFutureRequestID = UUID()
+    // Per-direction page-full resume flags: set when the last assembly
+    // ended page-full (not exhausted), so the next load re-queries the same
+    // window and a resume window yielding nothing new is not the past end;
+    // completion blocks write these back, reset/clear returns false
+    @State private var isUpcomingPastResumingWindow = false
+    @State private var isUpcomingFutureResumingWindow = false
     @State private var almanacDescriptor: AlmanacDescriptor?
     @State private var weatherDescriptor: WeatherDescriptor?
     @State private var isLoadingWeather: Bool = false
@@ -70,17 +96,124 @@ struct RootPopoverView: View {
     private let almanacService = AlmanacService()
     private let weatherAutoRefreshInterval: TimeInterval = 15 * 60
 
+    /// Count-based paging constants: page size, query window span and the
+    /// per-page window loop cap. Page one takes 10 items from today's
+    /// midnight (all-day events included); pages fill through 30-day window
+    /// loops bounded by the user limit (future) or an empty window (past).
+    static let upcomingPageSize = 10
+    static let upcomingPageWindowDays = 30
+    static let upcomingPageMaxWindows = 12
+
+    enum UpcomingPageDirection {
+        case past
+        case future
+    }
+
+    /// Pure data output of one window slice (unit-testable).
+    struct UpcomingPageWindowSlice {
+        // Freshly taken items (loaded identities removed), stored ascending;
+        // display order is UpcomingSnapshot's job
+        let takenItems: [CalendarItem]
+        // In-range item count before dedup, for the past empty-window check:
+        // all-duplicates only means a recurring reminder repeats across
+        // windows, not history's end
+        let inRangeItemCount: Int
+        let isPageFull: Bool
+    }
+
+    /// One paging step over an EventKit window result (pure, nonisolated for
+    /// unit tests): filters to the half-open [windowStart, windowEnd), drops
+    /// loaded identities, takes up to the remaining page size (future takes
+    /// the earliest batch, past the most recent; both ascending) and returns
+    /// the next cursor plus exhaustion. Cursor semantics live in the
+    /// page-full and end branches below.
+    nonisolated static func advanceUpcomingPage(
+        direction: UpcomingPageDirection,
+        windowItems: [CalendarItem],
+        windowStart: Date,
+        windowEnd: Date,
+        collectedCount: Int,
+        loadedIdentifiers: Set<String>,
+        pageSize: Int,
+        futureLimitEnd: Date?,
+        isResumingWindow: Bool
+    ) -> (slice: UpcomingPageWindowSlice, nextWindowStart: Date?, isExhausted: Bool) {
+        // Re-check the range and drop loaded identities: page-full resumes
+        // and same-instant page boundaries both dedupe on the identity set
+        let inRangeItems = windowItems.filter { item in
+            guard let startDate = item.startDate else { return false }
+            return startDate >= windowStart && startDate < windowEnd
+        }
+        let freshItems = inRangeItems.filter {
+            !loadedIdentifiers.contains($0.selectionIdentifier)
+        }
+        let remaining = pageSize - collectedCount
+        let takeCount = max(0, min(remaining, freshItems.count))
+        // Future takes the earliest batch (ascending head); past takes the
+        // batch nearest the cursor (ascending tail). Both store ascending.
+        let taken: [CalendarItem]
+        switch direction {
+        case .future:
+            taken = Array(freshItems.prefix(takeCount))
+        case .past:
+            taken = Array(freshItems.suffix(takeCount))
+        }
+        let slice = UpcomingPageWindowSlice(
+            takenItems: taken,
+            inRangeItemCount: inRangeItems.count,
+            isPageFull: collectedCount + taken.count >= pageSize
+        )
+
+        // Page-full: keep the cursor inside the window so the next page
+        // resumes it. Future resumes at windowStart; past must resume at
+        // windowEnd — rewinding to windowStart would skip this window's
+        // leftovers and the next (empty) window would misread history's end
+        if slice.isPageFull {
+            let resumeCursor = direction == .past ? windowEnd : windowStart
+            return (slice, resumeCursor, false)
+        }
+
+        switch direction {
+        case .future:
+            // Reaching the user limit at the window end means exhausted; an
+            // empty window is not, the per-page window cap bounds the loop
+            if let futureLimitEnd, windowEnd >= futureLimitEnd {
+                return (slice, nil, true)
+            }
+            return (slice, windowEnd, false)
+        case .past:
+            // An empty past window means the historical start; a resume
+            // window, or one holding only recurring-reminder repeats, keeps
+            // going
+            if inRangeItems.isEmpty, !isResumingWindow {
+                return (slice, nil, true)
+            }
+            return (slice, windowStart, false)
+        }
+    }
+
     var body: some View {
         popoverContent
             .onAppear {
                 timeRefreshCoordinator.refreshNow()
                 eventService.checkAuthorizationStatus()
                 refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+                // First-open first page load; popover reopen resets arrive via
+                // the presentation generation channel below instead, because
+                // onAppear does not re-fire reliably on reused popovers
+                resetUpcomingPaginationAndLoadFirstPage()
                 refreshInfoStrips()
                 loadBoard()
             }
+            .onChange(of: viewModel.popoverPresentationGeneration) { _, _ in
+                // Explicit reopen channel: PopoverController bumps the
+                // generation on every show; the reused content view never
+                // re-fires onAppear, so resets hang off this change
+                resetUpcomingPaginationAndLoadFirstPage()
+            }
             .onReceive(eventService.$isAuthorized.dropFirst()) { _ in
                 refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+                resetUpcomingPaginationAndLoadFirstPage()
             }
             .onReceive(eventService.$remindersAuthorized.dropFirst()) { isAuthorized in
                 if isAuthorized {
@@ -88,15 +221,18 @@ struct RootPopoverView: View {
                 }
                 refreshEventsForCurrentSelection()
                 loadBoard()
+                resetUpcomingPaginationAndLoadFirstPage()
             }
-            .onReceive(settingsStore.$menuBarPreferences.dropFirst()) { _ in
+            .onChange(of: settingsStore.menuBarPreferences) { _, _ in
                 refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+                resetUpcomingPaginationAndLoadFirstPage()
                 refreshInfoStrips()
                 loadBoard()
             }
             .onReceive(eventService.$storeChangeRevision.dropFirst()) { _ in
                 refreshEventsForCurrentSelection()
                 loadBoard()
+                resetUpcomingPaginationAndLoadFirstPage()
             }
             .onReceive(viewModel.$selectedDate.dropFirst()) { newDate in
                 if let date = newDate {
@@ -105,6 +241,8 @@ struct RootPopoverView: View {
                 } else {
                     clearLoadedEvents()
                 }
+                // Upcoming content is date-independent; paging does not
+                // reset on selection changes
             }
             .onReceive(timeRefreshCoordinator.$currentDate) { currentDate in
                 guard shouldAutoRefreshWeather(at: currentDate) else { return }
@@ -113,6 +251,9 @@ struct RootPopoverView: View {
             .onReceive(timeRefreshCoordinator.$dayChangeRevision.dropFirst()) { _ in
                 viewModel.syncCurrentDaySelectionIfNeeded(calendar: displayCalendar)
                 refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+                // The paging base (today's midnight) moved with the day
+                // change; start over from page one
+                resetUpcomingPaginationAndLoadFirstPage()
                 refreshInfoStrips()
                 // Day change: overdue colors and due texts must be recomputed.
                 loadBoard()
@@ -141,6 +282,14 @@ struct RootPopoverView: View {
             highlightWeekends: settingsStore.menuBarPreferences.highlightWeekends,
             showEvents: settingsStore.menuBarPreferences.showEvents,
             emptyStateText: settingsStore.menuBarPreferences.eventListEmptyStateText,
+            showUpcomingSection: settingsStore.menuBarPreferences.showUpcomingSection,
+            eventListMode: settingsStore.menuBarPreferences.effectiveEventListMode,
+            upcomingItems: upcomingItems,
+            isLoadingUpcomingPast: isLoadingUpcomingPast,
+            isLoadingUpcomingFuture: isLoadingUpcomingFuture,
+            hasMoreUpcomingPast: upcomingPastCursor != nil,
+            hasMoreUpcomingFuture: upcomingFutureCursor != nil,
+            upcomingResetGeneration: upcomingResetGeneration,
             selectedDate: viewModel.selectedDate,
             items: itemsForSelectedDate,
             selectedEventIdentifier: viewModel.selectedEventIdentifier,
@@ -206,6 +355,12 @@ struct RootPopoverView: View {
             onCreateEventAt: { timeRange in
                 handleCreateItem(initialTimeRange: timeRange)
             },
+            onSelectEventListMode: { mode in
+                dismissEventDetail()
+                settingsStore.setEventListMode(mode)
+            },
+            onLoadMoreUpcomingPast: handleLoadMoreUpcomingPast,
+            onLoadMoreUpcomingFuture: handleLoadMoreUpcomingFuture,
             onOpenWeatherDetails: handleOpenWeatherDetails,
             onOpenVacationGuide: handleOpenVacationGuide,
             onResetToToday: handleResetToToday,
@@ -411,7 +566,7 @@ struct RootPopoverView: View {
     private func loadEvents(for date: Date) {
         let preferences = settingsStore.menuBarPreferences
 
-        guard preferences.showEvents else {
+        guard preferences.effectiveEventListMode == .day else {
             clearLoadedEvents()
             return
         }
@@ -430,6 +585,8 @@ struct RootPopoverView: View {
         }
 
         isLoadingEvents = true
+        let requestID = UUID()
+        eventsRequestID = requestID
         let requestedDate = date
         Task {
             let items = await eventService.fetchCalendarItems(
@@ -440,6 +597,8 @@ struct RootPopoverView: View {
                 showReminders: preferences.showReminders
             )
             await MainActor.run {
+                guard eventsRequestID == requestID,
+                      settingsStore.menuBarPreferences.effectiveEventListMode == .day else { return }
                 guard viewModel.selectedDate == requestedDate else { return }
                 itemsForSelectedDate = items
                 syncSelectedEvent(with: items)
@@ -451,7 +610,7 @@ struct RootPopoverView: View {
     private func refreshEventsForCurrentSelection(selectingTodayIfNeeded: Bool = false) {
         let preferences = settingsStore.menuBarPreferences
 
-        guard preferences.showEvents else {
+        guard preferences.effectiveEventListMode == .day else {
             clearLoadedEvents()
             return
         }
@@ -472,10 +631,234 @@ struct RootPopoverView: View {
     }
 
     private func clearLoadedEvents() {
+        eventsRequestID = UUID()
         itemsForSelectedDate = []
         isLoadingEvents = false
         viewModel.clearSelectedEvent()
         onDismissEventDetailWindow()
+    }
+
+    /// Resets pagination and loads page one: clears loaded items, returns
+    /// both cursors to today's midnight, bumps the reset generation and
+    /// loads the first future page (10 items, today's all-day included).
+    /// Fired by the popover presentation generation (onAppear as the
+    /// first-open fallback) and by authorization, settings, store and
+    /// day-change refreshes so data changes restart from page one.
+    private func resetUpcomingPaginationAndLoadFirstPage() {
+        let preferences = settingsStore.menuBarPreferences
+
+        guard preferences.effectiveEventListMode == .overview else {
+            clearLoadedUpcoming()
+            return
+        }
+
+        if eventService.isAuthorized {
+            eventService.fetchCalendars()
+        }
+
+        if eventService.remindersAuthorized {
+            eventService.fetchReminderCalendars()
+        }
+
+        // Reset before loading: bumping both request IDs invalidates
+        // in-flight loads, stale results dropped by each direction's race
+        // guard; resume flags return false since page one is never a resume
+        upcomingPastRequestID = UUID()
+        upcomingFutureRequestID = UUID()
+        isUpcomingPastResumingWindow = false
+        isUpcomingFutureResumingWindow = false
+        upcomingItems = []
+        isLoadingUpcomingPast = false
+        isLoadingUpcomingFuture = false
+        upcomingFutureCursor = displayCalendar.startOfDay(
+            for: timeRefreshCoordinator.currentDate
+        )
+        upcomingPastCursor = displayCalendar.startOfDay(
+            for: timeRefreshCoordinator.currentDate
+        )
+        upcomingResetGeneration += 1
+        loadUpcomingPage(direction: .future)
+    }
+
+    /// Loads one page in one direction: loops 30-day windows from the
+    /// cursor through the pure slicing function until the page fills, the
+    /// end is proven or the 12-window cap (about 360 days) is hit against
+    /// pathological data. Directions never block each other; results stale
+    /// after a reset are dropped by the per-direction race guard.
+    private func loadUpcomingPage(direction: UpcomingPageDirection) {
+        let preferences = settingsStore.menuBarPreferences
+        guard preferences.effectiveEventListMode == .overview else { return }
+        guard let startCursor = direction == .future
+            ? upcomingFutureCursor
+            : upcomingPastCursor else {
+            return
+        }
+
+        // Per-direction in-flight guard; the request ID joins this
+        // direction's race domain only, and the resume flag is snapshotted
+        // across the fetch (written back by the previous completion block)
+        let requestID: UUID
+        let startIsResumingWindow: Bool
+        switch direction {
+        case .past:
+            guard !isLoadingUpcomingPast else { return }
+            isLoadingUpcomingPast = true
+            requestID = UUID()
+            upcomingPastRequestID = requestID
+            startIsResumingWindow = isUpcomingPastResumingWindow
+        case .future:
+            guard !isLoadingUpcomingFuture else { return }
+            isLoadingUpcomingFuture = true
+            requestID = UUID()
+            upcomingFutureRequestID = requestID
+            startIsResumingWindow = isUpcomingFutureResumingWindow
+        }
+
+        let now = timeRefreshCoordinator.currentDate
+        // The day-limit setting (30/90/180/unlimited) becomes the future
+        // direction's absolute end; 0 means unlimited. Unused for past.
+        let futureLimitEnd: Date? = preferences.upcomingDayLimit > 0
+            ? displayCalendar.date(byAdding: .day, value: preferences.upcomingDayLimit, to: now)
+            : nil
+
+        var loadedIdentifiers = Set(upcomingItems.map(\.selectionIdentifier))
+        let enabledCalendarIDs = preferences.upcomingEnabledCalendarIDs
+        let includeReminders = preferences.upcomingIncludeReminders
+        let enabledReminderCalendarIDs = preferences.upcomingEnabledReminderCalendarIDs
+        let calendar = displayCalendar
+        let service = eventService
+
+        Task {
+            var collected: [CalendarItem] = []
+            var cursor = startCursor
+            // Whether the first window resumes a page-full interruption;
+            // handed across windows below via isPageFull
+            var isResumingWindow = startIsResumingWindow
+            var isExhausted = false
+            var queriedWindowCount = 0
+
+            while !isExhausted,
+                  collected.count < RootPopoverView.upcomingPageSize,
+                  queriedWindowCount < RootPopoverView.upcomingPageMaxWindows {
+                let activeRequestID = direction == .past
+                    ? upcomingPastRequestID
+                    : upcomingFutureRequestID
+                guard activeRequestID == requestID,
+                      settingsStore.menuBarPreferences.effectiveEventListMode == .overview else { return }
+                // Future window [cursor, cursor+30d) clipped to the user
+                // limit; past window [cursor-30d, cursor), cursor = upper
+                // bound
+                let windowStart: Date
+                let windowEnd: Date
+                switch direction {
+                case .future:
+                    windowStart = cursor
+                    var end = calendar.date(
+                        byAdding: .day,
+                        value: RootPopoverView.upcomingPageWindowDays,
+                        to: cursor
+                    ) ?? cursor
+                    if let futureLimitEnd, end > futureLimitEnd {
+                        end = futureLimitEnd
+                    }
+                    windowEnd = end
+                case .past:
+                    windowEnd = cursor
+                    windowStart = calendar.date(
+                        byAdding: .day,
+                        value: -RootPopoverView.upcomingPageWindowDays,
+                        to: cursor
+                    ) ?? cursor
+                }
+                guard windowEnd > windowStart else {
+                    isExhausted = true
+                    break
+                }
+
+                queriedWindowCount += 1
+                let windowItems = await service.fetchUpcomingCalendarItems(
+                    pastStart: windowStart,
+                    futureEnd: windowEnd,
+                    enabledCalendarIDs: enabledCalendarIDs,
+                    includeReminders: includeReminders,
+                    enabledReminderCalendarIDs: enabledReminderCalendarIDs
+                )
+                let step = RootPopoverView.advanceUpcomingPage(
+                    direction: direction,
+                    windowItems: windowItems,
+                    windowStart: windowStart,
+                    windowEnd: windowEnd,
+                    collectedCount: collected.count,
+                    loadedIdentifiers: loadedIdentifiers,
+                    pageSize: RootPopoverView.upcomingPageSize,
+                    futureLimitEnd: futureLimitEnd,
+                    isResumingWindow: isResumingWindow
+                )
+                collected.append(contentsOf: step.slice.takenItems)
+                for item in step.slice.takenItems {
+                    loadedIdentifiers.insert(item.selectionIdentifier)
+                }
+                // Page-full: the next round resumes this window, and a
+                // resume window yielding nothing new is not the past end
+                isResumingWindow = step.slice.isPageFull
+                if let nextWindowStart = step.nextWindowStart {
+                    cursor = nextWindowStart
+                }
+                isExhausted = step.isExhausted
+            }
+
+            // Window cap reached while under-full: return what we have as
+            // the end (nil cursor)
+            let hitWindowCap = !isExhausted
+                && collected.count < RootPopoverView.upcomingPageSize
+            let nextCursor: Date? = (isExhausted || hitWindowCap) ? nil : cursor
+            // Page-full finish keeps the cursor inside the window for the
+            // same-window resume; exhausted/capped finishes get a nil cursor
+            // and clear the flag
+            let endedWithPageFull = nextCursor != nil
+                && collected.count >= RootPopoverView.upcomingPageSize
+
+            await MainActor.run {
+                // Only this direction's race domain is checked: the other
+                // direction bumping its own ID never invalidates this result
+                switch direction {
+                case .past:
+                    guard upcomingPastRequestID == requestID else { return }
+                    upcomingPastCursor = nextCursor
+                    isUpcomingPastResumingWindow = endedWithPageFull
+                    isLoadingUpcomingPast = false
+                case .future:
+                    guard upcomingFutureRequestID == requestID else { return }
+                    upcomingFutureCursor = nextCursor
+                    isUpcomingFutureResumingWindow = endedWithPageFull
+                    isLoadingUpcomingFuture = false
+                }
+                upcomingItems.append(contentsOf: collected)
+            }
+        }
+    }
+
+    /// Top entry row: loads one past page. Ignored while exhausted or
+    /// already loading.
+    private func handleLoadMoreUpcomingPast() {
+        loadUpcomingPage(direction: .past)
+    }
+
+    /// Bottom sentinel: loads the next future page; same guard semantics.
+    private func handleLoadMoreUpcomingFuture() {
+        loadUpcomingPage(direction: .future)
+    }
+
+    private func clearLoadedUpcoming() {
+        upcomingPastRequestID = UUID()
+        upcomingFutureRequestID = UUID()
+        isUpcomingPastResumingWindow = false
+        isUpcomingFutureResumingWindow = false
+        upcomingItems = []
+        isLoadingUpcomingPast = false
+        isLoadingUpcomingFuture = false
+        upcomingFutureCursor = nil
+        upcomingPastCursor = nil
     }
 
     private func syncSelectedEvent(with items: [CalendarItem]) {
@@ -516,6 +899,11 @@ struct RootPopoverView: View {
             refreshEventsForCurrentSelection()
             // Shared toggle entry with the event list; keep the board in sync.
             loadBoard()
+            // Completed reminders drop straight out of the loaded pages;
+            // cursors and scroll stay put, a full reload waits for the next
+            // open or data refresh
+            let toggledIdentifier = CalendarItem.reminder(reminder).selectionIdentifier
+            upcomingItems.removeAll { $0.selectionIdentifier == toggledIdentifier }
         } catch {
             print("Failed to toggle reminder completion: \(error)")
         }

@@ -25,12 +25,12 @@ struct EventsSettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                GroupBox(L("Events")) {
+                GroupBox(L("Single Day Events")) {
                     VStack(alignment: .leading, spacing: 14) {
-                        Toggle(L("Show Events in Panel"), isOn: showEventsBinding)
+                        Toggle(L("Show Single Day View"), isOn: showEventsBinding)
                             .toggleStyle(.checkbox)
 
-                        Text(L("Show Events Description"))
+                        Text(L("Single Day View Description"))
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)

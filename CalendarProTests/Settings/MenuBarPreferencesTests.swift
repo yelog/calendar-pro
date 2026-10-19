@@ -65,6 +65,102 @@ final class MenuBarPreferencesTests: XCTestCase {
         XCTAssertEqual(prefs.boardCompletedRetentionSeconds, 3)
     }
 
+    func testDefaultUpcomingSectionPreferences() {
+        let prefs = MenuBarPreferences.default
+
+        XCTAssertTrue(prefs.showUpcomingSection)
+        XCTAssertEqual(prefs.upcomingDayLimit, 90)
+        XCTAssertTrue(prefs.upcomingIncludeReminders)
+        XCTAssertTrue(prefs.upcomingDefaultExpanded)
+        XCTAssertTrue(prefs.upcomingEnabledCalendarIDs.isEmpty)
+        XCTAssertTrue(prefs.upcomingEnabledReminderCalendarIDs.isEmpty)
+    }
+
+    func testEventListModeUsesEnabledViewWithoutReplacingPreferredMode() {
+        var preferences = MenuBarPreferences.default
+        XCTAssertEqual(preferences.eventListMode, .day)
+        XCTAssertEqual(preferences.effectiveEventListMode, .day)
+
+        preferences.eventListMode = .overview
+        XCTAssertEqual(preferences.effectiveEventListMode, .overview)
+
+        preferences.showUpcomingSection = false
+        XCTAssertEqual(preferences.effectiveEventListMode, .day)
+        XCTAssertEqual(preferences.eventListMode, .overview)
+
+        preferences.showEvents = false
+        XCTAssertNil(preferences.effectiveEventListMode)
+
+        preferences.showUpcomingSection = true
+        preferences.eventListMode = .day
+        XCTAssertEqual(preferences.effectiveEventListMode, .overview)
+
+        preferences.showEvents = true
+        XCTAssertEqual(preferences.effectiveEventListMode, .day)
+    }
+
+    func testEventListModeDecodesOldAndUnknownValuesAsDay() throws {
+        let encoded = try JSONEncoder().encode(MenuBarPreferences.default)
+        var stored = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        stored.removeValue(forKey: "eventListMode")
+        let legacyData = try JSONSerialization.data(withJSONObject: stored)
+        XCTAssertEqual(try JSONDecoder().decode(MenuBarPreferences.self, from: legacyData).eventListMode, .day)
+
+        stored["eventListMode"] = "future-mode"
+        let unknownData = try JSONSerialization.data(withJSONObject: stored)
+        XCTAssertEqual(try JSONDecoder().decode(MenuBarPreferences.self, from: unknownData).eventListMode, .day)
+    }
+
+    func testLegacyDecodingDefaultsUpcomingSectionFields() throws {
+        let legacyJSON = """
+        {
+          "tokens": [{ "token": "date", "isEnabled": true, "order": 0, "style": "short" }],
+          "separator": " ",
+          "showLunarInMenuBar": false,
+          "activeRegionIDs": [],
+          "enabledHolidayIDs": [],
+          "weekStart": "monday",
+          "showEvents": true,
+          "enabledCalendarIDs": [],
+          "showReminders": true,
+          "enabledReminderCalendarIDs": []
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(MenuBarPreferences.self, from: legacyJSON)
+
+        XCTAssertTrue(decoded.showUpcomingSection)
+        XCTAssertEqual(decoded.eventListMode, .day)
+        XCTAssertEqual(decoded.upcomingDayLimit, 90)
+        XCTAssertTrue(decoded.upcomingIncludeReminders)
+        XCTAssertTrue(decoded.upcomingDefaultExpanded)
+        XCTAssertTrue(decoded.upcomingEnabledCalendarIDs.isEmpty)
+        XCTAssertTrue(decoded.upcomingEnabledReminderCalendarIDs.isEmpty)
+    }
+
+    func testDecodingPreservesExplicitUpcomingIncludeRemindersFalse() throws {
+        // Stored explicit false survives the default flip to true
+        let storedJSON = """
+        {
+          "tokens": [{ "token": "date", "isEnabled": true, "order": 0, "style": "short" }],
+          "separator": " ",
+          "showLunarInMenuBar": false,
+          "activeRegionIDs": [],
+          "enabledHolidayIDs": [],
+          "weekStart": "monday",
+          "showEvents": true,
+          "enabledCalendarIDs": [],
+          "showReminders": true,
+          "enabledReminderCalendarIDs": [],
+          "upcomingIncludeReminders": false
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(MenuBarPreferences.self, from: storedJSON)
+
+        XCTAssertFalse(decoded.upcomingIncludeReminders)
+    }
+
     func testCodableRoundTrip() throws {
         let prefs = MenuBarPreferences.default
         let data = try JSONEncoder().encode(prefs)

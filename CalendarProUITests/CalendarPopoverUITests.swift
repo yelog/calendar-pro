@@ -28,11 +28,75 @@ final class CalendarPopoverUITests: XCTestCase {
     }
 
     @MainActor
-    private func launchApplication(_ app: XCUIApplication) throws {
+    func testEventViewSwitchShowsOneListAndRemembersSelection() throws {
+        let suiteName = "CalendarPopoverUITests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer {
+            terminateExistingInstances()
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        let preferences: [String: Any] = [
+            "tokens": [["token": "date", "isEnabled": true, "order": 0, "style": "short"]],
+            "separator": " ",
+            "showLunarInMenuBar": false,
+            "activeRegionIDs": [],
+            "enabledHolidayIDs": [],
+            "weekStart": "monday",
+            "showEvents": true,
+            "showCalendarEvents": false,
+            "enabledCalendarIDs": [],
+            "showReminders": false,
+            "enabledReminderCalendarIDs": [],
+            "showUpcomingSection": true,
+            "upcomingIncludeReminders": false,
+            "upcomingEnabledCalendarIDs": ["ui-test-unavailable-calendar"],
+            "showRemindersBoard": false,
+            "eventListMode": "day"
+        ]
+        defaults.set(try JSONSerialization.data(withJSONObject: preferences), forKey: "menuBarPreferences")
+        defaults.synchronize()
+        let environment = ["CALENDAR_PRO_UI_TEST_DEFAULTS_SUITE": suiteName]
+        let app = XCUIApplication(bundleIdentifier: bundleIdentifier)
+        try launchApplication(app, environment: environment)
+
+        let picker = app.segmentedControls["calendar-popover-event-view-picker"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["calendar-popover-day-events"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["calendar-popover-overview-events"].exists)
+        attachScreenshot(app, name: "day-view")
+
+        picker.buttons.element(boundBy: 1).click()
+        XCTAssertTrue(app.descendants(matching: .any)["calendar-popover-overview-events"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["calendar-popover-day-events"].exists)
+        XCTAssertFalse(app.buttons["calendar-popover-upcoming-toggle"].exists)
+        attachScreenshot(app, name: "overview-view")
+
+        app.terminate()
+        try launchApplication(app, environment: environment)
+        XCTAssertTrue(app.descendants(matching: .any)["calendar-popover-overview-events"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["calendar-popover-day-events"].exists)
+
+        app.segmentedControls["calendar-popover-event-view-picker"].buttons.element(boundBy: 0).click()
+        XCTAssertTrue(app.descendants(matching: .any)["calendar-popover-day-events"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["calendar-popover-overview-events"].exists)
+    }
+
+    @MainActor
+    private func attachScreenshot(_ app: XCUIApplication, name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    @MainActor
+    private func launchApplication(_ app: XCUIApplication, environment: [String: String] = [:]) throws {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
         configuration.createsNewApplicationInstance = true
         configuration.environment = ["CALENDAR_PRO_UI_TEST_MODE": "popover-window"]
+            .merging(environment) { _, override in override }
+        configuration.arguments = ["-appLanguage", "simplifiedChinese"]
 
         let appURL = try applicationURL()
         let launchExpectation = expectation(description: "launch CalendarPro")

@@ -225,7 +225,12 @@ final class ClockRenderServiceTests: XCTestCase {
             showAlmanac: false,
             showWeather: false,
             showUpcomingIndicator: true,
-            upcomingReminderMinutes: 15
+            upcomingReminderMinutes: 15,
+            showUpcomingSection: true,
+            upcomingDayLimit: 90,
+            upcomingIncludeReminders: false,
+            upcomingEnabledCalendarIDs: [],
+            upcomingEnabledReminderCalendarIDs: []
         )
 
         let text = renderer.render(
@@ -265,7 +270,12 @@ final class ClockRenderServiceTests: XCTestCase {
             showAlmanac: false,
             showWeather: false,
             showUpcomingIndicator: true,
-            upcomingReminderMinutes: 15
+            upcomingReminderMinutes: 15,
+            showUpcomingSection: true,
+            upcomingDayLimit: 90,
+            upcomingIncludeReminders: false,
+            upcomingEnabledCalendarIDs: [],
+            upcomingEnabledReminderCalendarIDs: []
         )
 
         let text = renderer.render(
@@ -304,7 +314,12 @@ final class ClockRenderServiceTests: XCTestCase {
             showAlmanac: false,
             showWeather: false,
             showUpcomingIndicator: true,
-            upcomingReminderMinutes: 15
+            upcomingReminderMinutes: 15,
+            showUpcomingSection: true,
+            upcomingDayLimit: 90,
+            upcomingIncludeReminders: false,
+            upcomingEnabledCalendarIDs: [],
+            upcomingEnabledReminderCalendarIDs: []
         )
 
         let text = renderer.render(
@@ -343,7 +358,12 @@ final class ClockRenderServiceTests: XCTestCase {
             showAlmanac: false,
             showWeather: false,
             showUpcomingIndicator: true,
-            upcomingReminderMinutes: 15
+            upcomingReminderMinutes: 15,
+            showUpcomingSection: true,
+            upcomingDayLimit: 90,
+            upcomingIncludeReminders: false,
+            upcomingEnabledCalendarIDs: [],
+            upcomingEnabledReminderCalendarIDs: []
         )
 
         let text = renderer.render(

@@ -365,6 +365,151 @@ final class EventService: ObservableObject {
         }
     }
     
+    /// Fetches [pastStart, futureEnd) items (events plus optional timed
+    /// incomplete reminders), ascending by start date. Multi-day events that
+    /// started before pastStart are excluded so they show only once; ended
+    /// events inside the window stay for history browsing. Recurring
+    /// reminders use the per-day approximation below.
+    func fetchUpcomingCalendarItems(
+        pastStart: Date,
+        futureEnd: Date,
+        enabledCalendarIDs: [String],
+        includeReminders: Bool,
+        enabledReminderCalendarIDs: [String]
+    ) async -> [CalendarItem] {
+        var items: [CalendarItem] = []
+
+        if isAuthorized {
+            let predicate = eventStore.predicateForEvents(
+                withStart: pastStart,
+                end: futureEnd,
+                calendars: nil
+            )
+            let events = eventStore.events(matching: predicate).filter {
+                Self.event(
+                    $0,
+                    isWithinUpcomingWindow: pastStart,
+                    enabledCalendarIDs: enabledCalendarIDs
+                )
+            }
+            items.append(contentsOf: events.map { .event($0) })
+        }
+
+        if includeReminders {
+            let reminders = await fetchUpcomingReminders(
+                from: pastStart,
+                through: futureEnd,
+                enabledCalendarIDs: enabledReminderCalendarIDs
+            )
+            items.append(contentsOf: reminders.map { .reminder($0) })
+        }
+
+        return items.sorted {
+            ($0.startDate ?? .distantFuture) < ($1.startDate ?? .distantFuture)
+        }
+    }
+
+    /// Fetches incomplete timed reminders in the window, deduplicated by
+    /// calendarItemIdentifier. The predicate starts at nil so recurring
+    /// reminders based before the window are returned and filtered locally.
+    private func fetchUpcomingReminders(
+        from windowStart: Date,
+        through windowEnd: Date,
+        enabledCalendarIDs: [String]
+    ) async -> [EKReminder] {
+        guard remindersAuthorized else { return [] }
+
+        let calendarsToFetch: [EKCalendar]
+        if enabledCalendarIDs.isEmpty {
+            calendarsToFetch = reminderCalendars
+        } else {
+            calendarsToFetch = reminderCalendars.filter {
+                enabledCalendarIDs.contains($0.calendarIdentifier)
+            }
+        }
+
+        guard !calendarsToFetch.isEmpty else { return [] }
+
+        let predicate = eventStore.predicateForIncompleteReminders(
+            withDueDateStarting: nil,
+            ending: windowEnd,
+            calendars: calendarsToFetch
+        )
+
+        let store = eventStore
+        let reminders: [EKReminder] = await withCheckedContinuation { continuation in
+            store.fetchReminders(matching: predicate) { result in
+                continuation.resume(returning: result ?? [])
+            }
+        }
+
+        var seen = Set<String>()
+        return reminders.filter { reminder in
+            guard !reminder.isCompleted else { return false }
+            guard Self.reminder(reminder, isDueWithin: windowStart, windowEnd: windowEnd) else {
+                return false
+            }
+            return seen.insert(reminder.calendarItemIdentifier).inserted
+        }
+    }
+
+    /// Whether the event belongs in the upcoming list. Both bounds must be at
+    /// or after windowStart so multi-day events started earlier are excluded
+    /// (and pathologically long data ending before the window is dropped).
+    /// An event without a calendar (test fixtures) only matches the
+    /// "all calendars" semantics.
+    static func event(
+        _ event: EKEvent,
+        isWithinUpcomingWindow windowStart: Date,
+        enabledCalendarIDs: [String]
+    ) -> Bool {
+        guard event.startDate >= windowStart, event.endDate > windowStart else {
+            return false
+        }
+        guard let calendarID = event.calendar?.calendarIdentifier else {
+            return enabledCalendarIDs.isEmpty
+        }
+        return enabledCalendarIDs.isEmpty || enabledCalendarIDs.contains(calendarID)
+    }
+
+    /// Whether the reminder falls in [windowStart, windowEnd). Recurring
+    /// reminders are expanded per-day from the later of base due date and
+    /// window start (reusing isOccurrence); excluded dates are not handled,
+    /// so the result is a daily approximation.
+    static func reminder(
+        _ reminder: EKReminder,
+        isDueWithin windowStart: Date,
+        windowEnd: Date,
+        calendar: Calendar = .current
+    ) -> Bool {
+        guard let components = reminder.dueDateComponents,
+              let dueDate = calendar.date(from: components) else {
+            return false
+        }
+
+        guard let rules = reminder.recurrenceRules, !rules.isEmpty else {
+            return dueDate >= windowStart && dueDate < windowEnd
+        }
+
+        let dueStart = calendar.startOfDay(for: dueDate)
+        var day = calendar.startOfDay(for: max(dueDate, windowStart))
+        let lastDay = calendar.startOfDay(for: windowEnd)
+
+        while day <= lastDay {
+            if rules.contains(where: {
+                isOccurrence(of: $0, fromDate: dueStart, toDate: day, calendar: calendar)
+            }) {
+                return true
+            }
+            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: day) else {
+                break
+            }
+            day = nextDay
+        }
+
+        return false
+    }
+
     func calendar(withIdentifier identifier: String) -> EKCalendar? {
         return calendars.first { $0.calendarIdentifier == identifier }
     }

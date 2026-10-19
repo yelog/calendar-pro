@@ -157,6 +157,115 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertTrue(store.menuBarPreferences.enabledReminderCalendarIDs.isEmpty)
     }
 
+    func testEventListModePersistsAndRestoresWhenViewIsReenabled() {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+        store.setEventListMode(.overview)
+        store.setUpcomingDayLimit(180)
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertEqual(reloaded.menuBarPreferences.eventListMode, .overview)
+        XCTAssertEqual(reloaded.menuBarPreferences.effectiveEventListMode, .overview)
+        XCTAssertEqual(reloaded.menuBarPreferences.upcomingDayLimit, 180)
+
+        reloaded.setShowUpcomingSection(false)
+        let fallbackStore = makeStore(userDefaults: userDefaults)
+        XCTAssertEqual(fallbackStore.menuBarPreferences.eventListMode, .overview)
+        XCTAssertEqual(fallbackStore.menuBarPreferences.effectiveEventListMode, .day)
+
+        fallbackStore.setShowUpcomingSection(true)
+        let restoredStore = makeStore(userDefaults: userDefaults)
+        XCTAssertEqual(restoredStore.menuBarPreferences.effectiveEventListMode, .overview)
+        XCTAssertEqual(restoredStore.menuBarPreferences.upcomingDayLimit, 180)
+        XCTAssertTrue(restoredStore.menuBarPreferences.showRemindersBoard)
+    }
+
+    func testUpcomingAndBoardPreferencesPersistIndependently() {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+
+        store.setBoardGroupingMode(.priority)
+        store.setBoardCompletedRetentionSeconds(10)
+        store.setUpcomingDayLimit(180)
+        store.setUpcomingIncludeReminders(false)
+        store.setUpcomingDefaultExpanded(false)
+        store.setShowUpcomingSection(false)
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertTrue(reloaded.menuBarPreferences.showRemindersBoard)
+        XCTAssertEqual(reloaded.menuBarPreferences.boardGroupingMode, .priority)
+        XCTAssertEqual(reloaded.menuBarPreferences.boardCompletedRetentionSeconds, 10)
+        XCTAssertFalse(reloaded.menuBarPreferences.showUpcomingSection)
+        XCTAssertEqual(reloaded.menuBarPreferences.upcomingDayLimit, 180)
+        XCTAssertFalse(reloaded.menuBarPreferences.upcomingIncludeReminders)
+        XCTAssertFalse(reloaded.menuBarPreferences.upcomingDefaultExpanded)
+
+        reloaded.setShowRemindersBoard(false)
+        reloaded.setShowUpcomingSection(true)
+
+        let finalStore = makeStore(userDefaults: userDefaults)
+        XCTAssertFalse(finalStore.menuBarPreferences.showRemindersBoard)
+        XCTAssertEqual(finalStore.menuBarPreferences.boardGroupingMode, .priority)
+        XCTAssertEqual(finalStore.menuBarPreferences.boardCompletedRetentionSeconds, 10)
+        XCTAssertTrue(finalStore.menuBarPreferences.showUpcomingSection)
+        XCTAssertEqual(finalStore.menuBarPreferences.upcomingDayLimit, 180)
+        XCTAssertFalse(finalStore.menuBarPreferences.upcomingIncludeReminders)
+        XCTAssertFalse(finalStore.menuBarPreferences.upcomingDefaultExpanded)
+    }
+
+    func testSetUpcomingSectionPreferencesPersist() {
+        let suiteName = #function
+        let userDefaults = makeIsolatedUserDefaults(name: suiteName)
+        let store = makeStore(userDefaults: userDefaults)
+
+        XCTAssertTrue(store.menuBarPreferences.showUpcomingSection)
+        XCTAssertEqual(store.menuBarPreferences.upcomingDayLimit, 90)
+        XCTAssertTrue(store.menuBarPreferences.upcomingIncludeReminders)
+        XCTAssertTrue(store.menuBarPreferences.upcomingDefaultExpanded)
+
+        store.setShowUpcomingSection(false)
+        store.setUpcomingDayLimit(180)
+        store.setUpcomingIncludeReminders(false)
+        store.setUpcomingDefaultExpanded(false)
+        store.setUpcomingCalendarEnabled(
+            false,
+            calendarID: "calendar-1",
+            allCalendarIDs: ["calendar-1", "calendar-2"]
+        )
+        store.setUpcomingReminderCalendarEnabled(
+            false,
+            calendarID: "reminder-1",
+            allCalendarIDs: ["reminder-1", "reminder-2"]
+        )
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertFalse(reloaded.menuBarPreferences.showUpcomingSection)
+        XCTAssertEqual(reloaded.menuBarPreferences.upcomingDayLimit, 180)
+        XCTAssertFalse(reloaded.menuBarPreferences.upcomingIncludeReminders)
+        XCTAssertFalse(reloaded.menuBarPreferences.upcomingDefaultExpanded)
+        XCTAssertEqual(reloaded.menuBarPreferences.upcomingEnabledCalendarIDs, ["calendar-2"])
+        XCTAssertEqual(reloaded.menuBarPreferences.upcomingEnabledReminderCalendarIDs, ["reminder-2"])
+    }
+
+    func testSetUpcomingCalendarEnabledRestoresEmptyMeansAllSelected() {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+
+        store.setUpcomingCalendarEnabled(
+            true,
+            calendarID: "calendar-1",
+            allCalendarIDs: ["calendar-1", "calendar-2"]
+        )
+        XCTAssertTrue(store.menuBarPreferences.upcomingEnabledCalendarIDs.isEmpty)
+
+        store.setUpcomingReminderCalendarEnabled(
+            true,
+            calendarID: "reminder-1",
+            allCalendarIDs: ["reminder-1", "reminder-2"]
+        )
+        XCTAssertTrue(store.menuBarPreferences.upcomingEnabledReminderCalendarIDs.isEmpty)
+    }
+
     func testTokenStylePersistsForChineseFormats() {
         let suiteName = #function
         let userDefaults = makeIsolatedUserDefaults(name: suiteName)

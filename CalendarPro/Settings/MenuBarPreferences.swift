@@ -34,6 +34,20 @@ enum WeekStart: String, Codable, CaseIterable {
     case monday
 }
 
+enum EventListMode: String, Codable, CaseIterable, Identifiable {
+    case day
+    case overview
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .day: return L("Event View Day")
+        case .overview: return L("Event View Overview")
+        }
+    }
+}
+
 enum PomodoroMenuBarStyle: String, Codable, CaseIterable, Identifiable {
     case countdown
     case progress
@@ -185,6 +199,26 @@ struct MenuBarPreferences: Codable, Equatable {
     var boardColorMode: RemindersBoardColorMode = .overdue
     var boardColorPreferences: BoardColorPreferences = .classic
     var boardColorPreset: BoardColorPreset = .classic
+    var showUpcomingSection: Bool
+    var upcomingDayLimit: Int
+    var upcomingIncludeReminders: Bool
+    var upcomingDefaultExpanded: Bool = true
+    var upcomingEnabledCalendarIDs: [String]
+    var upcomingEnabledReminderCalendarIDs: [String]
+    var eventListMode: EventListMode = .day
+
+    var effectiveEventListMode: EventListMode? {
+        switch eventListMode {
+        case .day where showEvents:
+            return .day
+        case .overview where showUpcomingSection:
+            return .overview
+        default:
+            if showEvents { return .day }
+            if showUpcomingSection { return .overview }
+            return nil
+        }
+    }
 
     var requiresSecondRefresh: Bool {
         tokens.contains { $0.token == .time && $0.isEnabled && $0.style == .full }
@@ -267,7 +301,13 @@ struct MenuBarPreferences: Codable, Equatable {
             qWeatherAPIHost: "",
             qWeatherAPIKey: "",
             showUpcomingIndicator: true,
-            upcomingReminderMinutes: 15
+            upcomingReminderMinutes: 15,
+            showUpcomingSection: true,
+            upcomingDayLimit: 90,
+            upcomingIncludeReminders: true,
+            upcomingDefaultExpanded: true,
+            upcomingEnabledCalendarIDs: [],
+            upcomingEnabledReminderCalendarIDs: []
         )
     }
 
@@ -297,7 +337,13 @@ struct MenuBarPreferences: Codable, Equatable {
         qWeatherAPIHost: "",
         qWeatherAPIKey: "",
         showUpcomingIndicator: true,
-        upcomingReminderMinutes: 15
+        upcomingReminderMinutes: 15,
+        showUpcomingSection: true,
+        upcomingDayLimit: 90,
+        upcomingIncludeReminders: true,
+        upcomingDefaultExpanded: true,
+        upcomingEnabledCalendarIDs: [],
+        upcomingEnabledReminderCalendarIDs: []
     )
 }
 
@@ -333,6 +379,13 @@ extension MenuBarPreferences {
         case boardColorMode
         case boardColorPreferences
         case boardColorPreset
+        case showUpcomingSection
+        case upcomingDayLimit
+        case upcomingIncludeReminders
+        case upcomingDefaultExpanded
+        case upcomingEnabledCalendarIDs
+        case upcomingEnabledReminderCalendarIDs
+        case eventListMode
     }
 
     init(from decoder: Decoder) throws {
@@ -388,7 +441,18 @@ extension MenuBarPreferences {
             boardColorPreset: try container.decodeIfPresent(
                 BoardColorPreset.self,
                 forKey: .boardColorPreset
-            ) ?? .classic
+            ) ?? .classic,
+            showUpcomingSection: try container.decodeIfPresent(Bool.self, forKey: .showUpcomingSection) ?? true,
+            upcomingDayLimit: try container.decodeIfPresent(Int.self, forKey: .upcomingDayLimit) ?? 90,
+            // decodeIfPresent, not a plain default: stored explicit false must
+            // survive the default flip to true, only missing keys take true
+            upcomingIncludeReminders: try container.decodeIfPresent(Bool.self, forKey: .upcomingIncludeReminders) ?? true,
+            upcomingDefaultExpanded: try container.decodeIfPresent(Bool.self, forKey: .upcomingDefaultExpanded) ?? true,
+            upcomingEnabledCalendarIDs: try container.decodeIfPresent([String].self, forKey: .upcomingEnabledCalendarIDs) ?? [],
+            upcomingEnabledReminderCalendarIDs: try container.decodeIfPresent([String].self, forKey: .upcomingEnabledReminderCalendarIDs) ?? [],
+            eventListMode: EventListMode(
+                rawValue: try container.decodeIfPresent(String.self, forKey: .eventListMode) ?? ""
+            ) ?? .day
         )
     }
 
@@ -447,5 +511,12 @@ extension MenuBarPreferences {
         try container.encode(boardColorMode, forKey: .boardColorMode)
         try container.encode(boardColorPreferences, forKey: .boardColorPreferences)
         try container.encode(boardColorPreset, forKey: .boardColorPreset)
+        try container.encode(showUpcomingSection, forKey: .showUpcomingSection)
+        try container.encode(upcomingDayLimit, forKey: .upcomingDayLimit)
+        try container.encode(upcomingIncludeReminders, forKey: .upcomingIncludeReminders)
+        try container.encode(upcomingDefaultExpanded, forKey: .upcomingDefaultExpanded)
+        try container.encode(upcomingEnabledCalendarIDs, forKey: .upcomingEnabledCalendarIDs)
+        try container.encode(upcomingEnabledReminderCalendarIDs, forKey: .upcomingEnabledReminderCalendarIDs)
+        try container.encode(eventListMode, forKey: .eventListMode)
     }
 }

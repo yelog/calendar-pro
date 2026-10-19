@@ -248,6 +248,16 @@ final class CalendarPopoverViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.lastClosedTime)
     }
 
+    func testMarkPopoverPresentedIncrementsPresentationGeneration() {
+        let viewModel = CalendarPopoverViewModel()
+        XCTAssertEqual(viewModel.popoverPresentationGeneration, 0)
+
+        viewModel.markPopoverPresented()
+        viewModel.markPopoverPresented()
+
+        XCTAssertEqual(viewModel.popoverPresentationGeneration, 2)
+    }
+
     func testCheckAndResetDoesNothingWhenNotClosed() {
         let viewModel = CalendarPopoverViewModel()
         for _ in 0..<2 {

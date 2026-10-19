@@ -9,7 +9,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         static let autosaveName = "CalendarProSettingsWindowFrame"
     }
 
-    let settingsStore = SettingsStore()
+    let settingsStore: SettingsStore = {
+        let environment = ProcessInfo.processInfo.environment
+        if environment["CALENDAR_PRO_UI_TEST_MODE"] == "popover-window",
+           let suiteName = environment["CALENDAR_PRO_UI_TEST_DEFAULTS_SUITE"],
+           let userDefaults = UserDefaults(suiteName: suiteName) {
+            return SettingsStore(userDefaults: userDefaults)
+        }
+        return SettingsStore()
+    }()
     let eventService = EventService()
     let pomodoroStatsStore = PomodoroStatsStore()
 

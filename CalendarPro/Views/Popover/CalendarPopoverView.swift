@@ -33,6 +33,16 @@ struct CalendarPopoverView: View {
     let highlightWeekends: Bool
     let showEvents: Bool
     let emptyStateText: String
+    let showUpcomingSection: Bool
+    let eventListMode: EventListMode?
+    let upcomingItems: [CalendarItem]
+    let isLoadingUpcomingPast: Bool
+    let isLoadingUpcomingFuture: Bool
+    let hasMoreUpcomingPast: Bool
+    let hasMoreUpcomingFuture: Bool
+    // Bumped on every pagination reset; the section scrolls back to its top
+    // anchor because data resets leave stale scroll offsets behind
+    let upcomingResetGeneration: Int
     let selectedDate: Date?
     let items: [CalendarItem]
     let selectedEventIdentifier: String?
@@ -73,6 +83,9 @@ struct CalendarPopoverView: View {
     let onOpenReminder: (EKReminder) -> Void
     let onCreateItem: () -> Void
     let onCreateEventAt: (CalendarItemCreationTimeRange) -> Void
+    let onSelectEventListMode: (EventListMode) -> Void
+    let onLoadMoreUpcomingPast: () -> Void
+    let onLoadMoreUpcomingFuture: () -> Void
     let onOpenWeatherDetails: () -> Void
     let onOpenVacationGuide: () -> Void
     let onResetToToday: () -> Void
@@ -195,42 +208,98 @@ struct CalendarPopoverView: View {
 
     @ViewBuilder
     private var eventsSection: some View {
-        if showEvents, let date = selectedDate {
+        if let eventListMode {
             Divider()
                 .padding(.horizontal, -PopoverSurfaceMetrics.outerPadding)
 
             VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(L("Events"))
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .lineLimit(1)
+                eventsHeader(for: eventListMode)
 
-                    Spacer(minLength: 12)
-
-                    Text(eventCountText)
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundStyle(.secondary)
-                        .fixedSize()
-
-                    creationButton
+                switch eventListMode {
+                case .day:
+                    if let date = selectedDate {
+                        EventListView(
+                            items: items,
+                            isLoading: isLoadingEvents,
+                            emptyStateText: emptyStateText,
+                            selectedDate: date,
+                            selectedEventIdentifier: selectedEventIdentifier,
+                            timeRefreshCoordinator: timeRefreshCoordinator,
+                            canCreateEvent: canCreateEvent,
+                            onSelectEvent: onSelectEvent,
+                            onToggleReminder: onToggleReminder,
+                            onOpenReminder: onOpenReminder,
+                            onCreateEventAt: onCreateEventAt
+                        )
+                        .frame(maxHeight: 200)
+                        .accessibilityIdentifier("calendar-popover-day-events")
+                    }
+                case .overview:
+                    UpcomingEventsSection(
+                        items: upcomingItems,
+                        isLoadingPast: isLoadingUpcomingPast,
+                        isLoadingFuture: isLoadingUpcomingFuture,
+                        hasMorePast: hasMoreUpcomingPast,
+                        hasMoreFuture: hasMoreUpcomingFuture,
+                        resetGeneration: upcomingResetGeneration,
+                        timeRefreshCoordinator: timeRefreshCoordinator,
+                        selectedEventIdentifier: selectedEventIdentifier,
+                        onLoadMorePast: onLoadMoreUpcomingPast,
+                        onLoadMoreFuture: onLoadMoreUpcomingFuture,
+                        onSelectEvent: onSelectEvent,
+                        onOpenReminder: onOpenReminder,
+                        onToggleReminder: onToggleReminder
+                    )
+                    .accessibilityIdentifier("calendar-popover-overview-events")
                 }
-
-                EventListView(
-                    items: items,
-                    isLoading: isLoadingEvents,
-                    emptyStateText: emptyStateText,
-                    selectedDate: date,
-                    selectedEventIdentifier: selectedEventIdentifier,
-                    timeRefreshCoordinator: timeRefreshCoordinator,
-                    canCreateEvent: canCreateEvent,
-                    onSelectEvent: onSelectEvent,
-                    onToggleReminder: onToggleReminder,
-                    onOpenReminder: onOpenReminder,
-                    onCreateEventAt: onCreateEventAt
-                )
-                .frame(maxHeight: 200)
             }
         }
+    }
+
+    private func eventsHeader(for mode: EventListMode) -> some View {
+        HStack(spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(L("Events"))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .lineLimit(1)
+                    .fixedSize()
+
+                ViewThatFits(in: .horizontal) {
+                    Text(eventCountText).fixedSize()
+                    Text(compactEventCountText).fixedSize()
+                }
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .accessibilityLabel(eventCountText)
+                .help(eventCountText)
+            }
+
+            if mode == .day {
+                creationButton
+            }
+
+            Spacer(minLength: 8)
+
+            if showEvents && showUpcomingSection {
+                Picker(L("Event View"), selection: Binding(
+                    get: { mode },
+                    set: { onSelectEventListMode($0) }
+                )) {
+                    ForEach(EventListMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                            .help(mode == .day ? L("Single Day View Description") : L("Overview View Description"))
+                    }
+                }
+                .pickerStyle(.segmented)
+                .controlSize(.small)
+                .labelsHidden()
+                .fixedSize()
+                .accessibilityLabel(L("Event View"))
+                .accessibilityIdentifier("calendar-popover-event-view-picker")
+            }
+        }
+        .frame(minHeight: 22)
     }
 
     @ViewBuilder
@@ -305,6 +374,12 @@ struct CalendarPopoverView: View {
     }
 
     private var eventCountText: String {
+        if eventListMode == .overview {
+            return CalendarPopoverEventCountFormatter.text(
+                isLoadingEvents: isLoadingUpcomingPast || isLoadingUpcomingFuture,
+                itemCount: upcomingItems.count
+            )
+        }
         let activeInfo = EventTimelineSnapshot.activeTimedItemInfo(
             items: items,
             selectedDate: selectedDate,
@@ -316,6 +391,19 @@ struct CalendarPopoverView: View {
             activeTimedItemIndex: activeInfo.activeIndex,
             timedItemCount: activeInfo.timedCount
         )
+    }
+
+    private var compactEventCountText: String {
+        guard eventListMode == .day, !isLoadingEvents else { return eventCountText }
+        let activeInfo = EventTimelineSnapshot.activeTimedItemInfo(
+            items: items,
+            selectedDate: selectedDate,
+            now: timeRefreshCoordinator.currentDate
+        )
+        guard let activeIndex = activeInfo.activeIndex, activeInfo.timedCount > 0 else {
+            return eventCountText
+        }
+        return "\(activeIndex) / \(activeInfo.timedCount)"
     }
 
     private var popoverBackground: some View {

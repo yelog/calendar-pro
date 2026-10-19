@@ -243,6 +243,10 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         timeRefreshCoordinator.refreshNow()
         viewModel.checkAndResetIfNeeded()
         viewModel.syncCurrentDaySelectionIfNeeded(calendar: .autoupdatingCurrent)
+        // Explicit reopen signal: the content view controller is reused across
+        // presentations, so SwiftUI onAppear does not reliably re-fire and
+        // reopen resets are driven by this generation bump instead.
+        viewModel.markPopoverPresented()
         applyScreenHeightLimit(relativeTo: button)
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         interactionMonitor.start { [weak self] in
@@ -285,6 +289,18 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         closeWeatherDetailWindow()
         closePomodoroStatisticsWindow()
         return true
+    }
+
+    func popoverDidShow(_ notification: Notification) {
+        // Popover windows on recent macOS are movable by background, so a
+        // user drag can push the popover past the screen top and clip its
+        // header (no bounce-back for anchored popover windows). Opt the
+        // window out of user movement entirely; system repositioning on
+        // each show is programmatic and unaffected by these flags.
+        guard let popoverWindow = (notification.object as? NSPopover)?
+            .contentViewController?.view.window else { return }
+        popoverWindow.isMovableByWindowBackground = false
+        popoverWindow.isMovable = false
     }
 
     func popoverDidClose(_ notification: Notification) {
