@@ -13,21 +13,20 @@ enum CalendarItemComposerMode {
 
 struct CalendarItemComposerView: View {
     let mode: CalendarItemComposerMode
-    let selectedDate: Date
     let eventCalendars: [EKCalendar]
     let reminderCalendars: [EKCalendar]
     let onSaveEvent: (CalendarEventCreationRequest) throws -> Void
     let onSaveReminder: (ReminderCreationRequest) throws -> Void
     let onClose: () -> Void
+    let maximumHeight: CGFloat
+    let onPreferredHeightChange: ((CGFloat) -> Void)?
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var selectedKind: CalendarItemCreationKind
     @State private var title: String = ""
     @State private var selectedEventCalendarIdentifier: String
     @State private var selectedReminderCalendarIdentifier: String
-    @State private var startDate: Date
-    @State private var endDate: Date
-    @State private var isAllDay: Bool = false
+    @State private var schedule: CalendarEventScheduleDraft
     @State private var dueDate: Date
     @State private var reminderIncludesTime: Bool = true
     @State private var notes: String = ""
@@ -35,14 +34,27 @@ struct CalendarItemComposerView: View {
     @State private var isSaving = false
     @FocusState private var focusedField: FocusedField?
 
-    private enum FocusedField {
+    private let editingCalendar: Calendar
+    private var isAllDay: Bool { schedule.isAllDay }
+
+    private enum FocusedField: Hashable {
         case title
+        case allDay
+        case startDate
+        case startTime
+        case endDate
+        case endTime
+        case calendar
+        case notes
+        case actions
     }
 
     init(
         mode: CalendarItemComposerMode,
         eventCalendars: [EKCalendar],
         reminderCalendars: [EKCalendar],
+        maximumHeight: CGFloat = 700,
+        onPreferredHeightChange: ((CGFloat) -> Void)? = nil,
         onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
         onSaveReminder: @escaping (ReminderCreationRequest) throws -> Void,
         onClose: @escaping () -> Void
@@ -50,24 +62,32 @@ struct CalendarItemComposerView: View {
         self.mode = mode
         self.eventCalendars = eventCalendars
         self.reminderCalendars = reminderCalendars
+        self.maximumHeight = maximumHeight
+        self.onPreferredHeightChange = onPreferredHeightChange
         self.onSaveEvent = onSaveEvent
         self.onSaveReminder = onSaveReminder
         self.onClose = onClose
 
+        var editingCalendar = Calendar.current
+        editingCalendar.timeZone = TimeZone.current
+        self.editingCalendar = editingCalendar
+
         let initialValues = Self.initialValues(
             for: mode,
             eventCalendars: eventCalendars,
-            reminderCalendars: reminderCalendars
+            reminderCalendars: reminderCalendars,
+            calendar: editingCalendar
         )
-        self.selectedDate = initialValues.selectedDate
-
         _selectedKind = State(initialValue: initialValues.kind)
         _title = State(initialValue: initialValues.title)
         _selectedEventCalendarIdentifier = State(initialValue: initialValues.eventCalendarIdentifier)
         _selectedReminderCalendarIdentifier = State(initialValue: initialValues.reminderCalendarIdentifier)
-        _startDate = State(initialValue: initialValues.startDate)
-        _endDate = State(initialValue: initialValues.endDate)
-        _isAllDay = State(initialValue: initialValues.isAllDay)
+        _schedule = State(initialValue: CalendarEventScheduleDraft(
+            startDate: initialValues.startDate,
+            endDate: initialValues.endDate,
+            isAllDay: initialValues.isAllDay,
+            calendar: editingCalendar
+        ))
         _dueDate = State(initialValue: initialValues.dueDate)
         _reminderIncludesTime = State(initialValue: initialValues.reminderIncludesTime)
         _notes = State(initialValue: initialValues.notes)
@@ -76,12 +96,26 @@ struct CalendarItemComposerView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
             header
-            content
+            ScrollView(.vertical) {
+                content
+                    .padding(.vertical, 1)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .scrollIndicators(.automatic)
+            .frame(maxHeight: maximumScrollHeight)
             footer
         }
         .padding(PopoverSurfaceMetrics.outerPadding)
         .frame(width: PopoverSurfaceMetrics.width, alignment: .topLeading)
         .background(surfaceBackground)
+        .background {
+            GeometryReader { proxy in
+                ComposerHeightReporter { height in
+                    reportPreferredHeight(height)
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height)
+            }
+        }
         .onAppear {
             DispatchQueue.main.async {
                 focusedField = .title
@@ -90,6 +124,9 @@ struct CalendarItemComposerView: View {
         .onChange(of: selectedKind) { _, _ in
             validationMessage = nil
         }
+        .onChange(of: title) { _, _ in validationMessage = nil }
+        .onChange(of: selectedCalendarIdentifier) { _, _ in validationMessage = nil }
+        .onChange(of: schedule) { _, _ in validationMessage = nil }
     }
 
     private var header: some View {
@@ -97,9 +134,12 @@ struct CalendarItemComposerView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(headerTitle)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                Text(formattedSelectedDate)
+                Text(formattedScheduleSummary)
                     .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("calendar-item-composer-schedule-summary")
             }
 
             Spacer(minLength: 0)
@@ -145,7 +185,9 @@ struct CalendarItemComposerView: View {
 
             TextEditor(text: $notes)
                 .font(.system(size: 12))
-                .frame(minHeight: 68)
+                .frame(minHeight: 68, maxHeight: 112)
+                .focused($focusedField, equals: .notes)
+                .accessibilityIdentifier("calendar-item-composer-notes-field")
                 .scrollContentBackground(.hidden)
                 .background(sectionBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(alignment: .topLeading) {
@@ -164,7 +206,9 @@ struct CalendarItemComposerView: View {
                     .font(.system(size: 11))
                     .foregroundStyle(.red)
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("calendar-item-composer-validation-error")
             }
+
         }
         .padding(12)
         .background(sectionBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -179,42 +223,89 @@ struct CalendarItemComposerView: View {
                 calendars: eventCalendars,
                 selection: $selectedEventCalendarIdentifier
             )
+            .focused($focusedField, equals: .calendar)
         }
     }
 
     private var eventScheduleFields: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Toggle(L("All Day"), isOn: $isAllDay)
+            Toggle(L("All Day"), isOn: Binding(
+                get: { schedule.isAllDay },
+                set: { setAllDay($0) }
+            ))
                 .font(.system(size: 12))
+                .accessibilityIdentifier("calendar-item-composer-all-day-toggle")
+                .focused($focusedField, equals: .allDay)
 
-            CalendarComposerDateButton(
-                title: L("Date"),
-                date: $startDate
-            )
-                .onChange(of: startDate) { oldValue, newValue in
-                    let delta = newValue.timeIntervalSince(oldValue)
-                    endDate = endDate.addingTimeInterval(delta)
-                    ensureEndDateAfterStart()
-                }
+            HStack(spacing: 8) {
+                CalendarComposerDateButton(
+                    title: L("Start Date"),
+                    date: schedule.startDate,
+                    calendar: editingCalendar,
+                    onSelectDate: setStartDay
+                )
+                .focused($focusedField, equals: .startDate)
 
-            if !isAllDay {
-                HStack(spacing: 8) {
+                if !isAllDay {
                     CalendarComposerTimeButton(
-                        title: L("Start"),
-                        date: $startDate,
-                        referenceDate: startDate
+                        title: L("Start Time"),
+                        date: schedule.startDate,
+                        calendar: editingCalendar,
+                        onSelectTime: setStartTime
                     )
-                    CalendarComposerTimeButton(
-                        title: L("End"),
-                        date: $endDate,
-                        referenceDate: startDate
-                    )
-                        .onChange(of: endDate) { _, _ in
-                            ensureEndDateAfterStart()
-                        }
+                    .frame(width: 112)
+                    .focused($focusedField, equals: .startTime)
+                } else {
+                    Color.clear
+                        .frame(width: 112, height: 1)
+                        .accessibilityHidden(true)
                 }
             }
+
+            HStack(spacing: 8) {
+                CalendarComposerDateButton(
+                    title: L("End Date"),
+                    date: schedule.isAllDay ? (schedule.displayedEndDate ?? schedule.endDate) : schedule.endDate,
+                    calendar: editingCalendar,
+                    onSelectDate: setEndDay
+                )
+                .focused($focusedField, equals: .endDate)
+
+                if !isAllDay {
+                    CalendarComposerTimeButton(
+                        title: L("End Time"),
+                        date: schedule.endDate,
+                        calendar: editingCalendar,
+                        onSelectTime: setEndTime
+                    )
+                    .frame(width: 112)
+                    .focused($focusedField, equals: .endTime)
+                } else {
+                    Color.clear
+                        .frame(width: 112, height: 1)
+                        .accessibilityHidden(true)
+                }
+            }
+
+            if let inputError = schedule.inputError {
+                scheduleErrorLabel(inputError.localizedDescription)
+            } else if let scheduleError = schedule.validationError {
+                scheduleErrorLabel(scheduleError.localizedDescription)
+            }
         }
+    }
+
+    private func scheduleErrorLabel(_ message: String) -> some View {
+        Label(message, systemImage: "exclamationmark.triangle.fill")
+            .font(.system(size: 11))
+            .foregroundStyle(.red)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("calendar-item-composer-schedule-error")
+            .accessibilityValue(message)
+    }
+
+    private func allDayRangeSummary(for dayCount: Int) -> String {
+        dayCount == 1 ? L("1 day inclusive") : LF("%d days inclusive", dayCount)
     }
 
     private var reminderFields: some View {
@@ -224,10 +315,12 @@ struct CalendarItemComposerView: View {
                 calendars: reminderCalendars,
                 selection: $selectedReminderCalendarIdentifier
             )
+            .focused($focusedField, equals: .calendar)
 
             CalendarComposerDateButton(
                 title: L("Date"),
-                date: $dueDate
+                date: $dueDate,
+                calendar: editingCalendar
             )
 
             Toggle(L("Include Time"), isOn: $reminderIncludesTime)
@@ -237,7 +330,7 @@ struct CalendarItemComposerView: View {
                 CalendarComposerTimeButton(
                     title: L("Time"),
                     date: $dueDate,
-                    referenceDate: dueDate
+                    calendar: editingCalendar
                 )
             }
         }
@@ -263,7 +356,9 @@ struct CalendarItemComposerView: View {
                 }
             }
             .keyboardShortcut(.defaultAction)
-            .disabled(isSaving || selectedCalendarIdentifier.isEmpty)
+            .accessibilityIdentifier("calendar-item-composer-save-button")
+            .disabled(!canSave)
+            .focused($focusedField, equals: .actions)
         }
     }
 
@@ -339,6 +434,101 @@ struct CalendarItemComposerView: View {
         case .reminder:
             return selectedReminderCalendarIdentifier
         }
+    }
+
+    private var canSave: Bool {
+        guard !isSaving,
+              !selectedCalendarIdentifier.isEmpty,
+              !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return false
+        }
+
+        guard selectedKind == .event else { return true }
+        return schedule.validationError == nil && schedule.inputError == nil
+    }
+
+    private var formattedScheduleSummary: String {
+        let dateFormatter = Self.scheduleDateFormatter(calendar: editingCalendar)
+        let timeFormatter = Self.scheduleTimeFormatter(calendar: editingCalendar)
+
+        if selectedKind == .reminder {
+            let dateText = dateFormatter.string(from: dueDate)
+            guard reminderIncludesTime else { return dateText }
+            return "\(dateText) · \(timeFormatter.string(from: dueDate))"
+        }
+
+        let visibleEndDate = isAllDay ? (schedule.displayedEndDate ?? schedule.endDate) : schedule.endDate
+        let dateText: String
+        if editingCalendar.isDate(schedule.startDate, inSameDayAs: visibleEndDate) {
+            dateText = dateFormatter.string(from: schedule.startDate)
+        } else {
+            dateText = "\(dateFormatter.string(from: schedule.startDate)) – \(dateFormatter.string(from: visibleEndDate))"
+        }
+
+        if isAllDay {
+            let summary = schedule.coveredDayCount.map(allDayRangeSummary(for:))
+            return [dateText, L("All Day"), summary].compactMap { $0 }.joined(separator: " · ")
+        }
+
+        let timeRange = "\(timeFormatter.string(from: schedule.startDate))–\(timeFormatter.string(from: schedule.endDate))"
+        return "\(dateText) · \(timeRange)"
+    }
+
+    private static func scheduleTimeFormatter(calendar: Calendar) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = AppLocalization.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.dateFormat = "HH:mm"
+        return formatter
+    }
+
+    private static func scheduleDateFormatter(calendar: Calendar) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = AppLocalization.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.setLocalizedDateFormatFromTemplate("yMMMdEEE")
+        return formatter
+    }
+
+    private func setStartDay(_ day: Date) throws {
+        try applyScheduleChange { try $0.setStartDay(day) }
+    }
+
+    private func setEndDay(_ day: Date) throws {
+        try applyScheduleChange { try $0.setEndDay(day) }
+    }
+
+    private func setStartTime(hour: Int, minute: Int) throws {
+        try applyScheduleChange { try $0.setStartTime(hour: hour, minute: minute) }
+    }
+
+    private func setEndTime(hour: Int, minute: Int) throws {
+        try applyScheduleChange { try $0.setEndTime(hour: hour, minute: minute) }
+    }
+
+    private func setAllDay(_ isAllDay: Bool) {
+        try? applyScheduleChange { try $0.setAllDay(isAllDay) }
+    }
+
+    private func applyScheduleChange(_ update: (inout CalendarEventScheduleDraft) throws -> Void) throws {
+        var updatedSchedule = schedule
+        do {
+            try update(&updatedSchedule)
+            updatedSchedule.setInputError(nil)
+            schedule = updatedSchedule
+            validationMessage = nil
+        } catch {
+            setScheduleInputError(error)
+            throw error
+        }
+    }
+
+    private func setScheduleInputError(_ error: Error) {
+        var updatedSchedule = schedule
+        updatedSchedule.setInputError(error as? CalendarEventScheduleError ?? .unableToCalculateDates)
+        schedule = updatedSchedule
     }
 
     struct InitialValues {
@@ -454,28 +644,29 @@ struct CalendarItemComposerView: View {
             return
         }
 
+        if selectedKind == .event {
+            guard schedule.inputError == nil else {
+                validationMessage = schedule.inputError?.localizedDescription
+                return
+            }
+            guard schedule.validationError == nil else {
+                validationMessage = schedule.validationError?.localizedDescription
+                return
+            }
+        }
+
         isSaving = true
         validationMessage = nil
 
         do {
             switch selectedKind {
             case .event:
-                var request = CalendarEventCreationRequest(
+                let request = try CalendarEventCreationRequest.make(
                     title: normalizedTitle,
                     calendarIdentifier: selectedEventCalendarIdentifier,
-                    startDate: startDate,
-                    endDate: endDate,
-                    isAllDay: isAllDay,
+                    schedule: schedule,
                     notes: notes
                 )
-                if isAllDay {
-                    request.startDate = Calendar.autoupdatingCurrent.startOfDay(for: startDate)
-                    request.endDate = Calendar.autoupdatingCurrent.date(
-                        byAdding: .day,
-                        value: 1,
-                        to: request.startDate
-                    ) ?? request.startDate
-                }
                 try onSaveEvent(request)
             case .reminder:
                 try onSaveReminder(
@@ -496,18 +687,6 @@ struct CalendarItemComposerView: View {
         isSaving = false
     }
 
-    private func ensureEndDateAfterStart() {
-        guard endDate <= startDate else { return }
-        endDate = Calendar.autoupdatingCurrent.date(byAdding: .hour, value: 1, to: startDate) ?? startDate
-    }
-
-    private var formattedSelectedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = AppLocalization.locale
-        formatter.setLocalizedDateFormatFromTemplate("MMMdEEEE")
-        return formatter.string(from: selectedDate)
-    }
-
     private var surfaceBackground: some View {
         RoundedRectangle(cornerRadius: PopoverSurfaceMetrics.cornerRadius, style: .continuous)
             .fill(PopoverSurfaceMetrics.floatingPanelBaseFill(for: colorScheme))
@@ -524,12 +703,69 @@ struct CalendarItemComposerView: View {
     private var sectionBackground: Color {
         Color(nsColor: .controlBackgroundColor).opacity(0.88)
     }
+
+    private var maximumScrollHeight: CGFloat {
+        guard maximumHeight.isFinite else { return .infinity }
+        return max(100, maximumHeight - 125)
+    }
+
+    private func reportPreferredHeight(_ height: CGFloat) {
+        DispatchQueue.main.async {
+            onPreferredHeightChange?(height)
+        }
+    }
+}
+
+private struct ComposerHeightReporter: View {
+    let onChange: (CGFloat) -> Void
+
+    var body: some View {
+        GeometryReader { proxy in
+            Color.clear
+                .onAppear { report(proxy.size.height) }
+                .onChange(of: proxy.size.height) { _, height in report(height) }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private func report(_ height: CGFloat) {
+        DispatchQueue.main.async {
+            onChange(height)
+        }
+    }
 }
 
 private struct CalendarComposerDateButton: View {
     let title: String
     @Binding var date: Date
+    let calendar: Calendar
+    let onSelectDay: ((Date) throws -> Void)?
     @State private var isShowingPicker = false
+    @State private var selectionError: String?
+
+    init(title: String, date: Binding<Date>, calendar: Calendar = .autoupdatingCurrent) {
+        self.title = title
+        _date = date
+        self.calendar = calendar
+        onSelectDay = { day in
+            date.wrappedValue = date.wrappedValue.settingDate(toMatch: day, calendar: calendar)
+        }
+    }
+
+    init(
+        title: String,
+        date: Date,
+        calendar: Calendar,
+        onSelectDate: @escaping (Date) throws -> Void
+    ) {
+        self.title = title
+        let binding = Binding<Date>(get: { date }, set: { _ in })
+        _date = binding
+        self.calendar = calendar
+        onSelectDay = { selectedDay in
+            try onSelectDate(selectedDay)
+        }
+    }
 
     var body: some View {
         Button {
@@ -537,21 +773,31 @@ private struct CalendarComposerDateButton: View {
         } label: {
             CalendarComposerFieldChrome(
                 title: title,
-                value: Self.dateFormatter.string(from: date),
+                value: formattedDate,
                 systemImage: "calendar"
             )
         }
         .buttonStyle(.plain)
         .popover(isPresented: $isShowingPicker, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 10) {
-                CalendarComposerMonthPicker(date: $date) {
+                CalendarComposerMonthPicker(
+                    date: $date,
+                    calendar: calendar,
+                    onSelectDay: { applySelectedDay($0) }
+                ) {
                     isShowingPicker = false
+                }
+
+                if let selectionError {
+                    Text(selectionError)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.red)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 HStack {
                     Button(L("Today")) {
-                        date = date.settingDate(toMatch: Date())
-                        isShowingPicker = false
+                        _ = applySelectedDay(Date())
                     }
 
                     Spacer(minLength: 0)
@@ -559,37 +805,74 @@ private struct CalendarComposerDateButton: View {
             }
             .padding(12)
             .frame(width: 300)
+            .onExitCommand { isShowingPicker = false }
         }
         .accessibilityLabel(title)
-        .accessibilityValue(Self.dateFormatter.string(from: date))
+        .accessibilityValue(formattedDate)
+        .accessibilityIdentifier(accessibilityIdentifier ?? "calendar-item-composer-reminder-date")
     }
 
-    private static let dateFormatter: DateFormatter = {
+    private var accessibilityIdentifier: String? {
+        switch title {
+        case L("Start Date"): return "calendar-item-composer-start-date"
+        case L("End Date"): return "calendar-item-composer-end-date"
+        default: return nil
+        }
+    }
+
+    private var formattedDate: String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
-        formatter.setLocalizedDateFormatFromTemplate("MMMdEEEE")
-        return formatter
-    }()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.setLocalizedDateFormatFromTemplate("yMdEEE")
+        return formatter.string(from: date)
+    }
+
+    private func applySelectedDay(_ day: Date) -> Bool {
+        do {
+            if let onSelectDay {
+                try onSelectDay(day)
+            } else {
+                date = date.settingDate(toMatch: day, calendar: calendar)
+            }
+            selectionError = nil
+            isShowingPicker = false
+            return true
+        } catch {
+            selectionError = error.localizedDescription
+            return false
+        }
+    }
+
 }
 
 private struct CalendarComposerMonthPicker: View {
     @Binding var date: Date
+    let calendar: Calendar
+    let onSelectDay: (Date) -> Bool
     let onSelectDate: () -> Void
     @State private var visibleMonth: Date
 
-    private let calendar = Calendar.autoupdatingCurrent
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
 
-    init(date: Binding<Date>, onSelectDate: @escaping () -> Void) {
+    init(
+        date: Binding<Date>,
+        calendar: Calendar = .autoupdatingCurrent,
+        onSelectDay: @escaping (Date) -> Bool = { _ in true },
+        onSelectDate: @escaping () -> Void
+    ) {
         _date = date
+        self.calendar = calendar
+        self.onSelectDay = onSelectDay
         self.onSelectDate = onSelectDate
-        _visibleMonth = State(initialValue: Calendar.autoupdatingCurrent.startOfMonth(for: date.wrappedValue))
+        _visibleMonth = State(initialValue: calendar.startOfMonth(for: date.wrappedValue))
     }
 
     var body: some View {
         VStack(spacing: 10) {
             HStack(spacing: 8) {
-                Text(Self.monthFormatter.string(from: visibleMonth))
+                Text(formattedVisibleMonth)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
 
                 Spacer(minLength: 0)
@@ -636,9 +919,10 @@ private struct CalendarComposerMonthPicker: View {
             LazyVGrid(columns: columns, spacing: 6) {
                 ForEach(monthDays, id: \.self) { day in
                     Button {
-                        date = date.settingDate(toMatch: day)
-                        visibleMonth = calendar.startOfMonth(for: day)
-                        onSelectDate()
+                        if onSelectDay(day) {
+                            visibleMonth = calendar.startOfMonth(for: day)
+                            onSelectDate()
+                        }
                     } label: {
                         Text("\(calendar.component(.day, from: day))")
                             .font(.system(size: 13, weight: isSelected(day) ? .semibold : .medium, design: .rounded))
@@ -651,7 +935,7 @@ private struct CalendarComposerMonthPicker: View {
                             )
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(Self.fullDateFormatter.string(from: day))
+                    .accessibilityLabel(formattedDay(day))
                 }
             }
         }
@@ -706,25 +990,30 @@ private struct CalendarComposerMonthPicker: View {
         return .clear
     }
 
-    private static let monthFormatter: DateFormatter = {
+    private var formattedVisibleMonth: String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
         formatter.setLocalizedDateFormatFromTemplate("yMMM")
-        return formatter
-    }()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        return formatter.string(from: visibleMonth)
+    }
 
-    private static let fullDateFormatter: DateFormatter = {
+    private func formattedDay(_ day: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
         formatter.setLocalizedDateFormatFromTemplate("yMMMdEEEE")
-        return formatter
-    }()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        return formatter.string(from: day)
+    }
 }
 
 private struct CalendarComposerTimeButton: View {
     let title: String
     @Binding var date: Date
-    let referenceDate: Date
+    let calendar: Calendar
+    let onSelectTime: ((Int, Int) throws -> Void)?
     @State private var isShowingPicker = false
     @State private var customTimeText = ""
     @State private var customTimeError: String?
@@ -733,6 +1022,29 @@ private struct CalendarComposerTimeButton: View {
         GridItem(.flexible(), spacing: 6),
         GridItem(.flexible(), spacing: 6)
     ]
+
+    init(
+        title: String,
+        date: Binding<Date>,
+        calendar: Calendar = .autoupdatingCurrent
+    ) {
+        self.title = title
+        _date = date
+        self.calendar = calendar
+        onSelectTime = nil
+    }
+
+    init(
+        title: String,
+        date: Date,
+        calendar: Calendar,
+        onSelectTime: @escaping (Int, Int) throws -> Void
+    ) {
+        self.title = title
+        _date = .constant(date)
+        self.calendar = calendar
+        self.onSelectTime = onSelectTime
+    }
 
     var body: some View {
         Button {
@@ -754,16 +1066,15 @@ private struct CalendarComposerTimeButton: View {
                         LazyVGrid(columns: columns, spacing: 6) {
                             ForEach(Self.timeSlots, id: \.minutes) { slot in
                                 Button {
-                                    date = date.settingTime(hour: slot.hour, minute: slot.minute)
-                                    isShowingPicker = false
+                                    applyTime(hour: slot.hour, minute: slot.minute)
                                 } label: {
                                     Text(slot.label)
-                                        .font(.system(size: 12, weight: slot.isSameTime(as: date) ? .semibold : .regular))
+                                        .font(.system(size: 12, weight: slot.isSameTime(as: date, calendar: calendar) ? .semibold : .regular))
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 6)
                                         .background(
                                             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                                .fill(slot.isSameTime(as: date) ? Color.accentColor.opacity(0.18) : Color.clear)
+                                                .fill(slot.isSameTime(as: date, calendar: calendar) ? Color.accentColor.opacity(0.18) : Color.clear)
                                         )
                                 }
                                 .buttonStyle(.plain)
@@ -780,15 +1091,17 @@ private struct CalendarComposerTimeButton: View {
             }
             .padding(10)
             .frame(width: 240)
+            .onExitCommand { isShowingPicker = false }
         }
         .onChange(of: isShowingPicker) { _, isShowing in
             if isShowing {
-                customTimeText = Self.timeFormatter.string(from: date)
+                customTimeText = displayValue
                 customTimeError = nil
             }
         }
         .accessibilityLabel(title)
         .accessibilityValue(displayValue)
+        .accessibilityIdentifier(accessibilityIdentifier ?? "calendar-item-composer-reminder-time")
     }
 
     private var customTimeField: some View {
@@ -800,10 +1113,11 @@ private struct CalendarComposerTimeButton: View {
                     .onSubmit {
                         applyCustomTime()
                     }
-
+                    .submitScope()
                 Button(L("OK")) {
                     applyCustomTime()
                 }
+                .keyboardShortcut(.defaultAction)
                 .keyboardShortcut(.defaultAction)
             }
 
@@ -816,16 +1130,23 @@ private struct CalendarComposerTimeButton: View {
     }
 
     private var displayValue: String {
-        let timeText = Self.timeFormatter.string(from: date)
-        guard !Calendar.autoupdatingCurrent.isDate(date, inSameDayAs: referenceDate) else {
-            return timeText
-        }
+        let formatter = DateFormatter()
+        formatter.locale = AppLocalization.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
 
-        return "\(Self.relativeDayFormatter.string(from: date)) \(timeText)"
+    private var accessibilityIdentifier: String? {
+        switch title {
+        case L("Start Time"): return "calendar-item-composer-start-time"
+        case L("End Time"): return "calendar-item-composer-end-time"
+        default: return nil
+        }
     }
 
     private var nearestSlotMinutes: Int {
-        let calendar = Calendar.autoupdatingCurrent
         let hour = calendar.component(.hour, from: date)
         let minute = calendar.component(.minute, from: date)
         return max(0, min(23 * 60 + 45, ((hour * 60 + minute + 7) / 15) * 15))
@@ -837,9 +1158,21 @@ private struct CalendarComposerTimeButton: View {
             return
         }
 
-        date = date.settingTime(hour: time.hour, minute: time.minute)
-        customTimeError = nil
-        isShowingPicker = false
+        applyTime(hour: time.hour, minute: time.minute)
+    }
+
+    private func applyTime(hour: Int, minute: Int) {
+        do {
+            if let onSelectTime {
+                try onSelectTime(hour, minute)
+            } else {
+                date = date.settingTime(hour: hour, minute: minute, calendar: calendar)
+            }
+            customTimeError = nil
+            isShowingPicker = false
+        } catch {
+            customTimeError = error.localizedDescription
+        }
     }
 
     private static func parseTime(_ text: String) -> (hour: Int, minute: Int)? {
@@ -875,19 +1208,6 @@ private struct CalendarComposerTimeButton: View {
         CalendarComposerTimeSlot(minutes: $0)
     }
 
-    private static let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = AppLocalization.locale
-        formatter.dateFormat = "HH:mm"
-        return formatter
-    }()
-
-    private static let relativeDayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = AppLocalization.locale
-        formatter.setLocalizedDateFormatFromTemplate("MMMd")
-        return formatter
-    }()
 }
 
 private struct CalendarComposerTimeSlot {

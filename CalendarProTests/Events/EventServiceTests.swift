@@ -138,6 +138,63 @@ final class EventServiceTests: XCTestCase {
         XCTAssertEqual(request.notes, "Room 1")
     }
 
+    func testEventScheduleValidationRejectsEndBeforeOrEqualToStart() throws {
+        let start = Date(timeIntervalSince1970: 1_800_000_000)
+        for end in [start.addingTimeInterval(-60), start] {
+            let request = CalendarEventCreationRequest(
+                title: "Invalid",
+                calendarIdentifier: "calendar",
+                startDate: start,
+                endDate: end,
+                isAllDay: false,
+                notes: nil
+            )
+            XCTAssertThrowsError(try request.validateSchedule()) {
+                XCTAssertEqual($0 as? CalendarEventScheduleError, .endMustBeAfterStart)
+            }
+        }
+    }
+
+    func testEventScheduleValidationAcceptsOvernightAndMultiDayAllDayRanges() throws {
+        let start = Date(timeIntervalSince1970: 1_800_000_000)
+        let overnightRequest = CalendarEventCreationRequest(
+            title: "Overnight",
+            calendarIdentifier: "calendar",
+            startDate: start,
+            endDate: start.addingTimeInterval(11 * 60 * 60),
+            isAllDay: false,
+            notes: nil
+        )
+        let allDayRequest = CalendarEventCreationRequest(
+            title: "Multi-day",
+            calendarIdentifier: "calendar",
+            startDate: start,
+            endDate: start.addingTimeInterval(48 * 60 * 60),
+            isAllDay: true,
+            notes: nil
+        )
+
+        XCTAssertNoThrow(try overnightRequest.validateSchedule())
+        XCTAssertNoThrow(try allDayRequest.validateSchedule())
+    }
+
+    func testEventScheduleValidationAcceptsNonStandardAllDayEndWithoutNormalization() throws {
+        let start = Date(timeIntervalSince1970: 1_800_000_000)
+        let end = start.addingTimeInterval(60 * 60 * 37)
+        let request = CalendarEventCreationRequest(
+            title: "Imported range",
+            calendarIdentifier: "calendar",
+            startDate: start,
+            endDate: end,
+            isAllDay: true,
+            notes: nil
+        )
+
+        XCTAssertNoThrow(try request.validateSchedule())
+        XCTAssertEqual(request.startDate, start)
+        XCTAssertEqual(request.endDate, end)
+    }
+
     func testEditingReminderRequestPreservesDueTimeAndNotes() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!

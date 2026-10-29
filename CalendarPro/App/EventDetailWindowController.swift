@@ -131,6 +131,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     ) {
         let panel = makePanelIfNeeded(mode: .composer)
         self.onClose = onClose
+        let maximumHeight = availableHeight(anchoredTo: anchorWindow)
         let hostingController = NSHostingController(
             rootView: CalendarItemComposerView(
                 mode: .create(
@@ -140,6 +141,10 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
                 ),
                 eventCalendars: eventCalendars,
                 reminderCalendars: reminderCalendars,
+                maximumHeight: maximumHeight,
+                onPreferredHeightChange: { [weak self] preferredHeight in
+                    self?.resizePanelIfNeeded(preferredHeight: preferredHeight, anchoredTo: anchorWindow)
+                },
                 onSaveEvent: onSaveEvent,
                 onSaveReminder: onSaveReminder
             ) { [weak self] in
@@ -161,11 +166,16 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     ) {
         let panel = makePanelIfNeeded(mode: .composer)
         self.onClose = onClose
+        let maximumHeight = availableHeight(anchoredTo: anchorWindow)
         let hostingController = NSHostingController(
             rootView: CalendarItemComposerView(
                 mode: mode,
                 eventCalendars: eventCalendars,
                 reminderCalendars: reminderCalendars,
+                maximumHeight: maximumHeight,
+                onPreferredHeightChange: { [weak self] preferredHeight in
+                    self?.resizePanelIfNeeded(preferredHeight: preferredHeight, anchoredTo: anchorWindow)
+                },
                 onSaveEvent: onSaveEvent,
                 onSaveReminder: onSaveReminder
             ) { [weak self] in

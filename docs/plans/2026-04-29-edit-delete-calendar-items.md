@@ -4,6 +4,8 @@
 
 **Goal:** Add editing and deletion for calendar events and reminders from the existing detail windows.
 
+后续设计：[跨天日程编辑设计](2026-10-29-cross-day-event-editing-design.md)。该设计补齐既有编辑器的起止日期、跨夜定时范围和全天结束日期规则；删除及提醒事项流程仍按本计划记录执行。
+
 **Architecture:** Reuse `CalendarItemComposerView` for both creation and editing by introducing a composer mode and initial values. Keep EventKit mutations inside `EventService`, and let `RootPopoverView` own refresh/selection cleanup after save or delete.
 
 **Tech Stack:** Swift 6, SwiftUI, AppKit `NSPanel`, EventKit, XCTest.

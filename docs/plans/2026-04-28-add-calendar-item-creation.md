@@ -4,6 +4,8 @@
 
 **Goal:** Add first-class creation of calendar events and reminders from the menu bar popover for the currently selected day.
 
+后续设计：[跨天日程编辑设计](2026-10-29-cross-day-event-editing-design.md)。该设计补充事件起止日期和时间编辑、全天最后覆盖日语义及保存范围校验；本计划记录的首次新建行为仍按当时范围执行。
+
 **Architecture:** Extend the existing EventKit-backed `EventService` with small write models and save methods, then reuse the existing floating detail-panel infrastructure for a compact composer. The popover owns refresh/selection state; the composer only gathers input and returns a save request.
 
 **Tech Stack:** Swift 6, SwiftUI, AppKit `NSPanel`, EventKit, XCTest, generated Xcode project.

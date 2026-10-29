@@ -945,6 +945,76 @@
         }
       }
     },
+    "All-Day End Before Start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The end date must be after the start date." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "结束日期必须晚于开始日期。" } }
+      }
+    },
+    "Event End Must Be After Start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The end must be after the start." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "结束时间必须晚于开始时间。" } }
+      }
+    },
+    "Event Local Time Does Not Exist" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This time does not exist on the selected date. Choose another time." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "所选日期不存在该时间，请选择其他时间。" } }
+      }
+    },
+    "Unable to Calculate Event Dates" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unable to calculate the selected dates. Choose the dates again." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法计算所选日期，请重新选择。" } }
+      }
+    },
+    "Start Date" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Date" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "开始日期" } }
+      }
+    },
+    "End Date" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "End Date" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "结束日期" } }
+      }
+    },
+    "Start Time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Time" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "开始时间" } }
+      }
+    },
+    "End Time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "End Time" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "结束时间" } }
+      }
+    },
+    "1 day inclusive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "1 day, including the end date" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "共 1 天，含结束当天" } }
+      }
+    },
+    "%d days inclusive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%d days, including the end date" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "共 %d 天，含结束当天" } }
+      }
+    },
     "Calendar" : {
       "extractionState" : "stale",
       "localizations" : {

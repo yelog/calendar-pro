@@ -21,6 +21,32 @@ struct CalendarEventCreationRequest: Equatable {
     var isAllDay: Bool
     var notes: String?
 
+    static func make(
+        title: String,
+        calendarIdentifier: String,
+        schedule: CalendarEventScheduleDraft,
+        notes: String?
+    ) throws -> CalendarEventCreationRequest {
+        let request = CalendarEventCreationRequest(
+            title: title,
+            calendarIdentifier: calendarIdentifier,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate,
+            isAllDay: schedule.isAllDay,
+            notes: notes
+        )
+        try request.validateSchedule()
+        return request
+    }
+
+    func validateSchedule() throws {
+        guard endDate > startDate else {
+            throw isAllDay
+                ? CalendarEventScheduleError.invalidAllDayRange
+                : CalendarEventScheduleError.endMustBeAfterStart
+        }
+    }
+
     static func makeDefault(
         selectedDate: Date,
         calendarIdentifier: String,
@@ -654,11 +680,13 @@ final class EventService: ObservableObject {
             )
         }
 
+        try request.validateSchedule()
+
         let event = EKEvent(eventStore: eventStore)
         event.calendar = calendar
         event.title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)
         event.startDate = request.startDate
-        event.endDate = max(request.endDate, request.startDate)
+        event.endDate = request.endDate
         event.isAllDay = request.isAllDay
         event.notes = normalizedOptionalText(request.notes)
 
@@ -684,10 +712,12 @@ final class EventService: ObservableObject {
             )
         }
 
+        try request.validateSchedule()
+
         event.calendar = calendar
         event.title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)
         event.startDate = request.startDate
-        event.endDate = max(request.endDate, request.startDate)
+        event.endDate = request.endDate
         event.isAllDay = request.isAllDay
         event.notes = normalizedOptionalText(request.notes)
 

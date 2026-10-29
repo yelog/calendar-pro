@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		17F0DF43B8E5C6A9D2A1A4F1 /* CalendarEventScheduleDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8106A9B35D41F7A20CF312 /* CalendarEventScheduleDraft.swift */; };
+		2C1D446AD1204E55A8B7F916 /* CalendarEventScheduleDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97481E3F4F2647FDB49C616D /* CalendarEventScheduleDraftTests.swift */; };
+		C8EFA3443EDB4CB99766C25F /* CalendarItemComposerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A048E0FD0B44BA9BD1059C7 /* CalendarItemComposerTests.swift */; };
 		00121C50644DCFBA6719F12C /* EventDetailWindowLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F982C64317C9736E283B9E6C /* EventDetailWindowLayoutTests.swift */; };
 		0013A418F576C1D531835A0F /* HolidayProviderRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14556957B81E62798BCA0FF7 /* HolidayProviderRegistryTests.swift */; };
 		010BDBBA69F59032F207CE92 /* SettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6003FC285DB8CC4BB1D3192D /* SettingsStoreTests.swift */; };
@@ -176,6 +179,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3A048E0FD0B44BA9BD1059C7 /* CalendarItemComposerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarItemComposerTests.swift; sourceTree = "<group>"; };
+		5E8106A9B35D41F7A20CF312 /* CalendarEventScheduleDraft.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarEventScheduleDraft.swift; sourceTree = "<group>"; };
+		97481E3F4F2647FDB49C616D /* CalendarEventScheduleDraftTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarEventScheduleDraftTests.swift; sourceTree = "<group>"; };
 		004BB733E26EE98C103F224E /* CalendarPro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CalendarPro.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		015BE5F4CDF29C245A0B2D8F /* PomodoroStatisticsWindowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroStatisticsWindowView.swift; sourceTree = "<group>"; };
 		07D9D67475B60E932D4582D5 /* PomodoroTimerController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroTimerController.swift; sourceTree = "<group>"; };
@@ -592,6 +598,7 @@
 		6476433816DD3CF93FAE4984 /* Events */ = {
 			isa = PBXGroup;
 			children = (
+				5E8106A9B35D41F7A20CF312 /* CalendarEventScheduleDraft.swift */,
 				666FE285F25FDE071ACAAF3A /* CalendarItem.swift */,
 				5F4671B377E9669F23A90363 /* EventService.swift */,
 				5F1B8F350C9C70363B4E00C6 /* MeetingActionOpener.swift */,
@@ -771,6 +778,8 @@
 		B17D5CB6C6590F830A86501E /* Events */ = {
 			isa = PBXGroup;
 			children = (
+				97481E3F4F2647FDB49C616D /* CalendarEventScheduleDraftTests.swift */,
+				3A048E0FD0B44BA9BD1059C7 /* CalendarItemComposerTests.swift */,
 				193AC715978BE7FD13E5F100 /* CalendarItemTests.swift */,
 				AD71368B6FFCC754BA25B26D /* EventServiceTests.swift */,
 				4F60206FAE434B5798A27334 /* MeetingActionOpenerTests.swift */,
@@ -1076,6 +1085,7 @@
 				DE4BF36F50279E91767B3EF3 /* CalendarDayFactory.swift in Sources */,
 				7B021ED84D094ADAEB333E1A /* MonthCalendarService.swift in Sources */,
 				4284EDE40F6DCCCFA0F7C1DE /* SelectedDateSummary.swift in Sources */,
+				17F0DF43B8E5C6A9D2A1A4F1 /* CalendarEventScheduleDraft.swift in Sources */,
 				3D9A2684BA5BB8BB0CEB432A /* CalendarItem.swift in Sources */,
 				875D1861EC3004E53D7E6BB9 /* EventService.swift in Sources */,
 				91512A475E93DEFF0E469A44 /* MeetingActionOpener.swift in Sources */,
@@ -1166,6 +1176,8 @@
 				B370FB5BA1C770D2C8128B9D /* SelectedDateSummaryTests.swift in Sources */,
 				4DFDE7F104BF51F7D6B55235 /* CalendarProTests.swift in Sources */,
 				3331B4482CC46B144C75B37D /* HolidayFeedClientTests.swift in Sources */,
+				2C1D446AD1204E55A8B7F916 /* CalendarEventScheduleDraftTests.swift in Sources */,
+				C8EFA3443EDB4CB99766C25F /* CalendarItemComposerTests.swift in Sources */,
 				872AD93621C8BECE8067C4D8 /* CalendarItemTests.swift in Sources */,
 				EAEF50C762DCDF278D0C25C3 /* EventServiceTests.swift in Sources */,
 				4F25D2DEDDC1A99C3BF14C67 /* MeetingActionOpenerTests.swift in Sources */,

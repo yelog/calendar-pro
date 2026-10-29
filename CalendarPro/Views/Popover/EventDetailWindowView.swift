@@ -425,10 +425,12 @@ struct EventDetailWindowView: View {
     }
 
     private var visibleEndDate: Date {
-        if event.isAllDay {
-            return event.endDate.addingTimeInterval(-1)
-        }
-        return event.endDate
+        CalendarEventScheduleDraft.displayedEndDate(
+            startDate: event.startDate,
+            endDate: event.endDate,
+            isAllDay: event.isAllDay,
+            calendar: .autoupdatingCurrent
+        ) ?? event.endDate
     }
 
     private func reportPreferredHeightIfNeeded() {
