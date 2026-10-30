@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.2.8</title>
+            <pubDate>Fri, 30 Oct 2026 03:37:50 +0000</pubDate>
+            <sparkle:version>02899</sparkle:version>
+            <sparkle:shortVersionString>0.2.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.2.8&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;support editing calendar events across multiple days&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;prevent event detail panel sizing feedback and repeated layout work&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.2.8/CalendarPro-0.2.8-universal.dmg" length="8207190" type="application/octet-stream" sparkle:edSignature="Zk+2UcR8mThgtHLveuU0gROWhpcvL8ULZiwoH/mpMLok/l8wpM/rUjOnr7ouOtKQnFajPhQu2bN/Yc6W2NQqBw==" />
+        </item>
+        <item>
             <title>Version 0.2.7</title>
             <pubDate>Mon, 19 Oct 2026 06:42:54 +0000</pubDate>
             <sparkle:version>02799</sparkle:version>
