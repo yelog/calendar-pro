@@ -70,22 +70,27 @@ struct MeetingLink {
 enum MeetingLinkDetector {
     private struct PlatformPattern {
         let platform: MeetingPlatform
-        let regex: String
+        let regex: NSRegularExpression?
+
+        init(platform: MeetingPlatform, pattern: String) {
+            self.platform = platform
+            regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+        }
     }
 
     private static let patterns: [PlatformPattern] = [
-        PlatformPattern(platform: .microsoftTeams, regex: #"msteams://teams\.microsoft\.com/l/meetup-join/[^\s<>\"\)>]+"#),
-        PlatformPattern(platform: .microsoftTeams, regex: #"https?://teams\.microsoft\.com/l/meetup-join/[^\s<>\"\)>]+"#),
-        PlatformPattern(platform: .zoom, regex: #"https?://[\w.-]*zoom\.us/(?:j|my|w|wc/join)/[^\s<>\"\)>]+"#),
-        PlatformPattern(platform: .googleMeet, regex: #"https?://meet\.google\.com/[a-z\-]+"#),
-        PlatformPattern(platform: .webex, regex: #"https?://[\w.-]*webex\.com/(?:meet|join|wbxmjs/joinservice)/[^\s<>\"\)>]+"#),
-        PlatformPattern(platform: .feishu, regex: #"https?://(?:meetings|vc)\.feishu\.cn/[^\s<>\"\)>]+"#),
-        PlatformPattern(platform: .tencentMeeting, regex: #"https?://meeting\.tencent\.com/[^\s<>\"\)>]+"#),
-        PlatformPattern(platform: .voovMeeting, regex: #"https?://(?:www\.)?voovmeeting\.com/[^\s<>\"\)>]+"#),
-        PlatformPattern(platform: .whereby, regex: #"https?://(?:www\.)?whereby\.com/[^\s<>\"\)>]+"#),
-        PlatformPattern(platform: .goToMeeting, regex: #"https?://meet\.goto\.com/[^\s<>\"\)>]+"#),
-        PlatformPattern(platform: .goToMeeting, regex: #"https?://global\.gotomeeting\.com/join/[^\s<>\"\)>]+"#),
-        PlatformPattern(platform: .dingTalk, regex: #"https?://meeting\.dingtalk\.com/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .microsoftTeams, pattern: #"msteams://teams\.microsoft\.com/l/meetup-join/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .microsoftTeams, pattern: #"https?://teams\.microsoft\.com/l/meetup-join/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .zoom, pattern: #"https?://[\w.-]*zoom\.us/(?:j|my|w|wc/join)/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .googleMeet, pattern: #"https?://meet\.google\.com/[a-z\-]+"#),
+        PlatformPattern(platform: .webex, pattern: #"https?://[\w.-]*webex\.com/(?:meet|join|wbxmjs/joinservice)/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .feishu, pattern: #"https?://(?:meetings|vc)\.feishu\.cn/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .tencentMeeting, pattern: #"https?://meeting\.tencent\.com/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .voovMeeting, pattern: #"https?://(?:www\.)?voovmeeting\.com/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .whereby, pattern: #"https?://(?:www\.)?whereby\.com/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .goToMeeting, pattern: #"https?://meet\.goto\.com/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .goToMeeting, pattern: #"https?://global\.gotomeeting\.com/join/[^\s<>\"\)>]+"#),
+        PlatformPattern(platform: .dingTalk, pattern: #"https?://meeting\.dingtalk\.com/[^\s<>\"\)>]+"#),
     ]
 
     static func detect(in event: EKEvent) -> MeetingLink? {
@@ -106,8 +111,7 @@ enum MeetingLinkDetector {
 
     static func findInText(_ text: String) -> MeetingLink? {
         for entry in patterns {
-            let pattern = entry.regex
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { continue }
+            guard let regex = entry.regex else { continue }
             let range = NSRange(text.startIndex..., in: text)
             if let match = regex.firstMatch(in: text, range: range),
                let matchRange = Range(match.range, in: text) {
@@ -125,8 +129,7 @@ enum MeetingLinkDetector {
     private static func matchURL(_ url: URL) -> MeetingLink? {
         let urlString = url.absoluteString
         for entry in patterns {
-            let pattern = entry.regex
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { continue }
+            guard let regex = entry.regex else { continue }
             let range = NSRange(urlString.startIndex..., in: urlString)
             if regex.firstMatch(in: urlString, range: range) != nil {
                 return MeetingLink(url: url, platform: entry.platform)

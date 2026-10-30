@@ -1,6 +1,20 @@
 import SwiftUI
 import EventKit
 
+private enum ComposerMeasuredRegion: Hashable {
+    case header
+    case content
+    case footer
+}
+
+private struct ComposerRegionHeightsPreferenceKey: PreferenceKey {
+    static var defaultValue: [ComposerMeasuredRegion: CGFloat] { [:] }
+
+    static func reduce(value: inout [ComposerMeasuredRegion: CGFloat], nextValue: () -> [ComposerMeasuredRegion: CGFloat]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
+    }
+}
+
 enum CalendarItemComposerMode {
     case create(
         kind: CalendarItemCreationKind,
@@ -32,10 +46,39 @@ struct CalendarItemComposerView: View {
     @State private var notes: String = ""
     @State private var validationMessage: String?
     @State private var isSaving = false
+    @State private var regionHeights: [ComposerMeasuredRegion: CGFloat] = [:]
+    @State private var formatters: ScheduleFormatters
     @FocusState private var focusedField: FocusedField?
 
     private let editingCalendar: Calendar
     private var isAllDay: Bool { schedule.isAllDay }
+
+    private struct ScheduleFormatters {
+        let locale: Locale
+        let calendar: Calendar
+        let date: DateFormatter
+        let time: DateFormatter
+
+        init(calendar: Calendar) {
+            let locale = AppLocalization.locale
+            self.locale = locale
+            self.calendar = calendar
+
+            let date = DateFormatter()
+            date.locale = locale
+            date.calendar = calendar
+            date.timeZone = calendar.timeZone
+            date.setLocalizedDateFormatFromTemplate("yMMMdEEE")
+            self.date = date
+
+            let time = DateFormatter()
+            time.locale = locale
+            time.calendar = calendar
+            time.timeZone = calendar.timeZone
+            time.dateFormat = "HH:mm"
+            self.time = time
+        }
+    }
 
     private enum FocusedField: Hashable {
         case title
@@ -71,6 +114,7 @@ struct CalendarItemComposerView: View {
         var editingCalendar = Calendar.current
         editingCalendar.timeZone = TimeZone.current
         self.editingCalendar = editingCalendar
+        _formatters = State(initialValue: ScheduleFormatters(calendar: editingCalendar))
 
         let initialValues = Self.initialValues(
             for: mode,
@@ -96,26 +140,34 @@ struct CalendarItemComposerView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
             header
+                .background {
+                    GeometryReader { proxy in
+                        Color.clear.preference(key: ComposerRegionHeightsPreferenceKey.self, value: [.header: proxy.size.height])
+                    }
+                }
             ScrollView(.vertical) {
                 content
                     .padding(.vertical, 1)
                     .fixedSize(horizontal: false, vertical: true)
+                    .background {
+                        GeometryReader { proxy in
+                            Color.clear.preference(key: ComposerRegionHeightsPreferenceKey.self, value: [.content: proxy.size.height])
+                        }
+                    }
             }
             .scrollIndicators(.automatic)
-            .frame(maxHeight: maximumScrollHeight)
+            .frame(height: min(regionHeights[.content] ?? maximumScrollHeight, maximumScrollHeight))
             footer
+                .background {
+                    GeometryReader { proxy in
+                        Color.clear.preference(key: ComposerRegionHeightsPreferenceKey.self, value: [.footer: proxy.size.height])
+                    }
+                }
         }
         .padding(PopoverSurfaceMetrics.outerPadding)
         .frame(width: PopoverSurfaceMetrics.width, alignment: .topLeading)
         .background(surfaceBackground)
-        .background {
-            GeometryReader { proxy in
-                ComposerHeightReporter { height in
-                    reportPreferredHeight(height)
-                }
-                .frame(width: proxy.size.width, height: proxy.size.height)
-            }
-        }
+        .onPreferenceChange(ComposerRegionHeightsPreferenceKey.self, perform: updateMeasuredRegions)
         .onAppear {
             DispatchQueue.main.async {
                 focusedField = .title
@@ -127,6 +179,9 @@ struct CalendarItemComposerView: View {
         .onChange(of: title) { _, _ in validationMessage = nil }
         .onChange(of: selectedCalendarIdentifier) { _, _ in validationMessage = nil }
         .onChange(of: schedule) { _, _ in validationMessage = nil }
+        .onChange(of: AppLocalization.locale.identifier) { _, _ in
+            formatters = ScheduleFormatters(calendar: editingCalendar)
+        }
     }
 
     private var header: some View {
@@ -448,21 +503,18 @@ struct CalendarItemComposerView: View {
     }
 
     private var formattedScheduleSummary: String {
-        let dateFormatter = Self.scheduleDateFormatter(calendar: editingCalendar)
-        let timeFormatter = Self.scheduleTimeFormatter(calendar: editingCalendar)
-
         if selectedKind == .reminder {
-            let dateText = dateFormatter.string(from: dueDate)
+            let dateText = formatters.date.string(from: dueDate)
             guard reminderIncludesTime else { return dateText }
-            return "\(dateText) · \(timeFormatter.string(from: dueDate))"
+            return "\(dateText) · \(formatters.time.string(from: dueDate))"
         }
 
         let visibleEndDate = isAllDay ? (schedule.displayedEndDate ?? schedule.endDate) : schedule.endDate
         let dateText: String
         if editingCalendar.isDate(schedule.startDate, inSameDayAs: visibleEndDate) {
-            dateText = dateFormatter.string(from: schedule.startDate)
+            dateText = formatters.date.string(from: schedule.startDate)
         } else {
-            dateText = "\(dateFormatter.string(from: schedule.startDate)) – \(dateFormatter.string(from: visibleEndDate))"
+            dateText = "\(formatters.date.string(from: schedule.startDate)) – \(formatters.date.string(from: visibleEndDate))"
         }
 
         if isAllDay {
@@ -470,26 +522,8 @@ struct CalendarItemComposerView: View {
             return [dateText, L("All Day"), summary].compactMap { $0 }.joined(separator: " · ")
         }
 
-        let timeRange = "\(timeFormatter.string(from: schedule.startDate))–\(timeFormatter.string(from: schedule.endDate))"
+        let timeRange = "\(formatters.time.string(from: schedule.startDate))–\(formatters.time.string(from: schedule.endDate))"
         return "\(dateText) · \(timeRange)"
-    }
-
-    private static func scheduleTimeFormatter(calendar: Calendar) -> DateFormatter {
-        let formatter = DateFormatter()
-        formatter.locale = AppLocalization.locale
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-        formatter.dateFormat = "HH:mm"
-        return formatter
-    }
-
-    private static func scheduleDateFormatter(calendar: Calendar) -> DateFormatter {
-        let formatter = DateFormatter()
-        formatter.locale = AppLocalization.locale
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-        formatter.setLocalizedDateFormatFromTemplate("yMMMdEEE")
-        return formatter
     }
 
     private func setStartDay(_ day: Date) throws {
@@ -706,47 +740,70 @@ struct CalendarItemComposerView: View {
 
     private var maximumScrollHeight: CGFloat {
         guard maximumHeight.isFinite else { return .infinity }
-        return max(100, maximumHeight - 125)
+        let headerHeight = regionHeights[.header] ?? 0
+        let footerHeight = regionHeights[.footer] ?? 0
+        let chromeHeight = headerHeight + footerHeight
+            + PopoverSurfaceMetrics.outerPadding * 2
+            + PopoverSurfaceMetrics.sectionSpacing * 2
+        return max(0, maximumHeight - chromeHeight)
     }
 
-    private func reportPreferredHeight(_ height: CGFloat) {
-        DispatchQueue.main.async {
-            onPreferredHeightChange?(height)
+    private func updateMeasuredRegions(_ measurements: [ComposerMeasuredRegion: CGFloat]) {
+        var updatedHeights = regionHeights
+        for (region, height) in measurements where height.isFinite && height > 0 {
+            guard abs((updatedHeights[region] ?? 0) - height) > 1 else { continue }
+            updatedHeights[region] = height
         }
-    }
-}
 
-private struct ComposerHeightReporter: View {
-    let onChange: (CGFloat) -> Void
+        guard updatedHeights != regionHeights else { return }
+        regionHeights = updatedHeights
 
-    var body: some View {
-        GeometryReader { proxy in
-            Color.clear
-                .onAppear { report(proxy.size.height) }
-                .onChange(of: proxy.size.height) { _, height in report(height) }
+        guard let headerHeight = updatedHeights[.header],
+              let contentHeight = updatedHeights[.content],
+              let footerHeight = updatedHeights[.footer] else {
+            return
         }
-        .allowsHitTesting(false)
-    }
 
-    private func report(_ height: CGFloat) {
-        DispatchQueue.main.async {
-            onChange(height)
-        }
+        let naturalHeight = headerHeight + contentHeight + footerHeight
+            + PopoverSurfaceMetrics.outerPadding * 2
+            + PopoverSurfaceMetrics.sectionSpacing * 2
+        onPreferredHeightChange?(ceil(naturalHeight))
     }
 }
 
 private struct CalendarComposerDateButton: View {
+    private struct Formatters {
+        let locale: Locale
+        let calendar: Calendar
+        let date: DateFormatter
+
+        init(calendar: Calendar) {
+            let locale = AppLocalization.locale
+            self.locale = locale
+            self.calendar = calendar
+
+            let formatter = DateFormatter()
+            formatter.locale = locale
+            formatter.calendar = calendar
+            formatter.timeZone = calendar.timeZone
+            formatter.setLocalizedDateFormatFromTemplate("yMdEEE")
+            date = formatter
+        }
+    }
+
     let title: String
     @Binding var date: Date
     let calendar: Calendar
     let onSelectDay: ((Date) throws -> Void)?
     @State private var isShowingPicker = false
     @State private var selectionError: String?
+    @State private var formatters: Formatters
 
     init(title: String, date: Binding<Date>, calendar: Calendar = .autoupdatingCurrent) {
         self.title = title
         _date = date
         self.calendar = calendar
+        _formatters = State(initialValue: Formatters(calendar: calendar))
         onSelectDay = { day in
             date.wrappedValue = date.wrappedValue.settingDate(toMatch: day, calendar: calendar)
         }
@@ -762,6 +819,7 @@ private struct CalendarComposerDateButton: View {
         let binding = Binding<Date>(get: { date }, set: { _ in })
         _date = binding
         self.calendar = calendar
+        _formatters = State(initialValue: Formatters(calendar: calendar))
         onSelectDay = { selectedDay in
             try onSelectDate(selectedDay)
         }
@@ -810,6 +868,12 @@ private struct CalendarComposerDateButton: View {
         .accessibilityLabel(title)
         .accessibilityValue(formattedDate)
         .accessibilityIdentifier(accessibilityIdentifier ?? "calendar-item-composer-reminder-date")
+        .onChange(of: AppLocalization.locale.identifier) { _, _ in
+            formatters = Formatters(calendar: calendar)
+        }
+        .onChange(of: calendar.timeZone.identifier) { _, _ in
+            formatters = Formatters(calendar: calendar)
+        }
     }
 
     private var accessibilityIdentifier: String? {
@@ -821,12 +885,7 @@ private struct CalendarComposerDateButton: View {
     }
 
     private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = AppLocalization.locale
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-        formatter.setLocalizedDateFormatFromTemplate("yMdEEE")
-        return formatter.string(from: date)
+        formatters.date.string(from: date)
     }
 
     private func applySelectedDay(_ day: Date) -> Bool {
@@ -848,11 +907,40 @@ private struct CalendarComposerDateButton: View {
 }
 
 private struct CalendarComposerMonthPicker: View {
+    private struct Formatters {
+        let locale: Locale
+        let calendar: Calendar
+        let month: DateFormatter
+        let day: DateFormatter
+
+        init(calendar: Calendar) {
+            let locale = AppLocalization.locale
+            self.locale = locale
+            self.calendar = calendar
+
+            let monthFormatter = DateFormatter()
+            monthFormatter.locale = locale
+            monthFormatter.calendar = calendar
+            monthFormatter.timeZone = calendar.timeZone
+            monthFormatter.setLocalizedDateFormatFromTemplate("yMMM")
+            month = monthFormatter
+
+            let dayFormatter = DateFormatter()
+            dayFormatter.locale = locale
+            dayFormatter.calendar = calendar
+            dayFormatter.timeZone = calendar.timeZone
+            dayFormatter.setLocalizedDateFormatFromTemplate("yMMMdEEEE")
+            day = dayFormatter
+        }
+    }
+
     @Binding var date: Date
     let calendar: Calendar
     let onSelectDay: (Date) -> Bool
     let onSelectDate: () -> Void
     @State private var visibleMonth: Date
+    @State private var formatters: Formatters
+    @State private var visibleWeekdaySymbols: [String]
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
 
@@ -867,6 +955,8 @@ private struct CalendarComposerMonthPicker: View {
         self.onSelectDay = onSelectDay
         self.onSelectDate = onSelectDate
         _visibleMonth = State(initialValue: calendar.startOfMonth(for: date.wrappedValue))
+        _formatters = State(initialValue: Formatters(calendar: calendar))
+        _visibleWeekdaySymbols = State(initialValue: Self.weekdaySymbols(for: calendar))
     }
 
     var body: some View {
@@ -940,9 +1030,21 @@ private struct CalendarComposerMonthPicker: View {
             }
         }
         .frame(width: 276)
+        .onChange(of: AppLocalization.locale.identifier) { _, _ in
+            formatters = Formatters(calendar: calendar)
+            visibleWeekdaySymbols = Self.weekdaySymbols(for: calendar)
+        }
+        .onChange(of: calendar.timeZone.identifier) { _, _ in
+            formatters = Formatters(calendar: calendar)
+            visibleWeekdaySymbols = Self.weekdaySymbols(for: calendar)
+        }
     }
 
     private var weekdaySymbols: [String] {
+        visibleWeekdaySymbols
+    }
+
+    private static func weekdaySymbols(for calendar: Calendar) -> [String] {
         let symbols = calendar.shortStandaloneWeekdaySymbols
         let startIndex = max(0, calendar.firstWeekday - 1)
         return Array(symbols[startIndex...]) + Array(symbols[..<startIndex])
@@ -991,25 +1093,34 @@ private struct CalendarComposerMonthPicker: View {
     }
 
     private var formattedVisibleMonth: String {
-        let formatter = DateFormatter()
-        formatter.locale = AppLocalization.locale
-        formatter.setLocalizedDateFormatFromTemplate("yMMM")
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-        return formatter.string(from: visibleMonth)
+        formatters.month.string(from: visibleMonth)
     }
 
     private func formattedDay(_ day: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = AppLocalization.locale
-        formatter.setLocalizedDateFormatFromTemplate("yMMMdEEEE")
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-        return formatter.string(from: day)
+        formatters.day.string(from: day)
     }
 }
 
 private struct CalendarComposerTimeButton: View {
+    private struct Formatter {
+        let locale: Locale
+        let calendar: Calendar
+        let time: DateFormatter
+
+        init(calendar: Calendar) {
+            let locale = AppLocalization.locale
+            self.locale = locale
+            self.calendar = calendar
+
+            let formatter = DateFormatter()
+            formatter.locale = locale
+            formatter.calendar = calendar
+            formatter.timeZone = calendar.timeZone
+            formatter.dateFormat = "HH:mm"
+            time = formatter
+        }
+    }
+
     let title: String
     @Binding var date: Date
     let calendar: Calendar
@@ -1017,6 +1128,7 @@ private struct CalendarComposerTimeButton: View {
     @State private var isShowingPicker = false
     @State private var customTimeText = ""
     @State private var customTimeError: String?
+    @State private var formatter: Formatter
 
     private let columns = [
         GridItem(.flexible(), spacing: 6),
@@ -1031,6 +1143,7 @@ private struct CalendarComposerTimeButton: View {
         self.title = title
         _date = date
         self.calendar = calendar
+        _formatter = State(initialValue: Formatter(calendar: calendar))
         onSelectTime = nil
     }
 
@@ -1043,6 +1156,7 @@ private struct CalendarComposerTimeButton: View {
         self.title = title
         _date = .constant(date)
         self.calendar = calendar
+        _formatter = State(initialValue: Formatter(calendar: calendar))
         self.onSelectTime = onSelectTime
     }
 
@@ -1102,6 +1216,12 @@ private struct CalendarComposerTimeButton: View {
         .accessibilityLabel(title)
         .accessibilityValue(displayValue)
         .accessibilityIdentifier(accessibilityIdentifier ?? "calendar-item-composer-reminder-time")
+        .onChange(of: AppLocalization.locale.identifier) { _, _ in
+            formatter = Formatter(calendar: calendar)
+        }
+        .onChange(of: calendar.timeZone.identifier) { _, _ in
+            formatter = Formatter(calendar: calendar)
+        }
     }
 
     private var customTimeField: some View {
@@ -1130,12 +1250,7 @@ private struct CalendarComposerTimeButton: View {
     }
 
     private var displayValue: String {
-        let formatter = DateFormatter()
-        formatter.locale = AppLocalization.locale
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: date)
+        formatter.time.string(from: date)
     }
 
     private var accessibilityIdentifier: String? {

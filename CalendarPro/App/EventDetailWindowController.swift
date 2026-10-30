@@ -45,6 +45,9 @@ protocol EventDetailWindowPresenting: AnyObject {
 
 @MainActor
 final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, NSWindowDelegate {
+    typealias PanelFactory = (NSRect, NSWindow.StyleMask) -> NSPanel
+    typealias ApplicationActivator = () -> Void
+
     private enum PanelMode {
         case detail
         case composer
@@ -65,6 +68,34 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     private var panel: NSPanel?
     private var panelMode: PanelMode?
     private var onClose: (() -> Void)?
+    private weak var hostingController: NSHostingController<AnyView>?
+    private var presentationID = UUID()
+    private var pendingPreferredHeight: CGFloat?
+    private var resizeTaskID: UUID?
+    private var resizeTask: Task<Void, Never>?
+    private let panelFactory: PanelFactory?
+    private let activateApplication: ApplicationActivator
+    private let preferredHeightCallbackObserver: ((@escaping (CGFloat) -> Void) -> Void)?
+    private let availableHeightProvider: ((NSWindow?) -> CGFloat)?
+    private let preferredHeightScheduler: ((@escaping @MainActor () -> Void) -> Void)?
+    private let setPanelFrame: ((NSPanel, NSRect, Bool) -> Void)?
+
+    init(
+        panelFactory: PanelFactory? = nil,
+        activateApplication: @escaping ApplicationActivator = { NSApp.activate(ignoringOtherApps: true) },
+        preferredHeightCallbackObserver: ((@escaping (CGFloat) -> Void) -> Void)? = nil,
+        availableHeightProvider: ((NSWindow?) -> CGFloat)? = nil,
+        preferredHeightScheduler: ((@escaping @MainActor () -> Void) -> Void)? = nil,
+        setPanelFrame: ((NSPanel, NSRect, Bool) -> Void)? = nil
+    ) {
+        self.panelFactory = panelFactory
+        self.activateApplication = activateApplication
+        self.preferredHeightCallbackObserver = preferredHeightCallbackObserver
+        self.availableHeightProvider = availableHeightProvider
+        self.preferredHeightScheduler = preferredHeightScheduler
+        self.setPanelFrame = setPanelFrame
+        super.init()
+    }
 
     func show(
         event: EKEvent,
@@ -75,23 +106,32 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         onClose: @escaping () -> Void
     ) {
         let panel = makePanelIfNeeded(mode: .detail)
-        self.onClose = onClose
-        let hostingController = NSHostingController(
-            rootView: EventDetailWindowView(
+        let presentationID = beginPresentation(onClose: onClose)
+        let maximumHeight = effectiveAvailableHeight(anchoredTo: anchorWindow)
+        let preferredHeightCallback: (CGFloat) -> Void = { [weak self] preferredHeight in
+            self?.scheduleResize(
+                preferredHeight: preferredHeight,
+                presentationID: presentationID,
+                panel: panel,
+                anchoredTo: anchorWindow
+            )
+        }
+        preferredHeightCallbackObserver?(preferredHeightCallback)
+        let hostingController = NSHostingController<AnyView>(
+            rootView: AnyView(EventDetailWindowView(
                 event: event,
+                maximumHeight: maximumHeight,
                 onEdit: onEdit,
                 onDelete: onDelete,
                 onClose: { [weak self] in
                     self?.close()
                 },
-                onPreferredHeightChange: { [weak self] preferredHeight in
-                    self?.resizePanelIfNeeded(preferredHeight: preferredHeight, anchoredTo: anchorWindow)
-                },
+                onPreferredHeightChange: preferredHeightCallback,
                 onJoinMeeting: onJoinMeeting
-            )
+            ))
         )
 
-        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow)
+        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, managesPreferredHeight: true)
     }
 
     func show(
@@ -103,16 +143,16 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         onClose: @escaping () -> Void
     ) {
         let panel = makePanelIfNeeded(mode: .detail)
-        self.onClose = onClose
-        let hostingController = NSHostingController(
-            rootView: ReminderDetailWindowView(
+        _ = beginPresentation(onClose: onClose)
+        let hostingController = NSHostingController<AnyView>(
+            rootView: AnyView(ReminderDetailWindowView(
                 reminder: reminder,
                 onToggle: onToggle,
                 onEdit: onEdit,
                 onDelete: onDelete
             ) { [weak self] in
                 self?.close()
-            }
+            })
         )
 
         presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow)
@@ -130,10 +170,19 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         onClose: @escaping () -> Void
     ) {
         let panel = makePanelIfNeeded(mode: .composer)
-        self.onClose = onClose
-        let maximumHeight = availableHeight(anchoredTo: anchorWindow)
-        let hostingController = NSHostingController(
-            rootView: CalendarItemComposerView(
+        let presentationID = beginPresentation(onClose: onClose)
+        let maximumHeight = effectiveAvailableHeight(anchoredTo: anchorWindow)
+        let preferredHeightCallback: (CGFloat) -> Void = { [weak self] preferredHeight in
+            self?.scheduleResize(
+                preferredHeight: preferredHeight,
+                presentationID: presentationID,
+                panel: panel,
+                anchoredTo: anchorWindow
+            )
+        }
+        preferredHeightCallbackObserver?(preferredHeightCallback)
+        let hostingController = NSHostingController<AnyView>(
+            rootView: AnyView(CalendarItemComposerView(
                 mode: .create(
                     kind: kind,
                     selectedDate: selectedDate,
@@ -142,17 +191,15 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
                 eventCalendars: eventCalendars,
                 reminderCalendars: reminderCalendars,
                 maximumHeight: maximumHeight,
-                onPreferredHeightChange: { [weak self] preferredHeight in
-                    self?.resizePanelIfNeeded(preferredHeight: preferredHeight, anchoredTo: anchorWindow)
-                },
+                onPreferredHeightChange: preferredHeightCallback,
                 onSaveEvent: onSaveEvent,
                 onSaveReminder: onSaveReminder
             ) { [weak self] in
                 self?.close()
-            }
+            })
         )
 
-        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, activatesForTextInput: true)
+        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, activatesForTextInput: true, managesPreferredHeight: true)
     }
 
     func showEditor(
@@ -165,38 +212,46 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         onClose: @escaping () -> Void
     ) {
         let panel = makePanelIfNeeded(mode: .composer)
-        self.onClose = onClose
-        let maximumHeight = availableHeight(anchoredTo: anchorWindow)
-        let hostingController = NSHostingController(
-            rootView: CalendarItemComposerView(
+        let presentationID = beginPresentation(onClose: onClose)
+        let maximumHeight = effectiveAvailableHeight(anchoredTo: anchorWindow)
+        let preferredHeightCallback: (CGFloat) -> Void = { [weak self] preferredHeight in
+            self?.scheduleResize(
+                preferredHeight: preferredHeight,
+                presentationID: presentationID,
+                panel: panel,
+                anchoredTo: anchorWindow
+            )
+        }
+        preferredHeightCallbackObserver?(preferredHeightCallback)
+        let hostingController = NSHostingController<AnyView>(
+            rootView: AnyView(CalendarItemComposerView(
                 mode: mode,
                 eventCalendars: eventCalendars,
                 reminderCalendars: reminderCalendars,
                 maximumHeight: maximumHeight,
-                onPreferredHeightChange: { [weak self] preferredHeight in
-                    self?.resizePanelIfNeeded(preferredHeight: preferredHeight, anchoredTo: anchorWindow)
-                },
+                onPreferredHeightChange: preferredHeightCallback,
                 onSaveEvent: onSaveEvent,
                 onSaveReminder: onSaveReminder
             ) { [weak self] in
                 self?.close()
-            }
+            })
         )
 
-        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, activatesForTextInput: true)
+        presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow, activatesForTextInput: true, managesPreferredHeight: true)
     }
 
     func close() {
+        invalidatePendingResize()
         panel?.close()
     }
 
     func windowWillClose(_ notification: Notification) {
+        guard let closedPanel = notification.object as? NSPanel, closedPanel === panel else { return }
+        invalidatePendingResize()
         let onClose = self.onClose
         self.onClose = nil
-        if let closedPanel = notification.object as? NSPanel, closedPanel === panel {
-            panel = nil
-            panelMode = nil
-        }
+        panel = nil
+        panelMode = nil
         onClose?()
     }
 
@@ -204,33 +259,125 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
 
     private func presentPanel(
         _ panel: NSPanel,
-        hosting hostingController: NSHostingController<some View>,
+        hosting hostingController: NSHostingController<AnyView>,
         anchoredTo anchorWindow: NSWindow?,
-        activatesForTextInput: Bool = false
+        activatesForTextInput: Bool = false,
+        managesPreferredHeight: Bool = false
     ) {
         panel.contentViewController = hostingController
+        self.hostingController = hostingController
+        hostingController.sizingOptions = managesPreferredHeight ? [] : .standardBounds
 
-        // fittingSize 自身会触发一次完整布局，无需再显式调用 layoutSubtreeIfNeeded()，
-        // 否则在替换 panel content view 的布局 pass 中重入会触发 AppKit 的
-        // "It's not legal to call -layoutSubtreeIfNeeded on a view which is already being laid out"。
-        let fittingSize = hostingController.view.fittingSize
-        let availableHeight = availableHeight(anchoredTo: anchorWindow)
-        let panelSize = EventDetailWindowSizing.panelSize(for: fittingSize, availableHeight: availableHeight)
+        let availableHeight = effectiveAvailableHeight(anchoredTo: anchorWindow)
+        let panelSize: CGSize
+        if managesPreferredHeight {
+            let measuredSize = hostingController.sizeThatFits(in: CGSize(
+                width: EventDetailWindowSizing.width,
+                height: availableHeight
+            ))
+            let initialHeight = measuredSize.width.isFinite
+                && measuredSize.width > 0
+                && measuredSize.height.isFinite
+                && measuredSize.height > 0
+                ? measuredSize.height
+                : EventDetailWindowSizing.idealHeight
+            panelSize = EventDetailWindowSizing.panelSize(
+                for: CGSize(width: EventDetailWindowSizing.width, height: initialHeight),
+                availableHeight: availableHeight
+            )
+        } else {
+            panelSize = EventDetailWindowSizing.panelSize(
+                for: hostingController.view.fittingSize,
+                availableHeight: availableHeight
+            )
+        }
         let panelFrame = frame(for: panelSize, anchoredTo: anchorWindow)
-        panel.setContentSize(panelFrame.size)
-        panel.setFrame(panelFrame, display: false)
+        if let setPanelFrame {
+            setPanelFrame(panel, panelFrame, false)
+        } else {
+            panel.setFrame(panelFrame, display: false)
+        }
         if activatesForTextInput {
-            NSApp.activate(ignoringOtherApps: true)
+            activateApplication()
             panel.makeKeyAndOrderFront(nil)
         } else {
             panel.orderFrontRegardless()
         }
     }
 
-    private func resizePanelIfNeeded(preferredHeight: CGFloat, anchoredTo anchorWindow: NSWindow?) {
-        guard let panel, preferredHeight > 0 else { return }
+    private func beginPresentation(onClose: @escaping () -> Void) -> UUID {
+        invalidatePendingResize()
+        let presentationID = UUID()
+        self.presentationID = presentationID
+        self.onClose = onClose
+        return presentationID
+    }
 
-        let availableHeight = availableHeight(anchoredTo: anchorWindow)
+    private func invalidatePendingResize() {
+        resizeTask?.cancel()
+        resizeTask = nil
+        resizeTaskID = nil
+        pendingPreferredHeight = nil
+        presentationID = UUID()
+        hostingController?.sizingOptions = .standardBounds
+        hostingController = nil
+    }
+
+    private func scheduleResize(
+        preferredHeight: CGFloat,
+        presentationID: UUID,
+        panel scheduledPanel: NSPanel,
+        anchoredTo anchorWindow: NSWindow?
+    ) {
+        guard preferredHeight.isFinite,
+              preferredHeight > 0,
+              presentationID == self.presentationID,
+              scheduledPanel === panel else {
+            return
+        }
+
+        pendingPreferredHeight = preferredHeight
+        guard resizeTaskID == nil else { return }
+
+        let taskID = UUID()
+        resizeTaskID = taskID
+        let applyLatestHeight: @MainActor () -> Void = { [weak self, weak scheduledPanel] in
+            guard let self,
+                  let scheduledPanel,
+                  self.resizeTaskID == taskID else {
+                return
+            }
+
+            let latestHeight = self.pendingPreferredHeight
+            self.resizeTask = nil
+            self.resizeTaskID = nil
+            self.pendingPreferredHeight = nil
+
+            guard self.presentationID == presentationID,
+                  scheduledPanel === self.panel,
+                  let latestHeight else {
+                return
+            }
+            self.resizePanelIfNeeded(preferredHeight: latestHeight, panel: scheduledPanel, anchoredTo: anchorWindow)
+        }
+        if let preferredHeightScheduler {
+            preferredHeightScheduler(applyLatestHeight)
+        } else {
+            resizeTask = Task { @MainActor in
+                await Task.yield()
+                applyLatestHeight()
+            }
+        }
+    }
+
+    private func resizePanelIfNeeded(preferredHeight: CGFloat, panel: NSPanel, anchoredTo anchorWindow: NSWindow?) {
+        guard preferredHeight.isFinite,
+              preferredHeight > 0,
+              panel === self.panel else {
+            return
+        }
+
+        let availableHeight = effectiveAvailableHeight(anchoredTo: anchorWindow)
         let targetSize = EventDetailWindowSizing.panelSize(
             for: CGSize(width: EventDetailWindowSizing.width, height: preferredHeight),
             availableHeight: availableHeight
@@ -245,8 +392,11 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
             return
         }
 
-        panel.setContentSize(targetFrame.size)
-        panel.setFrame(targetFrame, display: true)
+        if let setPanelFrame {
+            setPanelFrame(panel, targetFrame, true)
+        } else {
+            panel.setFrame(targetFrame, display: true)
+        }
     }
 
     private func makePanelIfNeeded(mode: PanelMode) -> NSPanel {
@@ -254,6 +404,8 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
             return panel
         }
 
+        invalidatePendingResize()
+        onClose = nil
         panel?.close()
         panel = nil
         panelMode = nil
@@ -262,18 +414,19 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
             ? [.borderless, .fullSizeContentView]
             : [.borderless, .nonactivatingPanel, .fullSizeContentView]
 
-        let panel = FloatingPanel(
-            contentRect: NSRect(
-                x: 0,
-                y: 0,
-                width: EventDetailWindowSizing.width,
-                height: EventDetailWindowSizing.idealHeight
-            ),
-            styleMask: styleMask,
-            backing: .buffered,
-            defer: false
+        let contentRect = NSRect(
+            x: 0,
+            y: 0,
+            width: EventDetailWindowSizing.width,
+            height: EventDetailWindowSizing.idealHeight
         )
-        panel.allowsTextInput = mode == .composer
+        let panel: NSPanel
+        if let panelFactory {
+            panel = panelFactory(contentRect, styleMask)
+        } else {
+            panel = FloatingPanel(contentRect: contentRect, styleMask: styleMask, backing: .buffered, defer: false)
+        }
+        (panel as? FloatingPanel)?.allowsTextInput = mode == .composer
         panel.delegate = self
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
@@ -325,5 +478,12 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         }
 
         return visibleFrame.height
+    }
+
+    private func effectiveAvailableHeight(anchoredTo anchorWindow: NSWindow?) -> CGFloat {
+        max(
+            availableHeightProvider?(anchorWindow) ?? availableHeight(anchoredTo: anchorWindow),
+            EventDetailWindowSizing.minHeight
+        )
     }
 }

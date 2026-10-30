@@ -2,6 +2,22 @@ import SwiftUI
 import EventKit
 import AppKit
 
+private enum EventDetailMeasuredRegion: Hashable {
+    case header
+    case summary
+    case meeting
+    case content
+    case footer
+}
+
+private struct EventDetailRegionHeightsPreferenceKey: PreferenceKey {
+    static var defaultValue: [EventDetailMeasuredRegion: CGFloat] { [:] }
+
+    static func reduce(value: inout [EventDetailMeasuredRegion: CGFloat], nextValue: () -> [EventDetailMeasuredRegion: CGFloat]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
+    }
+}
+
 struct EventDetailWindowView: View {
     let event: EKEvent
     let onEdit: (EKEvent) -> Void
@@ -13,17 +29,54 @@ struct EventDetailWindowView: View {
 
     private let meetingActionOpener = MeetingActionOpener()
 
+    let maximumHeight: CGFloat
+    @State private var formatters: Formatters
     @State private var displayedParticipationChoice: EventParticipationChoice?
     @State private var pendingParticipationChoice: EventParticipationChoice?
     @State private var showsParticipationScopeDialog = false
     @State private var responseErrorMessage: String?
-    @State private var containerHeight: CGFloat = 0
-    @State private var detailViewportHeight: CGFloat = 0
-    @State private var detailContentHeight: CGFloat = 0
-    @State private var lastReportedPreferredHeight: CGFloat = 0
+    @State private var regionHeights: [EventDetailMeasuredRegion: CGFloat] = [:]
+
+    private struct Formatters {
+        let locale: Locale
+        let calendar: Calendar
+        let dates: DateFormatter
+        let times: DateIntervalFormatter
+
+        init(calendar: Calendar) {
+            let locale = AppLocalization.locale
+            self.locale = locale
+            self.calendar = calendar
+
+            let dates = DateFormatter()
+            dates.locale = locale
+            dates.calendar = calendar
+            dates.timeZone = calendar.timeZone
+            dates.setLocalizedDateFormatFromTemplate("MMMdEEEE")
+            self.dates = dates
+
+            let times = DateIntervalFormatter()
+            times.locale = locale
+            times.calendar = calendar
+            times.timeZone = calendar.timeZone
+            times.dateStyle = .none
+            times.timeStyle = .short
+            self.times = times
+        }
+    }
+
+    private struct MeetingActionsSnapshot {
+        let eventURL: URL?
+        let notes: String?
+        let location: String?
+        let actions: [MeetingAction]
+    }
+
+    @State private var meetingActionsSnapshot: MeetingActionsSnapshot?
 
     init(
         event: EKEvent,
+        maximumHeight: CGFloat = 700,
         onEdit: @escaping (EKEvent) -> Void,
         onDelete: @escaping (EKEvent) -> Void,
         onClose: @escaping () -> Void,
@@ -31,6 +84,14 @@ struct EventDetailWindowView: View {
         onJoinMeeting: (() -> Void)? = nil
     ) {
         self.event = event
+        self.maximumHeight = maximumHeight
+        _formatters = State(initialValue: Formatters(calendar: .autoupdatingCurrent))
+        _meetingActionsSnapshot = State(initialValue: MeetingActionsSnapshot(
+            eventURL: event.url,
+            notes: event.notes,
+            location: event.location,
+            actions: MeetingActionResolver.resolve(for: event)
+        ))
         self.onEdit = onEdit
         self.onDelete = onDelete
         self.onClose = onClose
@@ -57,16 +118,20 @@ struct EventDetailWindowView: View {
     }
 
     private var content: some View {
-        VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
+        let actions = resolvedMeetingActions
+        return VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
             header
+                .background(measure(.header))
             summaryCard
-            if !meetingActions.isEmpty {
+                .background(measure(.summary))
+            if !actions.isEmpty {
                 MeetingActionsSection(
-                    actions: meetingActions,
+                    actions: actions,
                     calendarColor: calendarColor,
                     opener: meetingActionOpener,
                     onJoinMeeting: onJoinMeeting
                 )
+                .background(measure(.meeting))
             }
             detailScrollView
             FooterActions(
@@ -79,17 +144,22 @@ struct EventDetailWindowView: View {
                     onDelete(event)
                 }
             )
+            .background(measure(.footer))
         }
         .padding(PopoverSurfaceMetrics.outerPadding)
         .frame(width: PopoverSurfaceMetrics.width, alignment: .topLeading)
         .background(surfaceBackground)
-        .background(
-            HeightReporter { height in
-                containerHeight = height
-                reportPreferredHeightIfNeeded()
-            }
-        )
+        .onPreferenceChange(EventDetailRegionHeightsPreferenceKey.self, perform: updateMeasuredRegions)
         .disabled(showsParticipationScopeDialog)
+        .onChange(of: AppLocalization.locale.identifier) { _, _ in
+            formatters = Formatters(calendar: .autoupdatingCurrent)
+        }
+        .onChange(of: Calendar.autoupdatingCurrent.timeZone.identifier) { _, _ in
+            formatters = Formatters(calendar: .autoupdatingCurrent)
+        }
+        .onChange(of: event.url) { _, _ in refreshMeetingActionsSnapshot() }
+        .onChange(of: event.notes) { _, _ in refreshMeetingActionsSnapshot() }
+        .onChange(of: event.location) { _, _ in refreshMeetingActionsSnapshot() }
     }
 
     private var participationScopeOverlay: some View {
@@ -163,8 +233,14 @@ struct EventDetailWindowView: View {
         .buttonStyle(.plain)
     }
 
-    private var meetingActions: [MeetingAction] {
-        MeetingActionResolver.resolve(for: event)
+    private var resolvedMeetingActions: [MeetingAction] {
+        let snapshot = meetingActionsSnapshot
+        guard snapshot?.eventURL == event.url,
+              snapshot?.notes == event.notes,
+              snapshot?.location == event.location else {
+            return MeetingActionResolver.resolve(for: event)
+        }
+        return snapshot?.actions ?? []
     }
 
     private var calendarContextPresentation: CalendarContextPresentation {
@@ -281,14 +357,10 @@ struct EventDetailWindowView: View {
     private var detailScrollView: some View {
         ScrollView {
             detailContent
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .top)
-        .background(
-            HeightReporter { height in
-                detailViewportHeight = height
-                reportPreferredHeightIfNeeded()
-            }
-        )
+        .frame(height: min(regionHeights[.content] ?? maximumDetailContentHeight, maximumDetailContentHeight))
     }
 
     private var detailContent: some View {
@@ -335,12 +407,7 @@ struct EventDetailWindowView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 1)
-        .background(
-            HeightReporter { height in
-                detailContentHeight = height
-                reportPreferredHeightIfNeeded()
-            }
-        )
+        .background(measure(.content))
     }
 
     private var surfaceBackground: some View {
@@ -398,18 +465,14 @@ struct EventDetailWindowView: View {
     }
 
     private var dateRangeText: String {
-        let formatter = DateFormatter()
-        formatter.locale = AppLocalization.locale
-        formatter.setLocalizedDateFormatFromTemplate("MMMdEEEE")
-
         let endDate = visibleEndDate
         let calendar = Calendar.autoupdatingCurrent
 
         if calendar.isDate(event.startDate, inSameDayAs: endDate) {
-            return formatter.string(from: event.startDate)
+            return formatters.dates.string(from: event.startDate)
         }
 
-        return "\(formatter.string(from: event.startDate)) - \(formatter.string(from: endDate))"
+        return "\(formatters.dates.string(from: event.startDate)) - \(formatters.dates.string(from: endDate))"
     }
 
     private var timeSummaryText: String {
@@ -417,11 +480,7 @@ struct EventDetailWindowView: View {
             return L("All Day")
         }
 
-        let intervalFormatter = DateIntervalFormatter()
-        intervalFormatter.locale = AppLocalization.locale
-        intervalFormatter.dateStyle = .none
-        intervalFormatter.timeStyle = .short
-        return intervalFormatter.string(from: event.startDate, to: event.endDate)
+        return formatters.times.string(from: event.startDate, to: event.endDate)
     }
 
     private var visibleEndDate: Date {
@@ -433,14 +492,63 @@ struct EventDetailWindowView: View {
         ) ?? event.endDate
     }
 
-    private func reportPreferredHeightIfNeeded() {
-        guard containerHeight > 0, detailViewportHeight > 0, detailContentHeight > 0 else { return }
+    private var maximumDetailContentHeight: CGFloat {
+        guard maximumHeight.isFinite else { return .infinity }
+        let actions = resolvedMeetingActions
+        let headerHeight = regionHeights[.header] ?? 0
+        let summaryHeight = regionHeights[.summary] ?? 0
+        let meetingHeight = actions.isEmpty ? 0 : (regionHeights[.meeting] ?? 0)
+        let footerHeight = regionHeights[.footer] ?? 0
+        let gaps = actions.isEmpty ? 3 : 4
+        let chromeHeight = headerHeight + summaryHeight + meetingHeight + footerHeight
+            + PopoverSurfaceMetrics.outerPadding * 2
+            + PopoverSurfaceMetrics.sectionSpacing * CGFloat(gaps)
+        return max(0, maximumHeight - chromeHeight)
+    }
 
-        let preferredHeight = containerHeight - detailViewportHeight + detailContentHeight
-        guard abs(preferredHeight - lastReportedPreferredHeight) > 1 else { return }
+    private func measure(_ region: EventDetailMeasuredRegion) -> some View {
+        GeometryReader { proxy in
+            Color.clear.preference(key: EventDetailRegionHeightsPreferenceKey.self, value: [region: proxy.size.height])
+        }
+    }
 
-        lastReportedPreferredHeight = preferredHeight
-        onPreferredHeightChange?(preferredHeight)
+    private func updateMeasuredRegions(_ measurements: [EventDetailMeasuredRegion: CGFloat]) {
+        let actions = resolvedMeetingActions
+        var updatedHeights = regionHeights
+        for (region, height) in measurements where height.isFinite && height > 0 {
+            guard abs((updatedHeights[region] ?? 0) - height) > 1 else { continue }
+            updatedHeights[region] = height
+        }
+
+        if actions.isEmpty {
+            updatedHeights.removeValue(forKey: .meeting)
+        }
+
+        guard updatedHeights != regionHeights else { return }
+        regionHeights = updatedHeights
+
+        guard let headerHeight = updatedHeights[.header],
+              let summaryHeight = updatedHeights[.summary],
+              let contentHeight = updatedHeights[.content],
+              let footerHeight = updatedHeights[.footer] else {
+            return
+        }
+
+        let meetingHeight = actions.isEmpty ? 0 : (updatedHeights[.meeting] ?? 0)
+        let gaps = actions.isEmpty ? 3 : 4
+        let naturalHeight = headerHeight + summaryHeight + meetingHeight + contentHeight + footerHeight
+            + PopoverSurfaceMetrics.outerPadding * 2
+            + PopoverSurfaceMetrics.sectionSpacing * CGFloat(gaps)
+        onPreferredHeightChange?(ceil(naturalHeight))
+    }
+
+    private func refreshMeetingActionsSnapshot() {
+        meetingActionsSnapshot = MeetingActionsSnapshot(
+            eventURL: event.url,
+            notes: event.notes,
+            location: event.location,
+            actions: MeetingActionResolver.resolve(for: event)
+        )
     }
 
     private func handleParticipationSelection(_ choice: EventParticipationChoice) {
@@ -845,8 +953,10 @@ private struct NotesDetailRow: View {
                 )
         )
         .onAppear {
-            needsCollapse = notes.components(separatedBy: .newlines).count > collapsedLineLimit
-                || notes.count > 200
+            updateCollapseState()
+        }
+        .onChange(of: notes) { _, _ in
+            updateCollapseState()
         }
     }
 
@@ -896,24 +1006,29 @@ private struct NotesDetailRow: View {
         }
         .buttonStyle(.plain)
     }
+
+    private func updateCollapseState() {
+        needsCollapse = notes.components(separatedBy: .newlines).count > collapsedLineLimit || notes.count > 200
+    }
 }
 
 @available(macOS 13.0, *)
 private struct SelfSizingTextView: View {
     let notes: String
-    @State private var textHeight: CGFloat = 40
 
     var body: some View {
-        AttributedTextView(notes: notes, textHeight: $textHeight)
+        AttributedTextView(notes: notes)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: textHeight)
     }
 }
 
 @available(macOS 13.0, *)
 private struct AttributedTextView: NSViewRepresentable {
     let notes: String
-    @Binding var textHeight: CGFloat
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
 
     func makeNSView(context: Context) -> NSScrollView {
         let textView = NSTextView()
@@ -939,6 +1054,7 @@ private struct AttributedTextView: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
+        guard context.coordinator.notes != notes else { return }
 
         let attributedString = NSMutableAttributedString(string: notes)
         let fullRange = NSRange(location: 0, length: attributedString.length)
@@ -946,7 +1062,7 @@ private struct AttributedTextView: NSViewRepresentable {
         attributedString.addAttribute(.font, value: NSFont.systemFont(ofSize: 12), range: fullRange)
         attributedString.addAttribute(.foregroundColor, value: NSColor.labelColor, range: fullRange)
 
-        if let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) {
+        if let detector = context.coordinator.linkDetector {
             let matches = detector.matches(in: notes, options: [], range: fullRange)
             for match in matches {
                 if let url = match.url {
@@ -958,25 +1074,20 @@ private struct AttributedTextView: NSViewRepresentable {
         }
 
         textView.textStorage?.setAttributedString(attributedString)
-
-        DispatchQueue.main.async {
-            let width = scrollView.contentSize.width
-            guard width > 0 else { return }
-            textView.textContainer?.containerSize = CGSize(width: width, height: .greatestFiniteMagnitude)
-            textView.layoutManager?.ensureLayout(for: textView.textContainer!)
-            if let usedRect = textView.layoutManager?.usedRect(for: textView.textContainer!) {
-                let newHeight = ceil(usedRect.height)
-                if abs(self.textHeight - newHeight) > 1 {
-                    self.textHeight = newHeight
-                }
-            }
-        }
+        context.coordinator.notes = notes
+        context.coordinator.measuredWidth = nil
+        context.coordinator.measuredHeight = nil
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSScrollView, context: Context) -> CGSize? {
         guard let textView = nsView.documentView as? NSTextView else { return nil }
-        let width = proposal.width ?? nsView.bounds.width
+        let width = proposal.width ?? nsView.contentSize.width
         guard width > 0 else { return nil }
+
+        if context.coordinator.measuredWidth == width,
+           let measuredHeight = context.coordinator.measuredHeight {
+            return CGSize(width: width, height: measuredHeight)
+        }
 
         textView.textContainer?.containerSize = CGSize(width: width, height: .greatestFiniteMagnitude)
         textView.layoutManager?.ensureLayout(for: textView.textContainer!)
@@ -985,7 +1096,18 @@ private struct AttributedTextView: NSViewRepresentable {
             return nil
         }
 
-        return CGSize(width: width, height: ceil(usedRect.height))
+        let measuredHeight = ceil(usedRect.height)
+        context.coordinator.measuredWidth = width
+        context.coordinator.measuredHeight = measuredHeight
+        return CGSize(width: width, height: measuredHeight)
+    }
+
+    @MainActor
+    final class Coordinator {
+        let linkDetector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        var notes: String?
+        var measuredWidth: CGFloat?
+        var measuredHeight: CGFloat?
     }
 }
 

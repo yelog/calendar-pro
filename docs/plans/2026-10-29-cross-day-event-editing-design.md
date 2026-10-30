@@ -4,6 +4,8 @@
 
 实施计划：[2026-10-29-cross-day-event-editing.md](2026-10-29-cross-day-event-editing.md)
 
+后续窗口尺寸策略：[2026-10-30-event-panel-performance-design.md](2026-10-30-event-panel-performance-design.md)
+
 ## 目标与成功标准
 
 让新建、编辑日程都能完整表达单日全天、多日全天、当天定时和跨天定时范围。优先保证已有事件在仅修改标题、备注或所属日历时，保存请求中的 `startDate`、`endDate`、`isAllDay` 不发生变化。
