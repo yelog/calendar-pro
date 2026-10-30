@@ -18,6 +18,44 @@ resolve_identity() {
     echo "==> Using identity: $SIGNING_IDENTITY"
 }
 
+# Apple ticket delivery occasionally fails on a transient CloudKit network error.
+# Retry those failures so a successful notarization is not wasted on one dropped request.
+stapler_with_retry() {
+    local ACTION="${1:?Usage: stapler_with_retry <staple|validate> <path> }"
+    local TARGET="${2:?Usage: stapler_with_retry <staple|validate> <path> }"
+    local MAX_ATTEMPTS=5
+    local ATTEMPT=1
+    local DELAY=2
+    local OUTPUT
+    local STATUS
+
+    while [ "$ATTEMPT" -le "$MAX_ATTEMPTS" ]; do
+        echo "==> Running stapler $ACTION (attempt $ATTEMPT/$MAX_ATTEMPTS)"
+        if OUTPUT=$(xcrun stapler "$ACTION" "$TARGET" 2>&1); then
+            echo "$OUTPUT"
+            return 0
+        else
+            STATUS=$?
+        fi
+
+        echo "$OUTPUT"
+        if [[ "$OUTPUT" != *"Error 68"* && "$OUTPUT" != *"NSURLErrorDomain"* && "$OUTPUT" != *"CloudKit's response is inconsistent"* ]]; then
+            echo "ERROR: stapler $ACTION failed with a non-retryable error (exit $STATUS)"
+            return "$STATUS"
+        fi
+
+        if [ "$ATTEMPT" -eq "$MAX_ATTEMPTS" ]; then
+            echo "ERROR: stapler $ACTION failed after $MAX_ATTEMPTS attempts"
+            return "$STATUS"
+        fi
+
+        echo "==> Transient ticket delivery error; retrying in ${DELAY}s"
+        sleep "$DELAY"
+        DELAY=$((DELAY * 2))
+        ATTEMPT=$((ATTEMPT + 1))
+    done
+}
+
 # ─── Command: sign ───
 # Signs the .app bundle (must run BEFORE creating DMG)
 cmd_sign() {
@@ -91,8 +129,8 @@ cmd_notarize() {
 
     # Staple notarization ticket
     echo "==> Stapling notarization ticket to DMG"
-    xcrun stapler staple "$DMG_PATH"
-    xcrun stapler validate "$DMG_PATH"
+    stapler_with_retry staple "$DMG_PATH"
+    stapler_with_retry validate "$DMG_PATH"
 
     echo "==> Notarization complete!"
 }
