@@ -5,6 +5,14 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.8] - 2026-10-30
+
+### Added
+- support editing calendar events across multiple days
+
+### Fixed
+- prevent event detail panel sizing feedback and repeated layout work
+
 ## [0.2.7] - 2026-10-19
 
 ### Added
