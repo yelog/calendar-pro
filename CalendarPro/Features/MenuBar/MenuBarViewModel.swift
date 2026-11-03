@@ -31,8 +31,8 @@ final class MenuBarViewModel: ObservableObject {
         weatherService: WeatherService = WeatherService(locationResolver: CoreLocationWeatherLocationResolver()),
         now: @escaping () -> Date = Date.init,
         localeProvider: @escaping () -> Locale = { AppLocalization.locale },
-        calendarProvider: @escaping () -> Calendar = { .autoupdatingCurrent },
-        timeZoneProvider: @escaping () -> TimeZone = { .autoupdatingCurrent },
+        calendarProvider: (() -> Calendar)? = nil,
+        timeZoneProvider: (() -> TimeZone)? = nil,
         notificationCenter: NotificationCenter = .default,
         timeRefreshCoordinator: TimeRefreshCoordinator? = nil
     ) {
@@ -41,25 +41,28 @@ final class MenuBarViewModel: ObservableObject {
         self.registry = registry
         self.weatherService = weatherService
         self.localeProvider = localeProvider
+        let calendarProvider = calendarProvider ?? { settingsStore.displayCalendar }
         self.calendarProvider = calendarProvider
-        self.timeZoneProvider = timeZoneProvider
+        self.timeZoneProvider = timeZoneProvider ?? { calendarProvider().timeZone }
         self.timeRefreshCoordinator = timeRefreshCoordinator ?? TimeRefreshCoordinator(
             now: now,
             calendarProvider: calendarProvider,
             notificationCenter: notificationCenter
         )
 
-        settingsCancellable = Publishers.CombineLatest3(
+        settingsCancellable = Publishers.CombineLatest4(
             settingsStore.$menuBarPreferences,
             settingsStore.$holidayDataRevision,
-            settingsStore.$appLanguage
+            settingsStore.$appLanguage,
+            settingsStore.$timeZoneIdentifier
         )
         .receive(on: DispatchQueue.main)
-        .sink { [weak self] preferences, _, _ in
+        .sink { [weak self] preferences, _, _, _ in
             guard let self else { return }
             let updatedGranularity: RefreshGranularity = preferences.requiresSecondRefresh ? .second : .minute
             self.refreshGranularity = updatedGranularity
             self.timeRefreshCoordinator.setGranularity(updatedGranularity)
+            self.timeRefreshCoordinator.refreshNow()
             self.render(at: self.timeRefreshCoordinator.currentDate, with: preferences)
         }
 

@@ -112,7 +112,7 @@ final class BoardSnapshotTests: XCTestCase {
             groupingMode: .priority
         )
 
-        XCTAssertEqual(snapshot.groups.map(\.title), ["高", "中", "低", "无"])
+        XCTAssertEqual(snapshot.groups.flatMap(\.rows).map(\.title), ["high-task", "medium-task", "low-task", "none-task"])
         XCTAssertEqual(snapshot.groups[0].rows.map(\.title), ["high-task"])
         XCTAssertEqual(snapshot.groups[3].rows.map(\.title), ["none-task"])
 
@@ -346,6 +346,101 @@ final class BoardSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.groups[0].rows.map(\.title), ["todo", "done"])
         XCTAssertFalse(snapshot.groups[0].rows[0].isPendingHide)
         XCTAssertTrue(snapshot.groups[0].rows[1].isPendingHide)
+    }
+
+    func testDateOnlyAndFloatingReminderStayOnTheirCivilDayAcrossZones() {
+        var shanghai = Calendar(identifier: .gregorian)
+        shanghai.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+        var losAngeles = Calendar(identifier: .gregorian)
+        losAngeles.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        let fixed = makeReminder(title: "Fixed")
+        let floating = makeReminder(title: "Floating")
+        let dateOnly = makeReminder(title: "Date only")
+        fixed.dueDateComponents = DateComponents(
+            calendar: shanghai,
+            timeZone: shanghai.timeZone,
+            year: 2027,
+            month: 1,
+            day: 1,
+            hour: 0,
+            minute: 30
+        )
+        floating.dueDateComponents = DateComponents(
+            calendar: shanghai,
+            year: 2027,
+            month: 1,
+            day: 1,
+            hour: 0,
+            minute: 30
+        )
+        dateOnly.dueDateComponents = DateComponents(
+            calendar: shanghai,
+            timeZone: shanghai.timeZone,
+            year: 2027,
+            month: 1,
+            day: 1
+        )
+        let appNow = losAngeles.date(from: DateComponents(year: 2027, month: 1, day: 1, hour: 12))!
+        let snapshot = BoardSnapshot.make(
+            reminders: [fixed, floating, dateOnly],
+            now: appNow,
+            calendar: losAngeles,
+            groupingMode: .list,
+            colorMode: .timeBucket,
+            colorPreferences: .classic,
+            showCompleted: false
+        )
+        let rows = Dictionary(uniqueKeysWithValues: snapshot.groups.flatMap(\.rows).map { ($0.title, $0) })
+
+        XCTAssertEqual(rows["Fixed"]?.bucket, .past)
+        XCTAssertEqual(rows["Floating"]?.bucket, .today)
+        XCTAssertEqual(rows["Date only"]?.bucket, .today)
+        XCTAssertEqual(rows["Date only"]?.dueDate, losAngeles.startOfDay(for: appNow))
+        XCTAssertEqual(rows["Floating"]?.dueDate, losAngeles.date(from: DateComponents(
+            year: 2027, month: 1, day: 1, hour: 0, minute: 30
+        )))
+    }
+
+    func testDueTextFormatterCacheChangesWithAppTimeZone() {
+        var shanghai = Calendar(identifier: .gregorian)
+        shanghai.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+        var losAngeles = Calendar(identifier: .gregorian)
+        losAngeles.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        let instant = shanghai.date(from: DateComponents(year: 2027, month: 1, day: 1, hour: 0, minute: 30))!
+        let reminder = makeReminder(title: "Fixed")
+        reminder.dueDateComponents = shanghai.dateComponents(
+            [.calendar, .timeZone, .year, .month, .day, .hour, .minute],
+            from: instant
+        )
+
+        func row(in calendar: Calendar) -> RemindersBoardRow? {
+            BoardSnapshot.make(
+                reminders: [reminder],
+                now: instant,
+                calendar: calendar,
+                groupingMode: .list,
+                colorMode: .overdue,
+                colorPreferences: .classic,
+                showCompleted: false
+            ).groups.first?.rows.first
+        }
+
+        func expectedText(in calendar: Calendar) -> String {
+            let formatter = DateFormatter()
+            formatter.locale = AppLocalization.locale
+            formatter.calendar = calendar
+            formatter.timeZone = calendar.timeZone
+            formatter.setLocalizedDateFormatFromTemplate("MdHm")
+            return formatter.string(from: instant)
+        }
+
+        let shanghaiText = row(in: shanghai)?.dueText
+        let losAngelesText = row(in: losAngeles)?.dueText
+
+        XCTAssertEqual(shanghaiText, expectedText(in: shanghai))
+        XCTAssertEqual(losAngelesText, expectedText(in: losAngeles))
+        XCTAssertNotEqual(shanghaiText, losAngelesText)
+        XCTAssertEqual(row(in: shanghai)?.dueText, shanghaiText)
     }
 
     // MARK: - Preset palettes

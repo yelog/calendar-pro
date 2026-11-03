@@ -22,7 +22,7 @@ struct UpcomingSnapshot {
         calendar: Calendar = .autoupdatingCurrent
     ) -> UpcomingSnapshot {
         let placedEntries = items.compactMap { item -> (date: Date, item: CalendarItem)? in
-            guard let startDate = item.startDate else { return nil }
+            guard let startDate = item.startDate(using: calendar) else { return nil }
             return (startDate, item)
         }
 
@@ -103,6 +103,7 @@ struct UpcomingSnapshot {
 }
 
 struct UpcomingEventsSection: View {
+    @Environment(\.calendar) private var calendar
     private enum Metrics {
         // Keep multi-date browsing inside the popover's available height.
         static let expandedMaxHeight: CGFloat = 240
@@ -130,7 +131,7 @@ struct UpcomingEventsSection: View {
         let snapshot = UpcomingSnapshot.make(
             items: items,
             now: timeRefreshCoordinator.currentDate,
-            calendar: .autoupdatingCurrent
+            calendar: calendar
         )
 
         return expandedContent(snapshot)

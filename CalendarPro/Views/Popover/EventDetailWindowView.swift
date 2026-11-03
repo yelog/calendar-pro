@@ -26,11 +26,11 @@ struct EventDetailWindowView: View {
     let onPreferredHeightChange: ((CGFloat) -> Void)?
     let onJoinMeeting: (() -> Void)?
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.calendar) private var displayCalendar
 
     private let meetingActionOpener = MeetingActionOpener()
 
     let maximumHeight: CGFloat
-    @State private var formatters: Formatters
     @State private var displayedParticipationChoice: EventParticipationChoice?
     @State private var pendingParticipationChoice: EventParticipationChoice?
     @State private var showsParticipationScopeDialog = false
@@ -85,7 +85,6 @@ struct EventDetailWindowView: View {
     ) {
         self.event = event
         self.maximumHeight = maximumHeight
-        _formatters = State(initialValue: Formatters(calendar: .autoupdatingCurrent))
         _meetingActionsSnapshot = State(initialValue: MeetingActionsSnapshot(
             eventURL: event.url,
             notes: event.notes,
@@ -151,12 +150,6 @@ struct EventDetailWindowView: View {
         .background(surfaceBackground)
         .onPreferenceChange(EventDetailRegionHeightsPreferenceKey.self, perform: updateMeasuredRegions)
         .disabled(showsParticipationScopeDialog)
-        .onChange(of: AppLocalization.locale.identifier) { _, _ in
-            formatters = Formatters(calendar: .autoupdatingCurrent)
-        }
-        .onChange(of: Calendar.autoupdatingCurrent.timeZone.identifier) { _, _ in
-            formatters = Formatters(calendar: .autoupdatingCurrent)
-        }
         .onChange(of: event.url) { _, _ in refreshMeetingActionsSnapshot() }
         .onChange(of: event.notes) { _, _ in refreshMeetingActionsSnapshot() }
         .onChange(of: event.location) { _, _ in refreshMeetingActionsSnapshot() }
@@ -336,15 +329,16 @@ struct EventDetailWindowView: View {
     }
 
     private var summaryCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let formatters = Formatters(calendar: displayCalendar)
+        return VStack(alignment: .leading, spacing: 6) {
             SelectableDetailText(
-                text: dateRangeText,
+                text: dateRangeText(using: formatters),
                 font: .system(size: 14, weight: .semibold, design: .rounded),
                 foregroundColor: isCanceled ? .secondary : .primary
             )
 
             SelectableDetailText(
-                text: timeSummaryText,
+                text: timeSummaryText(using: formatters),
                 font: .system(size: 12),
                 foregroundColor: isCanceled ? Color(nsColor: .tertiaryLabelColor) : .secondary
             )
@@ -464,32 +458,40 @@ struct EventDetailWindowView: View {
             .nilIfEmpty
     }
 
-    private var dateRangeText: String {
+    private func dateRangeText(using formatters: Formatters) -> String {
+        let startDate = displayStartDate
         let endDate = visibleEndDate
-        let calendar = Calendar.autoupdatingCurrent
 
-        if calendar.isDate(event.startDate, inSameDayAs: endDate) {
-            return formatters.dates.string(from: event.startDate)
+        if displayCalendar.isDate(startDate, inSameDayAs: endDate) {
+            return formatters.dates.string(from: startDate)
         }
 
-        return "\(formatters.dates.string(from: event.startDate)) - \(formatters.dates.string(from: endDate))"
+        return "\(formatters.dates.string(from: startDate)) - \(formatters.dates.string(from: endDate))"
     }
 
-    private var timeSummaryText: String {
+    private func timeSummaryText(using formatters: Formatters) -> String {
         if event.isAllDay {
             return L("All Day")
         }
 
-        return formatters.times.string(from: event.startDate, to: event.endDate)
+        return formatters.times.string(from: displayStartDate, to: displayEndDate)
+    }
+
+    private var displayStartDate: Date {
+        CalendarItemDateResolver.eventDate(event.startDate, event: event, calendar: displayCalendar)
+    }
+
+    private var displayEndDate: Date {
+        CalendarItemDateResolver.eventDate(event.endDate, event: event, calendar: displayCalendar)
     }
 
     private var visibleEndDate: Date {
         CalendarEventScheduleDraft.displayedEndDate(
-            startDate: event.startDate,
-            endDate: event.endDate,
+            startDate: displayStartDate,
+            endDate: displayEndDate,
             isAllDay: event.isAllDay,
-            calendar: .autoupdatingCurrent
-        ) ?? event.endDate
+            calendar: displayCalendar
+        ) ?? displayEndDate
     }
 
     private var maximumDetailContentHeight: CGFloat {

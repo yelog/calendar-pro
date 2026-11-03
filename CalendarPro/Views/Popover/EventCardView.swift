@@ -14,6 +14,7 @@ private enum EventCardMetadata {
 }
 
 struct EventCardView: View {
+    @Environment(\.calendar) private var calendar
     let item: CalendarItem
     let isSelected: Bool
     let showsDisclosure: Bool
@@ -108,18 +109,20 @@ struct EventCardView: View {
             return L("All Day")
         }
 
-        guard let startDate = item.timelineDate else {
+        guard let startDate = item.timelineDate(using: calendar) else {
             return L("No Time")
         }
 
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.dateStyle = .none
         formatter.timeStyle = .short
 
         let start = formatter.string(from: startDate)
 
-        if let endDate = item.endDate {
+        if let endDate = item.endDate(using: calendar) {
             let end = formatter.string(from: endDate)
             return "\(start)-\(end)"
         }

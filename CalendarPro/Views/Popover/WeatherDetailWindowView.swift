@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WeatherDetailWindowView: View {
+    @Environment(\.calendar) private var calendar
     let overview: WeatherForecastOverview
     let onClose: () -> Void
     let onPreferredHeightChange: ((CGFloat) -> Void)?
@@ -288,7 +289,8 @@ struct WeatherDetailWindowView: View {
 
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.locale = AppLocalization.locale
         formatter.dateFormat = "M/d"
         return formatter.string(from: date)
@@ -368,6 +370,7 @@ struct WeatherDetailWindowView: View {
 }
 
 private struct WeatherForecastRowView: View {
+    @Environment(\.calendar) private var calendar
     let descriptor: WeatherDescriptor
     let isFirst: Bool
     @Environment(\.colorScheme) private var colorScheme
@@ -446,7 +449,8 @@ private struct WeatherForecastRowView: View {
         }
 
         let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.locale = AppLocalization.locale
         formatter.setLocalizedDateFormatFromTemplate("EEE")
         return formatter.string(from: date)
@@ -458,7 +462,8 @@ private struct WeatherForecastRowView: View {
         }
 
         let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.locale = AppLocalization.locale
         formatter.dateFormat = "M/d"
         return formatter.string(from: date)

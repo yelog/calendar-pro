@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WeatherStripView: View {
+    @Environment(\.calendar) private var calendar
     private let descriptor: WeatherDescriptor?
     let isLoading: Bool
     let requestedDate: Date
@@ -216,7 +217,6 @@ struct WeatherStripView: View {
     }
 
     private var loadingDetailText: String {
-        let calendar = Calendar.autoupdatingCurrent
         if calendar.isDate(requestedDate, inSameDayAs: Date()) {
             return L("Current conditions")
         }
@@ -516,7 +516,8 @@ struct WeatherStripView: View {
 
     private func formattedCompactForecastDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.locale = AppLocalization.locale
         formatter.dateFormat = "M/d"
         return formatter.string(from: date)

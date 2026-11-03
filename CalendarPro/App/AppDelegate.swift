@@ -18,18 +18,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         return SettingsStore()
     }()
-    let eventService = EventService()
-    let pomodoroStatsStore = PomodoroStatsStore()
+    lazy var eventService = EventService(calendarProvider: { [weak self] in
+        self?.settingsStore.displayCalendar ?? .autoupdatingCurrent
+    })
+    lazy var pomodoroStatsStore = PomodoroStatsStore(calendarProvider: { [weak self] in
+        self?.settingsStore.displayCalendar ?? .autoupdatingCurrent
+    })
 
     private var statusBarController: StatusBarController?
     private var uiTestWindow: NSWindow?
     private var settingsWindow: NSWindow?
-    private let uiTestEventDetailWindowController = EventDetailWindowController()
+    private lazy var uiTestEventDetailWindowController = EventDetailWindowController(settingsStore: settingsStore)
     private let uiTestVacationGuideWindowController = VacationGuideWindowController()
-    private let uiTestWeatherDetailWindowController = WeatherDetailWindowController()
+    private lazy var uiTestWeatherDetailWindowController = WeatherDetailWindowController(settingsStore: settingsStore)
     private let uiTestPomodoroStatisticsWindowController = PomodoroStatisticsWindowController()
-    private let uiTestPopoverViewModel = CalendarPopoverViewModel()
-    private let uiTestTimeRefreshCoordinator = TimeRefreshCoordinator()
+    private lazy var uiTestPopoverViewModel = CalendarPopoverViewModel(
+        now: { [weak self] in self?.uiTestTimeRefreshCoordinator.currentDate ?? Date() },
+        calendarProvider: { [weak self] in self?.settingsStore.displayCalendar ?? .autoupdatingCurrent }
+    )
+    private lazy var uiTestTimeRefreshCoordinator = TimeRefreshCoordinator(
+        now: { Self.uiTestCurrentDate() },
+        calendarProvider: { [weak self] in self?.settingsStore.displayCalendar ?? .autoupdatingCurrent }
+    )
     private let uiTestPomodoroTimer = PomodoroTimerController()
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -152,6 +162,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private var isUITestPopoverMode: Bool {
         ProcessInfo.processInfo.environment["CALENDAR_PRO_UI_TEST_MODE"] == "popover-window"
+    }
+
+    private static func uiTestCurrentDate() -> Date {
+        let environment = ProcessInfo.processInfo.environment
+        if environment["CALENDAR_PRO_UI_TEST_MODE"] == "popover-window",
+           let value = environment["CALENDAR_PRO_UI_TEST_NOW"],
+           let date = ISO8601DateFormatter().date(from: value) {
+            return date
+        }
+        return Date()
     }
 
     private func refreshHolidayFeedIfNeeded() async {

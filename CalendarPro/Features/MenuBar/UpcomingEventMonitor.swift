@@ -65,6 +65,15 @@ final class UpcomingEventMonitor: ObservableObject {
             }
             .store(in: &cancellables)
 
+        settingsStore.$timeZoneIdentifier
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.refreshIfNeeded(at: self.timeRefreshCoordinator.currentDate)
+            }
+            .store(in: &cancellables)
+
         eventService.$storeChangeRevision
             .sink { [weak self] _ in
                 guard let self else { return }
@@ -88,7 +97,7 @@ final class UpcomingEventMonitor: ObservableObject {
                 return
             }
 
-            let cal = self.calendar()
+            let cal = CalendarItemDateResolver.snapshot(self.calendar())
             let today = cal.startOfDay(for: now)
 
             let items = await self.eventService.fetchCalendarItems(
@@ -96,10 +105,12 @@ final class UpcomingEventMonitor: ObservableObject {
                 enabledCalendarIDs: prefs.enabledCalendarIDs,
                 enabledReminderCalendarIDs: prefs.enabledReminderCalendarIDs,
                 showCalendarEvents: prefs.showCalendarEvents,
-                showReminders: prefs.showReminders
+                showReminders: prefs.showReminders,
+                calendar: cal
             )
 
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled,
+                  self.calendar().timeZone.identifier == cal.timeZone.identifier else { return }
 
             let upcomingMinutes = Double(prefs.upcomingReminderMinutes)
             let activeItems = items.filter { item in
@@ -109,7 +120,7 @@ final class UpcomingEventMonitor: ObservableObject {
                     return true
                 }
 
-                guard let startDate = item.startDate else { return false }
+                guard let startDate = item.startDate(using: cal) else { return false }
                 let interval = startDate.timeIntervalSince(now)
                 return interval > 0 && interval <= upcomingMinutes * 60
             }
@@ -151,6 +162,9 @@ final class UpcomingEventMonitor: ObservableObject {
 
     private static func buildTooltip(for items: [CalendarItem], now: Date, calendar: Calendar) -> String {
         let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.locale = AppLocalization.locale
         formatter.dateFormat = "HH:mm"
 
         let summaries = items.prefix(3).map { item -> String in
@@ -158,7 +172,7 @@ final class UpcomingEventMonitor: ObservableObject {
             let timePart: String
             if let status = item.timelineStatus(at: now, calendar: calendar), status == .ongoing {
                 timePart = L("Ongoing")
-            } else if let start = item.startDate {
+            } else if let start = item.startDate(using: calendar) {
                 timePart = formatter.string(from: start)
             } else {
                 timePart = ""

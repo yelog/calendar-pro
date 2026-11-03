@@ -9,6 +9,7 @@ struct ReminderDetailWindowView: View {
     let onDelete: (EKReminder) -> Void
     let onClose: () -> Void
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.calendar) private var displayCalendar
 
     var body: some View {
         VStack(alignment: .leading, spacing: PopoverSurfaceMetrics.sectionSpacing) {
@@ -174,25 +175,29 @@ struct ReminderDetailWindowView: View {
 
     private var dueDateText: String? {
         guard let components = reminder.dueDateComponents,
-              let date = Calendar.current.date(from: components) else {
+              let date = CalendarItemDateResolver.reminderDate(from: components, calendar: displayCalendar) else {
             return nil
         }
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        formatter.calendar = displayCalendar
+        formatter.timeZone = displayCalendar.timeZone
         formatter.setLocalizedDateFormatFromTemplate("MMMdEEEE")
         return formatter.string(from: date)
     }
 
     private var dueTimeText: String? {
         guard let components = reminder.dueDateComponents,
-              components.hour != nil else {
+              components.hour != nil || components.minute != nil || components.second != nil else {
             return nil
         }
-        guard let date = Calendar.current.date(from: components) else {
+        guard let date = CalendarItemDateResolver.reminderDate(from: components, calendar: displayCalendar) else {
             return nil
         }
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        formatter.calendar = displayCalendar
+        formatter.timeZone = displayCalendar.timeZone
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         return formatter.string(from: date)
@@ -220,6 +225,8 @@ struct ReminderDetailWindowView: View {
             if let absoluteDate = alarm.absoluteDate {
                 let formatter = DateFormatter()
                 formatter.locale = AppLocalization.locale
+                formatter.calendar = displayCalendar
+                formatter.timeZone = displayCalendar.timeZone
                 formatter.dateStyle = .short
                 formatter.timeStyle = .short
                 return formatter.string(from: absoluteDate)
@@ -261,6 +268,8 @@ struct ReminderDetailWindowView: View {
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        formatter.calendar = displayCalendar
+        formatter.timeZone = displayCalendar.timeZone
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter.string(from: date)

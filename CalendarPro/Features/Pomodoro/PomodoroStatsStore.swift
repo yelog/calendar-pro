@@ -63,7 +63,8 @@ final class PomodoroStatsStore: ObservableObject {
 
     private let userDefaults: UserDefaults
     private let key: String
-    private let calendar: Calendar
+    private let calendarProvider: () -> Calendar
+    private var calendar: Calendar { calendarProvider() }
     private let now: () -> Date
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
@@ -75,11 +76,12 @@ final class PomodoroStatsStore: ObservableObject {
         userDefaults: UserDefaults = .standard,
         key: String = PomodoroStatsStore.defaultKey,
         calendar: Calendar = .autoupdatingCurrent,
-        now: @escaping () -> Date = Date.init
+        now: @escaping () -> Date = Date.init,
+        calendarProvider: (() -> Calendar)? = nil
     ) {
         self.userDefaults = userDefaults
         self.key = key
-        self.calendar = calendar
+        self.calendarProvider = calendarProvider ?? { calendar }
         self.now = now
 
         if let data = userDefaults.data(forKey: key),
@@ -123,6 +125,10 @@ final class PomodoroStatsStore: ObservableObject {
 
     func summary(forRecentDays dayCount: Int) -> PomodoroStatsSummary {
         PomodoroStatsSummary(days: stats(forRecentDays: dayCount))
+    }
+
+    func refreshTimeContext() {
+        objectWillChange.send()
     }
 
     private func updateToday(_ mutate: (inout PomodoroDailyStats) -> Void) {

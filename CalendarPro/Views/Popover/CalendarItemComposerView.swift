@@ -50,7 +50,8 @@ struct CalendarItemComposerView: View {
     @State private var formatters: ScheduleFormatters
     @FocusState private var focusedField: FocusedField?
 
-    private let editingCalendar: Calendar
+    let editingCalendar: Calendar
+    private let initialValues: InitialValues
     private var isAllDay: Bool { schedule.isAllDay }
 
     private struct ScheduleFormatters {
@@ -96,6 +97,7 @@ struct CalendarItemComposerView: View {
         mode: CalendarItemComposerMode,
         eventCalendars: [EKCalendar],
         reminderCalendars: [EKCalendar],
+        calendar: Calendar = .autoupdatingCurrent,
         maximumHeight: CGFloat = 700,
         onPreferredHeightChange: ((CGFloat) -> Void)? = nil,
         onSaveEvent: @escaping (CalendarEventCreationRequest) throws -> Void,
@@ -111,8 +113,10 @@ struct CalendarItemComposerView: View {
         self.onSaveReminder = onSaveReminder
         self.onClose = onClose
 
-        var editingCalendar = Calendar.current
-        editingCalendar.timeZone = TimeZone.current
+        // Resolve autoupdating zones once so a later settings change cannot reinterpret this draft.
+        var editingCalendar = calendar
+        editingCalendar.timeZone = TimeZone(identifier: calendar.timeZone.identifier)
+            ?? TimeZone(secondsFromGMT: calendar.timeZone.secondsFromGMT())!
         self.editingCalendar = editingCalendar
         _formatters = State(initialValue: ScheduleFormatters(calendar: editingCalendar))
 
@@ -122,6 +126,7 @@ struct CalendarItemComposerView: View {
             reminderCalendars: reminderCalendars,
             calendar: editingCalendar
         )
+        self.initialValues = initialValues
         _selectedKind = State(initialValue: initialValues.kind)
         _title = State(initialValue: initialValues.title)
         _selectedEventCalendarIdentifier = State(initialValue: initialValues.eventCalendarIdentifier)
@@ -167,6 +172,8 @@ struct CalendarItemComposerView: View {
         .padding(PopoverSurfaceMetrics.outerPadding)
         .frame(width: PopoverSurfaceMetrics.width, alignment: .topLeading)
         .background(surfaceBackground)
+        .environment(\.calendar, editingCalendar)
+        .environment(\.timeZone, editingCalendar.timeZone)
         .onPreferenceChange(ComposerRegionHeightsPreferenceKey.self, perform: updateMeasuredRegions)
         .onAppear {
             DispatchQueue.main.async {
@@ -195,6 +202,12 @@ struct CalendarItemComposerView: View {
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("calendar-item-composer-schedule-summary")
+                Text(LF("Editing Time Zone: %@", editingCalendar.timeZone.identifier))
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("calendar-item-composer-time-zone")
             }
 
             Spacer(minLength: 0)
@@ -577,6 +590,16 @@ struct CalendarItemComposerView: View {
         let dueDate: Date
         let reminderIncludesTime: Bool
         let notes: String
+
+        func matchesEventSchedule(_ schedule: CalendarEventScheduleDraft) -> Bool {
+            startDate == schedule.startDate
+                && endDate == schedule.endDate
+                && isAllDay == schedule.isAllDay
+        }
+
+        func matchesReminderSchedule(dueDate: Date, includesTime: Bool) -> Bool {
+            self.dueDate == dueDate && reminderIncludesTime == includesTime
+        }
     }
 
     static func initialValues(
@@ -618,9 +641,9 @@ struct CalendarItemComposerView: View {
                 notes: ""
             )
         case .editEvent(let event):
-            let eventRequest = CalendarEventCreationRequest.makeEditing(event)
+            let eventRequest = CalendarEventCreationRequest.makeEditing(event, calendar: calendar)
             let reminderRequest = ReminderCreationRequest.makeDefault(
-                selectedDate: event.startDate,
+                selectedDate: eventRequest.startDate,
                 calendarIdentifier: reminderCalendarID,
                 calendar: calendar,
                 now: now
@@ -628,7 +651,7 @@ struct CalendarItemComposerView: View {
 
             return InitialValues(
                 kind: .event,
-                selectedDate: event.startDate,
+                selectedDate: eventRequest.startDate,
                 title: eventRequest.title,
                 eventCalendarIdentifier: eventRequest.calendarIdentifier,
                 reminderCalendarIdentifier: reminderCalendarID,
@@ -640,7 +663,7 @@ struct CalendarItemComposerView: View {
                 notes: eventRequest.notes ?? ""
             )
         case .editReminder(let reminder):
-            let reminderRequest = ReminderCreationRequest.makeEditing(reminder)
+            let reminderRequest = ReminderCreationRequest.makeEditing(reminder, calendar: calendar)
             let eventRequest = CalendarEventCreationRequest.makeDefault(
                 selectedDate: reminderRequest.dueDate,
                 calendarIdentifier: eventCalendarID,
@@ -699,7 +722,9 @@ struct CalendarItemComposerView: View {
                     title: normalizedTitle,
                     calendarIdentifier: selectedEventCalendarIdentifier,
                     schedule: schedule,
-                    notes: notes
+                    notes: notes,
+                    calendar: editingCalendar,
+                    datesChanged: !isEditing || !initialValues.matchesEventSchedule(schedule)
                 )
                 try onSaveEvent(request)
             case .reminder:
@@ -709,7 +734,12 @@ struct CalendarItemComposerView: View {
                         calendarIdentifier: selectedReminderCalendarIdentifier,
                         dueDate: dueDate,
                         includesTime: reminderIncludesTime,
-                        notes: notes
+                        notes: notes,
+                        calendar: editingCalendar,
+                        datesChanged: !isEditing || !initialValues.matchesReminderSchedule(
+                            dueDate: dueDate,
+                            includesTime: reminderIncludesTime
+                        )
                     )
                 )
             }

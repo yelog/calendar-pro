@@ -66,8 +66,8 @@ final class TimeRefreshCoordinator: ObservableObject {
 
     func refreshNow() {
         let refreshedDate = now()
-        updateDayChangeRevisionIfNeeded(for: refreshedDate)
         currentDate = refreshedDate
+        updateDayChangeRevisionIfNeeded(for: refreshedDate)
     }
 
     static func delayUntilNextMinuteBoundary(from date: Date, calendar: Calendar) -> TimeInterval {

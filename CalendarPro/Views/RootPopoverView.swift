@@ -136,12 +136,13 @@ struct RootPopoverView: View {
         loadedIdentifiers: Set<String>,
         pageSize: Int,
         futureLimitEnd: Date?,
-        isResumingWindow: Bool
+        isResumingWindow: Bool,
+        calendar: Calendar = .autoupdatingCurrent
     ) -> (slice: UpcomingPageWindowSlice, nextWindowStart: Date?, isExhausted: Bool) {
         // Re-check the range and drop loaded identities: page-full resumes
         // and same-instant page boundaries both dedupe on the identity set
         let inRangeItems = windowItems.filter { item in
-            guard let startDate = item.startDate else { return false }
+            guard let startDate = item.startDate(using: calendar) else { return false }
             return startDate >= windowStart && startDate < windowEnd
         }
         let freshItems = inRangeItems.filter {
@@ -194,6 +195,17 @@ struct RootPopoverView: View {
 
     var body: some View {
         popoverContent
+            .appTimeContext(settingsStore)
+            .onChange(of: displayCalendar.timeZone.identifier) { oldIdentifier, _ in
+                var oldCalendar = displayCalendar
+                oldCalendar.timeZone = TimeZone(identifier: oldIdentifier) ?? .autoupdatingCurrent
+                viewModel.changeTimeZone(from: oldCalendar, to: displayCalendar)
+                timeRefreshCoordinator.refreshNow()
+                refreshEventsForCurrentSelection(selectingTodayIfNeeded: true)
+                resetUpcomingPaginationAndLoadFirstPage()
+                refreshInfoStrips()
+                loadBoard()
+            }
             .onAppear {
                 timeRefreshCoordinator.refreshNow()
                 eventService.checkAuthorizationStatus()
@@ -407,7 +419,7 @@ struct RootPopoverView: View {
         let date = viewModel.selectedDate ?? timeRefreshCoordinator.currentDate
 
         if settingsStore.menuBarPreferences.showAlmanac {
-            almanacDescriptor = almanacService.describe(date: date)
+            almanacDescriptor = almanacService.describe(date: date, calendar: displayCalendar)
         } else {
             almanacDescriptor = nil
         }
@@ -588,17 +600,20 @@ struct RootPopoverView: View {
         let requestID = UUID()
         eventsRequestID = requestID
         let requestedDate = date
+        let calendar = CalendarItemDateResolver.snapshot(displayCalendar)
         Task {
             let items = await eventService.fetchCalendarItems(
                 for: date,
                 enabledCalendarIDs: preferences.enabledCalendarIDs,
                 enabledReminderCalendarIDs: preferences.enabledReminderCalendarIDs,
                 showCalendarEvents: preferences.showCalendarEvents,
-                showReminders: preferences.showReminders
+                showReminders: preferences.showReminders,
+                calendar: calendar
             )
             await MainActor.run {
                 guard eventsRequestID == requestID,
-                      settingsStore.menuBarPreferences.effectiveEventListMode == .day else { return }
+                      settingsStore.menuBarPreferences.effectiveEventListMode == .day,
+                      displayCalendar.timeZone.identifier == calendar.timeZone.identifier else { return }
                 guard viewModel.selectedDate == requestedDate else { return }
                 itemsForSelectedDate = items
                 syncSelectedEvent(with: items)
@@ -725,7 +740,7 @@ struct RootPopoverView: View {
         let enabledCalendarIDs = preferences.upcomingEnabledCalendarIDs
         let includeReminders = preferences.upcomingIncludeReminders
         let enabledReminderCalendarIDs = preferences.upcomingEnabledReminderCalendarIDs
-        let calendar = displayCalendar
+        let calendar = CalendarItemDateResolver.snapshot(displayCalendar)
         let service = eventService
 
         Task {
@@ -744,7 +759,8 @@ struct RootPopoverView: View {
                     ? upcomingPastRequestID
                     : upcomingFutureRequestID
                 guard activeRequestID == requestID,
-                      settingsStore.menuBarPreferences.effectiveEventListMode == .overview else { return }
+                      settingsStore.menuBarPreferences.effectiveEventListMode == .overview,
+                      displayCalendar.timeZone.identifier == calendar.timeZone.identifier else { return }
                 // Future window [cursor, cursor+30d) clipped to the user
                 // limit; past window [cursor-30d, cursor), cursor = upper
                 // bound
@@ -781,8 +797,10 @@ struct RootPopoverView: View {
                     futureEnd: windowEnd,
                     enabledCalendarIDs: enabledCalendarIDs,
                     includeReminders: includeReminders,
-                    enabledReminderCalendarIDs: enabledReminderCalendarIDs
+                    enabledReminderCalendarIDs: enabledReminderCalendarIDs,
+                    calendar: calendar
                 )
+                guard displayCalendar.timeZone.identifier == calendar.timeZone.identifier else { return }
                 let step = RootPopoverView.advanceUpcomingPage(
                     direction: direction,
                     windowItems: windowItems,
@@ -792,7 +810,8 @@ struct RootPopoverView: View {
                     loadedIdentifiers: loadedIdentifiers,
                     pageSize: RootPopoverView.upcomingPageSize,
                     futureLimitEnd: futureLimitEnd,
-                    isResumingWindow: isResumingWindow
+                    isResumingWindow: isResumingWindow,
+                    calendar: calendar
                 )
                 collected.append(contentsOf: step.slice.takenItems)
                 for item in step.slice.takenItems {
@@ -819,6 +838,7 @@ struct RootPopoverView: View {
                 && collected.count >= RootPopoverView.upcomingPageSize
 
             await MainActor.run {
+                guard displayCalendar.timeZone.identifier == calendar.timeZone.identifier else { return }
                 // Only this direction's race domain is checked: the other
                 // direction bumping its own ID never invalidates this result
                 switch direction {
@@ -1131,9 +1151,7 @@ struct RootPopoverView: View {
     }
 
     private var displayCalendar: Calendar {
-        var calendar = Calendar.autoupdatingCurrent
-        calendar.firstWeekday = settingsStore.menuBarPreferences.weekStart == .monday ? 2 : 1
-        return calendar
+        settingsStore.displayCalendar
     }
 
     private func makeSelectedDateSummary(visibleDays: [CalendarDay]) -> SelectedDateSummary {

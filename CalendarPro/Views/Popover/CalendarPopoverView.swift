@@ -21,6 +21,7 @@ enum CalendarPopoverEventCountFormatter {
 }
 
 struct CalendarPopoverView: View {
+    @Environment(\.calendar) private var calendar
     let displayedMonth: Date
     let displayedYear: Int
     let displayedMonthNumber: Int
@@ -192,6 +193,7 @@ struct CalendarPopoverView: View {
             }
             .buttonStyle(.plain)
             .keyboardShortcut(",", modifiers: .command)
+            .accessibilityIdentifier("calendar-popover-settings")
 
             Spacer()
 
@@ -383,7 +385,8 @@ struct CalendarPopoverView: View {
         let activeInfo = EventTimelineSnapshot.activeTimedItemInfo(
             items: items,
             selectedDate: selectedDate,
-            now: timeRefreshCoordinator.currentDate
+            now: timeRefreshCoordinator.currentDate,
+            calendar: calendar
         )
         return CalendarPopoverEventCountFormatter.text(
             isLoadingEvents: isLoadingEvents,
@@ -398,7 +401,8 @@ struct CalendarPopoverView: View {
         let activeInfo = EventTimelineSnapshot.activeTimedItemInfo(
             items: items,
             selectedDate: selectedDate,
-            now: timeRefreshCoordinator.currentDate
+            now: timeRefreshCoordinator.currentDate,
+            calendar: calendar
         )
         guard let activeIndex = activeInfo.activeIndex, activeInfo.timedCount > 0 else {
             return eventCountText

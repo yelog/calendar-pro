@@ -1,9 +1,30 @@
 import AppKit
+import Combine
 import XCTest
 @testable import CalendarPro
 
 @MainActor
 final class TimeRefreshCoordinatorTests: XCTestCase {
+    func testDayChangeObserversReadTheNewDateBeforeUpdatingSelection() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try XCTUnwrap(TimeZone(identifier: "Asia/Shanghai"))
+        let clock = MutableBox(try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 11, day: 3, hour: 23, minute: 59))))
+        let coordinator = TimeRefreshCoordinator(now: { clock.value }, calendarProvider: { calendar })
+        let model = CalendarPopoverViewModel(now: { coordinator.currentDate }, calendarProvider: { calendar })
+        model.selectCurrentDate()
+        var observedDate: Date?
+        let observation = coordinator.$dayChangeRevision.dropFirst().sink { _ in
+            observedDate = coordinator.currentDate
+            model.syncCurrentDaySelectionIfNeeded(calendar: calendar)
+        }
+
+        clock.value = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 11, day: 4, hour: 0, minute: 1)))
+        coordinator.refreshNow()
+
+        XCTAssertEqual(observedDate, clock.value)
+        XCTAssertEqual(model.selectedDate, clock.value)
+        withExtendedLifetime(observation) {}
+    }
     func testDelayUntilNextMinuteBoundaryUsesRemainingSecondsInCurrentMinute() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!

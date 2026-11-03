@@ -159,6 +159,9 @@
 		FEAD8D0BC13B72A31377C6CC /* PomodoroStatisticsWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015BE5F4CDF29C245A0B2D8F /* PomodoroStatisticsWindowView.swift */; };
 		FEE8BAFD79563E71ECCC27D9 /* AboutSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBE194C309EFB51816A101B0 /* AboutSettingsView.swift */; };
 		FFEF8DBA977C297F07163E30 /* MeetingActionResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0945EE05602B2EA17D987FB9 /* MeetingActionResolver.swift */; };
+		0085CB9BA540CAED2169B4FE /* CalendarItemDateResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 851DBA951F3673A99E7A3BC7 /* CalendarItemDateResolver.swift */; };
+		746429A103219609A29E7C1D /* AppTimeContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9678FA75501AB3A53DC13114 /* AppTimeContext.swift */; };
+		C44CD2F5780138F16522CF04 /* AppTimeZoneIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B14E499EAD7E6719D4D08386 /* AppTimeZoneIntegrationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -333,6 +336,9 @@
 		FC258970E2E11EC91F1FA2EB /* EventDetailWindowSizingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventDetailWindowSizingTests.swift; sourceTree = "<group>"; };
 		FD55FB064865C3829B0A079A /* SolarTermResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SolarTermResolver.swift; sourceTree = "<group>"; };
 		FD65228C9CEF3CEA925BE538 /* uk-2025.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "uk-2025.json"; sourceTree = "<group>"; };
+		851DBA951F3673A99E7A3BC7 /* CalendarItemDateResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarItemDateResolver.swift; sourceTree = "<group>"; };
+		9678FA75501AB3A53DC13114 /* AppTimeContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppTimeContext.swift; sourceTree = "<group>"; };
+		B14E499EAD7E6719D4D08386 /* AppTimeZoneIntegrationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppTimeZoneIntegrationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -605,6 +611,7 @@
 				0945EE05602B2EA17D987FB9 /* MeetingActionResolver.swift */,
 				8D4BEC76F1F9E997E8D82EB7 /* MeetingLinkDetector.swift */,
 				5C60A8C2972568049F71D29B /* RemindersBoardModels.swift */,
+				851DBA951F3673A99E7A3BC7 /* CalendarItemDateResolver.swift */,
 			);
 			name = Events;
 			path = Events;
@@ -726,6 +733,7 @@
 				6667D6655224A8EB8C5786D5 /* PopoverSizingTests.swift */,
 				E6CD3AE67EDEDADE9784A57C /* SelectedDateSummaryLayoutTests.swift */,
 				F2A2B722FD4463062F2495AB /* UpcomingSnapshotTests.swift */,
+				B14E499EAD7E6719D4D08386 /* AppTimeZoneIntegrationTests.swift */,
 			);
 			name = Popover;
 			path = Popover;
@@ -750,6 +758,7 @@
 				306BDEF46ED29250594063A7 /* Data */,
 				494BB1BDE6C4F21244F266E3 /* LocaleFeatureAvailability.swift */,
 				294B6D234442B38FBBBBB1A0 /* TimeRefreshCoordinator.swift */,
+				9678FA75501AB3A53DC13114 /* AppTimeContext.swift */,
 			);
 			name = Infrastructure;
 			path = Infrastructure;
@@ -1159,6 +1168,8 @@
 				48D4E0E69800B951E9E90458 /* RemindersSettingsView.swift in Sources */,
 				597884A076D8AFC75AB0F81B /* SettingsRootView.swift in Sources */,
 				69C5915B9D2E15D499E20330 /* UpcomingEventsSettingsView.swift in Sources */,
+				746429A103219609A29E7C1D /* AppTimeContext.swift in Sources */,
+				0085CB9BA540CAED2169B4FE /* CalendarItemDateResolver.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1203,6 +1214,7 @@
 				F98FC724127702F2C2355D89 /* VacationPlanningServiceTests.swift in Sources */,
 				76977903256B4EB6A272AB03 /* CitySearchServiceTests.swift in Sources */,
 				B4D147ABD23274CBE4BDA1B8 /* WeatherServiceTests.swift in Sources */,
+				C44CD2F5780138F16522CF04 /* AppTimeZoneIntegrationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -20,32 +20,35 @@ final class CalendarPopoverViewModel: ObservableObject {
     @Published private(set) var popoverPresentationGeneration = 0
     private let autoResetInterval: TimeInterval
     private let now: () -> Date
+    private let calendarProvider: () -> Calendar
     private var followsCurrentDaySelection = false
 
     init(
         displayedMonth: Date? = nil,
         autoResetInterval: TimeInterval = 30,
-        now: @escaping () -> Date = Date.init
+        now: @escaping () -> Date = Date.init,
+        calendarProvider: @escaping () -> Calendar = { .autoupdatingCurrent }
     ) {
         self.now = now
+        self.calendarProvider = calendarProvider
         self.displayedMonth = displayedMonth ?? now()
         self.autoResetInterval = autoResetInterval
     }
 
     var displayedYear: Int {
-        Calendar.current.component(.year, from: displayedMonth)
+        calendarProvider().component(.year, from: displayedMonth)
     }
 
     var displayedMonthNumber: Int {
-        Calendar.current.component(.month, from: displayedMonth)
+        calendarProvider().component(.month, from: displayedMonth)
     }
 
     var currentYear: Int {
-        Calendar.current.component(.year, from: now())
+        calendarProvider().component(.year, from: now())
     }
 
     var currentMonthNumber: Int {
-        Calendar.current.component(.month, from: now())
+        calendarProvider().component(.month, from: now())
     }
 
     func enterYearSelection() {
@@ -168,6 +171,22 @@ final class CalendarPopoverViewModel: ObservableObject {
 
         showMonth(containing: currentDate, calendar: calendar)
         selectDate(currentDate, followsCurrentDay: true)
+    }
+
+    func changeTimeZone(from oldCalendar: Calendar, to calendar: Calendar) {
+        if followsCurrentDaySelection || selectedDate == nil {
+            let currentDate = now()
+            showMonth(containing: currentDate, calendar: calendar)
+            selectDate(currentDate, followsCurrentDay: true)
+            return
+        }
+
+        let month = oldCalendar.dateComponents([.year, .month], from: displayedMonth)
+        displayedMonth = calendar.date(from: month) ?? displayedMonth
+        if let selectedDate {
+            let day = oldCalendar.dateComponents([.year, .month, .day], from: selectedDate)
+            self.selectedDate = calendar.date(from: day) ?? selectedDate
+        }
     }
 
     func weekdaySymbols(using calendar: Calendar) -> [String] {

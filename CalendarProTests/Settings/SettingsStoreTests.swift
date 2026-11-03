@@ -3,6 +3,220 @@ import XCTest
 
 @MainActor
 final class SettingsStoreTests: XCTestCase {
+    func testUTCOffsetTextSupportsZeroPositiveNegativeAndFractionalHours() throws {
+        let date = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-01-15T12:00:00Z"))
+        let cases: [(Int, String)] = [
+            (0, "UTC+0:00"),
+            (8 * 3600, "UTC+8:00"),
+            (-8 * 3600, "UTC-8:00"),
+            (5 * 3600 + 30 * 60, "UTC+5:30"),
+            (5 * 3600 + 45 * 60, "UTC+5:45"),
+            (-(3 * 3600 + 30 * 60), "UTC-3:30"),
+            (14 * 3600, "UTC+14:00")
+        ]
+
+        for (seconds, expected) in cases {
+            let timeZone = try XCTUnwrap(TimeZone(secondsFromGMT: seconds))
+            XCTAssertEqual(AppTimeZoneCatalog.utcOffsetText(for: timeZone, at: date), expected)
+        }
+    }
+
+    func testUTCOffsetTextUsesDaylightSavingRulesForTheRequestedDate() throws {
+        let timeZone = try XCTUnwrap(TimeZone(identifier: "America/New_York"))
+        let winter = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-01-15T12:00:00Z"))
+        let summer = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-07-15T12:00:00Z"))
+
+        XCTAssertEqual(AppTimeZoneCatalog.utcOffsetText(for: timeZone, at: winter), "UTC-5:00")
+        XCTAssertEqual(AppTimeZoneCatalog.utcOffsetText(for: timeZone, at: summer), "UTC-4:00")
+    }
+
+    func testTimeZoneDefaultsToFollowingSystem() {
+        let store = makeStore(userDefaults: makeIsolatedUserDefaults())
+
+        XCTAssertNil(store.timeZoneIdentifier)
+        XCTAssertEqual(store.effectiveTimeZone.identifier, TimeZone.autoupdatingCurrent.identifier)
+        XCTAssertEqual(store.displayCalendar.identifier, .gregorian)
+        XCTAssertEqual(store.displayCalendar.timeZone.identifier, store.effectiveTimeZone.identifier)
+    }
+
+    func testTimeZonePersistsIndependentlyOfOtherPreferences() throws {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+        store.setWeekStart(.sunday)
+        store.setSeparator(" · ")
+        store.setAppLanguage(.english)
+        store.setPomodoroEnabled(true)
+        let menuBarData = try XCTUnwrap(userDefaults.data(forKey: "menuBarPreferences"))
+        let pomodoroData = try XCTUnwrap(userDefaults.data(forKey: "pomodoroPreferences"))
+
+        store.setTimeZoneIdentifier("America/Los_Angeles")
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertEqual(reloaded.timeZoneIdentifier, "America/Los_Angeles")
+        XCTAssertEqual(reloaded.effectiveTimeZone.identifier, "America/Los_Angeles")
+        XCTAssertEqual(reloaded.displayCalendar.firstWeekday, 1)
+        XCTAssertEqual(reloaded.menuBarPreferences.separator, " · ")
+        XCTAssertEqual(reloaded.appLanguage, .english)
+        XCTAssertTrue(reloaded.pomodoroPreferences.isEnabled)
+        XCTAssertEqual(userDefaults.data(forKey: "menuBarPreferences"), menuBarData)
+        XCTAssertEqual(userDefaults.data(forKey: "pomodoroPreferences"), pomodoroData)
+    }
+
+    func testFollowingSystemRemovesOnlyTheTimeZoneOverride() {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+        store.setSeparator(" | ")
+        store.setTimeZoneIdentifier("Asia/Shanghai")
+
+        store.setTimeZoneIdentifier(nil)
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+        XCTAssertNil(reloaded.timeZoneIdentifier)
+        XCTAssertNil(userDefaults.object(forKey: "appTimeZoneIdentifier"))
+        XCTAssertEqual(reloaded.menuBarPreferences.separator, " | ")
+    }
+
+    func testInvalidStoredTimeZoneFallsBackWithoutResettingPreferences() {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+        store.setWeekStart(.sunday)
+        userDefaults.set("Invalid/Time_Zone", forKey: "appTimeZoneIdentifier")
+
+        let reloaded = makeStore(userDefaults: userDefaults)
+
+        XCTAssertNil(reloaded.timeZoneIdentifier)
+        XCTAssertEqual(reloaded.effectiveTimeZone.identifier, TimeZone.autoupdatingCurrent.identifier)
+        XCTAssertEqual(reloaded.displayCalendar.firstWeekday, 1)
+        XCTAssertEqual(userDefaults.string(forKey: "appTimeZoneIdentifier"), "Invalid/Time_Zone")
+    }
+
+    func testInvalidTimeZoneInputFallsBackToSystemAndDoesNotPersistInvalidValues() {
+        let userDefaults = makeIsolatedUserDefaults()
+        let store = makeStore(userDefaults: userDefaults)
+        store.setTimeZoneIdentifier("Asia/Shanghai")
+
+        for identifier in ["Invalid/Time_Zone", "", "  Asia/Shanghai  "] {
+            store.setTimeZoneIdentifier(identifier)
+
+            XCTAssertNil(store.timeZoneIdentifier)
+            XCTAssertNil(userDefaults.object(forKey: "appTimeZoneIdentifier"))
+            XCTAssertEqual(store.effectiveTimeZone.identifier, TimeZone.autoupdatingCurrent.identifier)
+        }
+    }
+
+    func testDisplayCalendarPreservesWeekStartWhenTimeZoneChanges() {
+        let store = makeStore(userDefaults: makeIsolatedUserDefaults())
+        store.setWeekStart(.monday)
+        store.setTimeZoneIdentifier("Asia/Shanghai")
+
+        XCTAssertEqual(store.displayCalendar.firstWeekday, 2)
+        XCTAssertEqual(store.displayCalendar.timeZone.identifier, "Asia/Shanghai")
+
+        store.setTimeZoneIdentifier("America/Los_Angeles")
+        XCTAssertEqual(store.displayCalendar.firstWeekday, 2)
+        XCTAssertEqual(store.displayCalendar.timeZone.identifier, "America/Los_Angeles")
+
+        store.setWeekStart(.sunday)
+        XCTAssertEqual(store.displayCalendar.firstWeekday, 1)
+        XCTAssertEqual(store.displayCalendar.timeZone.identifier, "America/Los_Angeles")
+    }
+
+    func testSettingsTimeContextRendersTheSameInstantOnDifferentCalendarYears() throws {
+        let store = makeStore(userDefaults: makeIsolatedUserDefaults())
+        let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-12-31T16:30:00Z"))
+        let renderer = ClockRenderService()
+        var preferences = store.menuBarPreferences
+        preferences.separator = " "
+        preferences.tokens = [
+            DisplayTokenPreference(token: .time, isEnabled: true, order: 0, style: .short),
+            DisplayTokenPreference(token: .weekday, isEnabled: true, order: 1, style: .short),
+            DisplayTokenPreference(token: .date, isEnabled: true, order: 2, style: .numeric)
+        ]
+
+        store.setTimeZoneIdentifier("Asia/Shanghai")
+        XCTAssertEqual(store.displayCalendar.component(.year, from: now), 2027)
+        XCTAssertEqual(renderer.render(
+            now: now,
+            preferences: preferences,
+            locale: Locale(identifier: "en_US_POSIX"),
+            calendar: store.displayCalendar,
+            timeZone: store.effectiveTimeZone
+        ), "00:30 Fri 01/01")
+
+        store.setTimeZoneIdentifier("America/Los_Angeles")
+        XCTAssertEqual(store.displayCalendar.component(.year, from: now), 2026)
+        XCTAssertEqual(renderer.render(
+            now: now,
+            preferences: preferences,
+            locale: Locale(identifier: "en_US_POSIX"),
+            calendar: store.displayCalendar,
+            timeZone: store.effectiveTimeZone
+        ), "08:30 Thu 31/12")
+    }
+
+    func testTimeZoneSearchMatchesIdentifiersCityWordsAndLocalizedNames() {
+        let english = Locale(identifier: "en")
+        let chinese = Locale(identifier: "zh-Hans")
+        XCTAssertTrue(AppTimeZoneCatalog.matchingIdentifiers(query: "  asia/shanghai  ", locale: english).contains("Asia/Shanghai"))
+        XCTAssertTrue(AppTimeZoneCatalog.matchingIdentifiers(query: "Los Angeles", locale: english).contains("America/Los_Angeles"))
+        let localizedName = AppTimeZoneCatalog.localizedName(for: "Asia/Shanghai", locale: chinese)
+        XCTAssertTrue(AppTimeZoneCatalog.matchingIdentifiers(query: localizedName, locale: chinese).contains("Asia/Shanghai"))
+        XCTAssertEqual(AppTimeZoneCatalog.matchingIdentifiers(query: " \n ", locale: english), AppTimeZoneCatalog.identifiers)
+        XCTAssertTrue(AppTimeZoneCatalog.matchingIdentifiers(query: "Invalid/Time_Zone", locale: english).isEmpty)
+        XCTAssertEqual(AppTimeZoneCatalog.localizedName(for: "Invalid/Time_Zone", locale: english), "Invalid/Time_Zone")
+    }
+
+    func testTimeZoneSearchMatchesUTCOffsetsWithAndWithoutPrefix() throws {
+        let date = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-01-15T12:00:00Z"))
+        let locale = Locale(identifier: "en")
+        let matches = AppTimeZoneCatalog.matchingIdentifiers(query: "+8:00", locale: locale, at: date)
+
+        XCTAssertTrue(matches.contains("Asia/Shanghai"))
+        XCTAssertTrue(matches.contains("Asia/Singapore"))
+        XCTAssertFalse(matches.contains("Asia/Tokyo"))
+        XCTAssertFalse(matches.contains("Australia/Eucla"))
+        XCTAssertFalse(matches.contains("Etc/GMT+8"))
+        for identifier in matches {
+            let timeZone = try XCTUnwrap(TimeZone(identifier: identifier))
+            XCTAssertEqual(timeZone.secondsFromGMT(for: date), 8 * 3600, identifier)
+        }
+        for query in ["UTC+8:00", " utc+8:00 "] {
+            XCTAssertEqual(AppTimeZoneCatalog.matchingIdentifiers(query: query, locale: locale, at: date), matches)
+        }
+        XCTAssertTrue(AppTimeZoneCatalog.matchingIdentifiers(query: "+25:00", locale: locale, at: date).isEmpty)
+    }
+
+    func testTimeZoneSearchMatchesFractionalNegativeAndZeroOffsets() throws {
+        let date = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-01-15T12:00:00Z"))
+        let locale = Locale(identifier: "zh-Hans")
+        let cases = [
+            ("+5:30", "Asia/Calcutta", 5 * 3600 + 30 * 60),
+            ("+5:45", "Asia/Kathmandu", 5 * 3600 + 45 * 60),
+            ("-3:30", "America/St_Johns", -(3 * 3600 + 30 * 60)),
+            ("UTC+0:00", "UTC", 0)
+        ]
+
+        for (query, expectedIdentifier, expectedSeconds) in cases {
+            let matches = AppTimeZoneCatalog.matchingIdentifiers(query: query, locale: locale, at: date)
+            XCTAssertTrue(matches.contains(expectedIdentifier), query)
+            for identifier in matches {
+                let timeZone = try XCTUnwrap(TimeZone(identifier: identifier))
+                XCTAssertEqual(timeZone.secondsFromGMT(for: date), expectedSeconds, identifier)
+            }
+        }
+    }
+
+    func testTimeZoneOffsetSearchFollowsDaylightSavingChanges() throws {
+        let locale = Locale(identifier: "en")
+        let winter = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-01-15T12:00:00Z"))
+        let summer = try XCTUnwrap(ISO8601DateFormatter().date(from: "2026-07-15T12:00:00Z"))
+
+        XCTAssertFalse(AppTimeZoneCatalog.matchingIdentifiers(query: "-4:00", locale: locale, at: winter).contains("America/New_York"))
+        XCTAssertTrue(AppTimeZoneCatalog.matchingIdentifiers(query: "-4:00", locale: locale, at: summer).contains("America/New_York"))
+        XCTAssertTrue(AppTimeZoneCatalog.matchingIdentifiers(query: "-5:00", locale: locale, at: winter).contains("America/New_York"))
+        XCTAssertFalse(AppTimeZoneCatalog.matchingIdentifiers(query: "-5:00", locale: locale, at: summer).contains("America/New_York"))
+    }
+
     func testDefaultMenuBarPreferencesEnableDateTimeAndWeekday() {
         let userDefaults = makeIsolatedUserDefaults()
         let store = makeStore(userDefaults: userDefaults)

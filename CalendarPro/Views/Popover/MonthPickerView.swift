@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MonthPickerView: View {
+    @Environment(\.calendar) private var calendar
     let displayedYear: Int
     let displayedMonth: Int
     let currentMonth: Int
@@ -61,10 +62,12 @@ struct MonthPickerView: View {
     private var yearDisplayText: String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.setLocalizedDateFormatFromTemplate("y")
         var components = DateComponents()
         components.year = displayedYear
-        if let date = Calendar(identifier: .gregorian).date(from: components) {
+        if let date = calendar.date(from: components) {
             return formatter.string(from: date)
         }
         return "\(displayedYear)"

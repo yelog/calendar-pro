@@ -113,9 +113,9 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         eventService: EventService,
         popover: PopoverPresenting = NSPopover(),
         interactionMonitor: PopoverInteractionMonitoring = PopoverInteractionMonitor(),
-        eventDetailPresenter: EventDetailWindowPresenting = EventDetailWindowController(),
+        eventDetailPresenter: EventDetailWindowPresenting? = nil,
         vacationGuidePresenter: VacationGuideWindowPresenting = VacationGuideWindowController(),
-        weatherDetailPresenter: WeatherDetailWindowPresenting = WeatherDetailWindowController(),
+        weatherDetailPresenter: WeatherDetailWindowPresenting? = nil,
         pomodoroStatisticsPresenter: PomodoroStatisticsWindowPresenting = PomodoroStatisticsWindowController(),
         timeRefreshCoordinator: TimeRefreshCoordinator = TimeRefreshCoordinator(),
         pomodoroTimer: PomodoroTimerController = PomodoroTimerController(),
@@ -126,14 +126,17 @@ final class PopoverController: NSObject, NSPopoverDelegate {
         self.settingsStore = settingsStore
         self.eventService = eventService
         self.interactionMonitor = interactionMonitor
-        self.eventDetailPresenter = eventDetailPresenter
+        self.eventDetailPresenter = eventDetailPresenter ?? EventDetailWindowController(settingsStore: settingsStore)
         self.vacationGuidePresenter = vacationGuidePresenter
-        self.weatherDetailPresenter = weatherDetailPresenter
+        self.weatherDetailPresenter = weatherDetailPresenter ?? WeatherDetailWindowController(settingsStore: settingsStore)
         self.pomodoroStatisticsPresenter = pomodoroStatisticsPresenter
         self.timeRefreshCoordinator = timeRefreshCoordinator
         self.pomodoroTimer = pomodoroTimer
         self.pomodoroStatsStore = pomodoroStatsStore
-        self.viewModel = viewModel ?? CalendarPopoverViewModel(now: { timeRefreshCoordinator.currentDate })
+        self.viewModel = viewModel ?? CalendarPopoverViewModel(
+            now: { timeRefreshCoordinator.currentDate },
+            calendarProvider: { settingsStore.displayCalendar }
+        )
         super.init()
 
         popover.behavior = .transient
@@ -242,7 +245,7 @@ final class PopoverController: NSObject, NSPopoverDelegate {
     private func showPopover(relativeTo button: NSView) {
         timeRefreshCoordinator.refreshNow()
         viewModel.checkAndResetIfNeeded()
-        viewModel.syncCurrentDaySelectionIfNeeded(calendar: .autoupdatingCurrent)
+        viewModel.syncCurrentDaySelectionIfNeeded(calendar: settingsStore.displayCalendar)
         // Explicit reopen signal: the content view controller is reused across
         // presentations, so SwiftUI onAppear does not reliably re-fire and
         // reopen resets are driven by this generation bump instead.

@@ -37,7 +37,7 @@ final class StatusBarController {
     private let textImageRenderer = MenuBarTextImageRenderer()
     private let settingsStore: SettingsStore
     private let eventService: EventService
-    private let timeRefreshCoordinator = TimeRefreshCoordinator()
+    private let timeRefreshCoordinator: TimeRefreshCoordinator
     private let pomodoroStatsStore: PomodoroStatsStore
     private let pomodoroReminderService = PomodoroReminderService()
     private let pomodoroTimer: PomodoroTimerController
@@ -53,6 +53,7 @@ final class StatusBarController {
         self.settingsStore = settingsStore
         self.eventService = eventService
         self.pomodoroStatsStore = pomodoroStatsStore
+        timeRefreshCoordinator = TimeRefreshCoordinator(calendarProvider: { settingsStore.displayCalendar })
         pomodoroTimer = PomodoroTimerController(
             statsStore: pomodoroStatsStore,
             reminderService: pomodoroReminderService,
@@ -72,7 +73,8 @@ final class StatusBarController {
         upcomingEventMonitor = UpcomingEventMonitor(
             eventService: eventService,
             settingsStore: settingsStore,
-            timeRefreshCoordinator: timeRefreshCoordinator
+            timeRefreshCoordinator: timeRefreshCoordinator,
+            calendar: { settingsStore.displayCalendar }
         )
 
         configureStatusItems()
@@ -119,6 +121,16 @@ final class StatusBarController {
     }
 
     private func bindViewModel() {
+        Publishers.Merge(
+            settingsStore.$timeZoneIdentifier.dropFirst().map { _ in () },
+            timeRefreshCoordinator.$dayChangeRevision.dropFirst().map { _ in () }
+        )
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in
+                self?.pomodoroStatsStore.refreshTimeContext()
+            }
+            .store(in: &cancellables)
+
         let menuBarStylePublisher = settingsStore.$menuBarPreferences
             .map { $0.textStyle }
             .removeDuplicates()

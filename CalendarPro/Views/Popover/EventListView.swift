@@ -429,7 +429,7 @@ struct EventTimelineSnapshot {
     }
 
     private static func endMinutes(for item: CalendarItem, startMinutes: Int, calendar: Calendar) -> Int {
-        guard let endDate = item.endDate else {
+        guard let endDate = item.endDate(using: calendar) else {
             return startMinutes
         }
 
@@ -440,12 +440,16 @@ struct EventTimelineSnapshot {
     private static func format(minutes: Int) -> String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         var components = DateComponents()
         components.hour = minutes / 60
         components.minute = minutes % 60
-        let date = Calendar(identifier: .gregorian).date(from: components) ?? Date()
+        let date = calendar.date(from: components) ?? Date()
         return formatter.string(from: date)
     }
 
@@ -502,14 +506,20 @@ struct EventTimelineCreationSlot {
         let dayStart = calendar.startOfDay(for: selectedDate)
 
         guard let startDate = calendar.date(
-            byAdding: .minute,
-            value: startMinute,
-            to: dayStart
-        ), let endDate = calendar.date(
-            byAdding: .minute,
-            value: durationMinutes,
-            to: startDate
-        ) else {
+            bySettingHour: startMinute / 60,
+            minute: startMinute % 60,
+            second: 0,
+            of: dayStart,
+            matchingPolicy: .strict,
+            repeatedTimePolicy: .first
+        ), calendar.isDate(startDate, inSameDayAs: dayStart),
+            calendar.component(.hour, from: startDate) == startMinute / 60,
+            calendar.component(.minute, from: startDate) == startMinute % 60,
+            let endDate = calendar.date(
+                byAdding: .minute,
+                value: durationMinutes,
+                to: startDate
+            ) else {
             return nil
         }
 
@@ -525,6 +535,7 @@ private struct EventDayTimelineSpan {
     let sourceIndex: Int
     let startMinutes: Int
     let endMinutes: Int
+    var currentProgress: Double? = nil
 
     var effectiveEndMinutes: Int {
         max(endMinutes, startMinutes + 1)
@@ -585,6 +596,7 @@ struct EventDayTimelineLayout {
                 sourceIndex: offset,
                 dayStart: dayStart,
                 dayEnd: dayEnd,
+                now: currentMinutes == nil ? nil : now,
                 calendar: calendar
             )
         }
@@ -598,7 +610,7 @@ struct EventDayTimelineLayout {
             return lhs.sourceIndex < rhs.sourceIndex
         }
 
-        let positionedItems = makePositionedItems(from: spans, currentMinutes: currentMinutes)
+        let positionedItems = makePositionedItems(from: spans)
         let initialScrollMinutes: Int?
         let centersInitialScrollTarget: Bool
 
@@ -628,18 +640,21 @@ struct EventDayTimelineLayout {
         sourceIndex: Int,
         dayStart: Date,
         dayEnd: Date,
+        now: Date?,
         calendar: Calendar
     ) -> EventDayTimelineSpan? {
         switch item {
         case .event(let event):
             guard !event.isAllDay else { return nil }
+            guard let startDate = item.startDate(using: calendar),
+                  let endDate = item.endDate(using: calendar) else { return nil }
 
-            if event.endDate <= event.startDate {
-                guard event.startDate >= dayStart, event.startDate < dayEnd else {
+            if endDate <= startDate {
+                guard startDate >= dayStart, startDate < dayEnd else {
                     return nil
                 }
                 let minute = minuteOfDay(
-                    for: event.startDate,
+                    for: startDate,
                     dayStart: dayStart,
                     dayEnd: dayEnd,
                     calendar: calendar
@@ -652,12 +667,12 @@ struct EventDayTimelineLayout {
                 )
             }
 
-            guard event.startDate < dayEnd, event.endDate > dayStart else {
+            guard startDate < dayEnd, endDate > dayStart else {
                 return nil
             }
 
-            let clippedStart = max(event.startDate, dayStart)
-            let clippedEnd = min(event.endDate, dayEnd)
+            let clippedStart = max(startDate, dayStart)
+            let clippedEnd = min(endDate, dayEnd)
             let startMinutes = minuteOfDay(
                 for: clippedStart,
                 dayStart: dayStart,
@@ -670,12 +685,19 @@ struct EventDayTimelineLayout {
                 dayEnd: dayEnd,
                 calendar: calendar
             )
+            let progress: Double?
+            if let now, now >= clippedStart, now <= clippedEnd, clippedEnd > clippedStart {
+                progress = now.timeIntervalSince(clippedStart) / clippedEnd.timeIntervalSince(clippedStart)
+            } else {
+                progress = nil
+            }
 
             return EventDayTimelineSpan(
                 item: item,
                 sourceIndex: sourceIndex,
                 startMinutes: startMinutes,
-                endMinutes: max(endMinutes, startMinutes)
+                endMinutes: max(endMinutes, startMinutes + 1),
+                currentProgress: progress
             )
 
         case .reminder:
@@ -693,8 +715,7 @@ struct EventDayTimelineLayout {
     }
 
     private static func makePositionedItems(
-        from spans: [EventDayTimelineSpan],
-        currentMinutes: Int?
+        from spans: [EventDayTimelineSpan]
     ) -> [EventDayTimelineItem] {
         makeClusters(from: spans).flatMap { cluster in
             var laneEndMinutes: [Int] = []
@@ -719,16 +740,6 @@ struct EventDayTimelineLayout {
 
             return assignments.map { assignment in
                 let span = assignment.span
-                let currentProgress: Double?
-                if let currentMinutes,
-                   span.endMinutes > span.startMinutes,
-                   currentMinutes >= span.startMinutes,
-                   currentMinutes <= span.endMinutes {
-                    currentProgress = Double(currentMinutes - span.startMinutes)
-                        / Double(span.endMinutes - span.startMinutes)
-                } else {
-                    currentProgress = nil
-                }
 
                 return EventDayTimelineItem(
                     id: span.item.selectionIdentifier,
@@ -738,7 +749,7 @@ struct EventDayTimelineLayout {
                     laneIndex: assignment.laneIndex,
                     laneCount: laneCount,
                     clusterID: clusterID,
-                    currentProgress: currentProgress
+                    currentProgress: span.currentProgress
                 )
             }
         }
@@ -796,6 +807,7 @@ struct EventDayTimelineLayout {
 }
 
 struct EventListView: View {
+    @Environment(\.calendar) private var calendar
     private enum Metrics {
         static let timeLaneWidth: CGFloat = 46
         static let contentSpacing: CGFloat = 8
@@ -1006,7 +1018,7 @@ struct EventListView: View {
             items: items,
             selectedDate: selectedDate,
             now: currentTime,
-            calendar: .autoupdatingCurrent
+            calendar: calendar
         )
     }
 
@@ -1111,7 +1123,8 @@ struct EventListView: View {
               let timeRange = EventTimelineCreationSlot.make(
                   yPosition: yPosition,
                   selectedDate: selectedDate,
-                  pointsPerMinute: Metrics.pointsPerMinute
+                  pointsPerMinute: Metrics.pointsPerMinute,
+                  calendar: calendar
               ) else {
             return
         }
@@ -1245,12 +1258,16 @@ struct EventListView: View {
     private func timeText(minutes: Int) -> String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        var clockCalendar = calendar
+        clockCalendar.timeZone = .gmt
+        formatter.calendar = clockCalendar
+        formatter.timeZone = clockCalendar.timeZone
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         var components = DateComponents()
         components.hour = minutes / 60
         components.minute = minutes % 60
-        let date = Calendar(identifier: .gregorian).date(from: components) ?? Date()
+        let date = clockCalendar.date(from: components) ?? Date()
         return formatter.string(from: date)
     }
 
@@ -1302,7 +1319,7 @@ struct EventListView: View {
     }
 
     private func timelineState(for item: CalendarItem) -> EventCardTimelineState {
-        guard let status = item.timelineStatus(at: currentTime, calendar: .autoupdatingCurrent) else {
+        guard let status = item.timelineStatus(at: currentTime, calendar: calendar) else {
             return .regular
         }
 
@@ -1320,6 +1337,8 @@ struct EventListView: View {
     private var formattedCurrentTime: String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         return formatter.string(from: currentTime)
@@ -1341,6 +1360,7 @@ struct EventListView: View {
 }
 
 private struct EventDayTimelineCardView: View {
+    @Environment(\.calendar) private var calendar
     private enum Density {
         case full
         case compact
@@ -1518,17 +1538,19 @@ private struct EventDayTimelineCardView: View {
     }
 
     private var timeRangeText: String {
-        guard let startDate = item.timelineDate else {
+        guard let startDate = item.timelineDate(using: calendar) else {
             return L("No Time")
         }
 
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         let start = formatter.string(from: startDate)
 
-        guard let endDate = item.endDate else {
+        guard let endDate = item.endDate(using: calendar) else {
             return start
         }
         return "\(start)-\(formatter.string(from: endDate))"

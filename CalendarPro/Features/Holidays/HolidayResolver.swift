@@ -43,8 +43,14 @@ struct HolidayResolver {
             resolved = resolved.filter { enabled.contains($0.holidaySetID) }
         }
 
+        // Providers encode civil holiday dates at UTC midnight. Preserve the
+        // original year/month/day when placing them in the app's calendar.
+        var sourceCalendar = Calendar(identifier: .gregorian)
+        sourceCalendar.timeZone = .gmt
         let grouped = Dictionary(grouping: resolved) { occurrence in
-            calendar.startOfDay(for: occurrence.date)
+            let components = sourceCalendar.dateComponents([.year, .month, .day], from: occurrence.date)
+            let localDate = calendar.date(from: components) ?? occurrence.date
+            return calendar.startOfDay(for: localDate)
         }
 
         return grouped.mapValues { occurrences in

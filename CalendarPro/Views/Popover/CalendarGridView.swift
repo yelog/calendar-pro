@@ -43,6 +43,7 @@ struct CalendarGridView: View {
 }
 
 private struct CalendarDayCellView: View {
+    @Environment(\.calendar) private var calendar
     @Environment(\.colorScheme) private var colorScheme
     @State private var isHovered = false
 
@@ -314,7 +315,7 @@ private struct CalendarDayCellView: View {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.timeZone = calendar.timeZone
         formatter.dateFormat = "yyyy-MM-dd"
         return "calendar-day-\(formatter.string(from: day.date))"
     }

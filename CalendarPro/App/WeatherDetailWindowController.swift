@@ -16,6 +16,12 @@ protocol WeatherDetailWindowPresenting: AnyObject {
 final class WeatherDetailWindowController: NSObject, NSWindowDelegate, WeatherDetailWindowPresenting {
     private var panel: NSPanel?
     private var onClose: (() -> Void)?
+    private let settingsStore: SettingsStore?
+
+    init(settingsStore: SettingsStore? = nil) {
+        self.settingsStore = settingsStore
+        super.init()
+    }
 
     func show(
         overview: WeatherForecastOverview,
@@ -24,17 +30,22 @@ final class WeatherDetailWindowController: NSObject, NSWindowDelegate, WeatherDe
     ) {
         let panel = makePanelIfNeeded()
         self.onClose = onClose
-        let hostingController = NSHostingController(
-            rootView: WeatherDetailWindowView(
-                overview: overview,
-                onClose: { [weak self] in
-                    self?.close()
-                },
-                onPreferredHeightChange: { [weak self] preferredHeight in
-                    self?.resizePanelIfNeeded(preferredHeight: preferredHeight, anchoredTo: anchorWindow)
-                }
-            )
+        let view = WeatherDetailWindowView(
+            overview: overview,
+            onClose: { [weak self] in
+                self?.close()
+            },
+            onPreferredHeightChange: { [weak self] preferredHeight in
+                self?.resizePanelIfNeeded(preferredHeight: preferredHeight, anchoredTo: anchorWindow)
+            }
         )
+        let content: AnyView
+        if let settingsStore {
+            content = AnyView(view.appTimeContext(settingsStore))
+        } else {
+            content = AnyView(view)
+        }
+        let hostingController = NSHostingController(rootView: content)
 
         presentPanel(panel, hosting: hostingController, anchoredTo: anchorWindow)
     }

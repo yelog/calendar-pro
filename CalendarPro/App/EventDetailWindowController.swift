@@ -79,8 +79,10 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     private let availableHeightProvider: ((NSWindow?) -> CGFloat)?
     private let preferredHeightScheduler: ((@escaping @MainActor () -> Void) -> Void)?
     private let setPanelFrame: ((NSPanel, NSRect, Bool) -> Void)?
+    private let settingsStore: SettingsStore?
 
     init(
+        settingsStore: SettingsStore? = nil,
         panelFactory: PanelFactory? = nil,
         activateApplication: @escaping ApplicationActivator = { NSApp.activate(ignoringOtherApps: true) },
         preferredHeightCallbackObserver: ((@escaping (CGFloat) -> Void) -> Void)? = nil,
@@ -88,6 +90,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         preferredHeightScheduler: ((@escaping @MainActor () -> Void) -> Void)? = nil,
         setPanelFrame: ((NSPanel, NSRect, Bool) -> Void)? = nil
     ) {
+        self.settingsStore = settingsStore
         self.panelFactory = panelFactory
         self.activateApplication = activateApplication
         self.preferredHeightCallbackObserver = preferredHeightCallbackObserver
@@ -118,7 +121,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         }
         preferredHeightCallbackObserver?(preferredHeightCallback)
         let hostingController = NSHostingController<AnyView>(
-            rootView: AnyView(EventDetailWindowView(
+            rootView: detailRootView(EventDetailWindowView(
                 event: event,
                 maximumHeight: maximumHeight,
                 onEdit: onEdit,
@@ -145,7 +148,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
         let panel = makePanelIfNeeded(mode: .detail)
         _ = beginPresentation(onClose: onClose)
         let hostingController = NSHostingController<AnyView>(
-            rootView: AnyView(ReminderDetailWindowView(
+            rootView: detailRootView(ReminderDetailWindowView(
                 reminder: reminder,
                 onToggle: onToggle,
                 onEdit: onEdit,
@@ -190,6 +193,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
                 ),
                 eventCalendars: eventCalendars,
                 reminderCalendars: reminderCalendars,
+                calendar: settingsStore?.displayCalendar ?? .autoupdatingCurrent,
                 maximumHeight: maximumHeight,
                 onPreferredHeightChange: preferredHeightCallback,
                 onSaveEvent: onSaveEvent,
@@ -228,6 +232,7 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
                 mode: mode,
                 eventCalendars: eventCalendars,
                 reminderCalendars: reminderCalendars,
+                calendar: settingsStore?.displayCalendar ?? .autoupdatingCurrent,
                 maximumHeight: maximumHeight,
                 onPreferredHeightChange: preferredHeightCallback,
                 onSaveEvent: onSaveEvent,
@@ -256,6 +261,13 @@ final class EventDetailWindowController: NSObject, EventDetailWindowPresenting, 
     }
 
     // MARK: - Private
+
+    private func detailRootView<Content: View>(_ view: Content) -> AnyView {
+        if let settingsStore {
+            return AnyView(view.appTimeContext(settingsStore))
+        }
+        return AnyView(view)
+    }
 
     private func presentPanel(
         _ panel: NSPanel,

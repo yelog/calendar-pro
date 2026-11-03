@@ -1028,15 +1028,164 @@ final class CalendarItemTests: XCTestCase {
         XCTAssertEqual(info.timedCount, 1)
     }
 
+    func testFixedEventPreservesInstantWhenAppZoneChangesAcrossYearBoundary() {
+        let shanghai = calendar(in: "Asia/Shanghai")
+        let losAngeles = calendar(in: "America/Los_Angeles")
+        let start = date(2027, 1, 1, hour: 0, minute: 30, calendar: shanghai)
+        let event = makeEvent(start: start, end: start.addingTimeInterval(3600))
+        event.timeZone = shanghai.timeZone
+        let item = CalendarItem.event(event)
+
+        XCTAssertEqual(item.startDate(using: shanghai), start)
+        XCTAssertEqual(item.startDate(using: losAngeles), start)
+        XCTAssertEqual(item.endDate(using: losAngeles), event.endDate)
+        XCTAssertEqual(losAngeles.component(.year, from: item.startDate(using: losAngeles)!), 2026)
+        XCTAssertEqual(item.timelinePlacement(using: losAngeles), .timed(minutes: 8 * 60 + 30))
+    }
+
+    func testFloatingEventUsesAppWallTimeForTimelineAndProgress() {
+        let system = CalendarItemDateResolver.systemCalendar
+        let appCalendar = calendar(in: "America/Los_Angeles")
+        let rawStart = date(2026, 12, 31, hour: 23, minute: 0, calendar: system)
+        let rawEnd = date(2026, 12, 31, hour: 23, minute: 30, calendar: system)
+        let event = makeEvent(start: rawStart, end: rawEnd)
+        event.timeZone = nil
+        let item = CalendarItem.event(event)
+        let appStart = date(2026, 12, 31, hour: 23, minute: 0, calendar: appCalendar)
+        let appNow = date(2026, 12, 31, hour: 23, minute: 15, calendar: appCalendar)
+
+        XCTAssertEqual(item.startDate(using: appCalendar), appStart)
+        XCTAssertEqual(item.timelinePlacement(using: appCalendar), .timed(minutes: 23 * 60))
+        XCTAssertEqual(item.timelineStatus(at: appNow, calendar: appCalendar), .ongoing)
+        XCTAssertEqual(item.timelineProgress(at: appNow, calendar: appCalendar), 0.5)
+        XCTAssertEqual(event.startDate, rawStart)
+        XCTAssertNil(event.timeZone)
+    }
+
+    func testDateOnlyReminderPreservesCivilDayDespiteStoredSourceTimeZone() {
+        let shanghai = calendar(in: "Asia/Shanghai")
+        let losAngeles = calendar(in: "America/Los_Angeles")
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.dueDateComponents = DateComponents(
+            calendar: shanghai,
+            timeZone: shanghai.timeZone,
+            year: 2027,
+            month: 1,
+            day: 1
+        )
+        let item = CalendarItem.reminder(reminder)
+
+        XCTAssertEqual(item.startDate(using: losAngeles), date(2027, 1, 1, calendar: losAngeles))
+        XCTAssertEqual(item.timelinePlacement(using: losAngeles), .untimed)
+    }
+
+    func testFloatingReminderIgnoresEmbeddedCalendarTimeZone() {
+        let shanghai = calendar(in: "Asia/Shanghai")
+        let losAngeles = calendar(in: "America/Los_Angeles")
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.dueDateComponents = DateComponents(
+            calendar: shanghai,
+            year: 2027,
+            month: 1,
+            day: 1,
+            hour: 0,
+            minute: 30
+        )
+        let item = CalendarItem.reminder(reminder)
+
+        XCTAssertEqual(item.startDate(using: losAngeles), date(2027, 1, 1, hour: 0, minute: 30, calendar: losAngeles))
+        XCTAssertEqual(item.timelinePlacement(using: losAngeles), .timed(minutes: 30))
+        XCTAssertEqual(item.timelineStatus(
+            at: date(2027, 1, 1, hour: 0, minute: 30, calendar: losAngeles),
+            calendar: losAngeles
+        ), .ongoing)
+    }
+
+    func testFixedReminderRetainsInstantAndDisplaysPreviousAppDay() {
+        let shanghai = calendar(in: "Asia/Shanghai")
+        let losAngeles = calendar(in: "America/Los_Angeles")
+        let components = DateComponents(
+            calendar: shanghai,
+            timeZone: shanghai.timeZone,
+            year: 2027,
+            month: 1,
+            day: 1,
+            hour: 0,
+            minute: 30
+        )
+        let reminder = EKReminder(eventStore: EKEventStore())
+        reminder.dueDateComponents = components
+        let item = CalendarItem.reminder(reminder)
+
+        XCTAssertEqual(item.startDate(using: losAngeles), shanghai.date(from: components))
+        XCTAssertEqual(item.timelinePlacement(using: losAngeles), .timed(minutes: 8 * 60 + 30))
+        XCTAssertEqual(losAngeles.component(.day, from: item.startDate(using: losAngeles)!), 31)
+    }
+
+    func testWallDateRebasingUsesCalendarArithmeticAcrossShortAndLongDays() {
+        let utc = calendar(in: "UTC")
+        let losAngeles = calendar(in: "America/Los_Angeles")
+        for (month, day, hours) in [(3, 8, 23), (11, 1, 25)] {
+            let sourceStart = date(2026, month, day, calendar: utc)
+            let sourceEnd = utc.date(byAdding: .day, value: 1, to: sourceStart)!
+            let appStart = CalendarItemDateResolver.rebase(sourceStart, from: utc, to: losAngeles)
+            let appEnd = CalendarItemDateResolver.rebase(sourceEnd, from: utc, to: losAngeles)
+
+            XCTAssertEqual(appEnd.timeIntervalSince(appStart), Double(hours * 3600))
+            XCTAssertEqual(losAngeles.component(.hour, from: appStart), 0)
+            XCTAssertEqual(losAngeles.component(.hour, from: appEnd), 0)
+        }
+    }
+
+    func testRebasingUnchangedZonePreservesSecondRepeatedHourAndFractionalSeconds() {
+        let losAngeles = calendar(in: "America/Los_Angeles")
+        let firstOccurrence = date(2026, 11, 1, hour: 1, minute: 30, calendar: losAngeles)
+        let secondOccurrence = firstOccurrence.addingTimeInterval(3600.123456)
+
+        XCTAssertEqual(losAngeles.component(.hour, from: secondOccurrence), 1)
+        XCTAssertEqual(
+            CalendarItemDateResolver.rebase(secondOccurrence, from: losAngeles, to: losAngeles),
+            secondOccurrence
+        )
+    }
+
+    func testCalendarSnapshotResolvesAutoupdatingTimeZoneToFixedIdentifier() {
+        var calendar = Calendar.autoupdatingCurrent
+        calendar.timeZone = .autoupdatingCurrent
+        let capturedIdentifier = calendar.timeZone.identifier
+
+        let snapshot = CalendarItemDateResolver.snapshot(calendar)
+
+        XCTAssertEqual(snapshot.timeZone, TimeZone(identifier: capturedIdentifier))
+        XCTAssertEqual(snapshot.identifier, calendar.identifier)
+        XCTAssertEqual(snapshot.firstWeekday, calendar.firstWeekday)
+    }
+
+    private func calendar(in identifier: String) -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: identifier)!
+        return calendar
+    }
+
+    private func date(
+        _ year: Int,
+        _ month: Int,
+        _ day: Int,
+        hour: Int = 0,
+        minute: Int = 0,
+        calendar: Calendar
+    ) -> Date {
+        calendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour, minute: minute))!
+    }
+
     private func makeEvent(title: String = "会议", start: Date, end: Date) -> EKEvent {
         let store = EKEventStore()
         let event = EKEvent(eventStore: store)
         event.title = title
         event.startDate = start
         event.endDate = end
-        if let calendar = store.defaultCalendarForNewEvents {
-            event.calendar = calendar
-        }
+        event.timeZone = TimeZone(secondsFromGMT: 0)
+        event.calendar = EKCalendar(for: .event, eventStore: store)
         return event
     }
 

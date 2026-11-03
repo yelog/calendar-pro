@@ -21,8 +21,7 @@ struct AlmanacDescriptor: Equatable {
 }
 
 struct AlmanacService {
-    func describe(date: Date) -> AlmanacDescriptor {
-        let calendar = Calendar.current
+    func describe(date: Date, calendar: Calendar = .autoupdatingCurrent) -> AlmanacDescriptor {
         let year = calendar.component(.year, from: date)
         let month = calendar.component(.month, from: date)
         let day = calendar.component(.day, from: date)

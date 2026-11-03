@@ -18,8 +18,80 @@ final class CalendarPopoverUITests: XCTestCase {
     }
 
     @MainActor
+    func testTimeZonePickerUpdatesOpenCalendarAndPersistsSelection() throws {
+        let suiteName = "CalendarPopoverTimeZonePickerUITests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer {
+            terminateExistingInstances()
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        defaults.set("Pacific/Honolulu", forKey: "appTimeZoneIdentifier")
+        defaults.synchronize()
+        let environment = [
+            "CALENDAR_PRO_UI_TEST_DEFAULTS_SUITE": suiteName,
+            "CALENDAR_PRO_UI_TEST_NOW": "2026-12-31T12:30:00Z"
+        ]
+        let app = XCUIApplication(url: try applicationURL())
+        try launchApplication(app, environment: environment)
+        let year = app.buttons["calendar-popover-year"]
+        XCTAssertTrue(year.waitForExistence(timeout: 5))
+        XCTAssertTrue(year.label.contains("2026"))
+
+        app.buttons["calendar-popover-settings"].click()
+        let picker = app.buttons["timeZonePicker"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        attachScreenshot(app, name: "time-zone-settings")
+        picker.click()
+        let search = app.textFields["timeZoneSearch"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.click()
+        search.typeText("Pacific/Kiritimati")
+        let option = app.buttons["timeZoneOption-Pacific/Kiritimati"]
+        XCTAssertTrue(option.waitForExistence(timeout: 5))
+        attachScreenshot(app, name: "time-zone-picker-search")
+        option.click()
+
+        let yearUpdated = expectation(for: NSPredicate(format: "label CONTAINS %@", "2027"), evaluatedWith: year)
+        wait(for: [yearUpdated], timeout: 5)
+        app.terminate()
+        try launchApplication(app, environment: environment)
+        XCTAssertTrue(year.waitForExistence(timeout: 5))
+        XCTAssertTrue(year.label.contains("2027"))
+    }
+
+    @MainActor
+    func testPopoverUsesPersistedAppTimeZoneAcrossYearBoundary() throws {
+        let suiteName = "CalendarPopoverTimeZoneUITests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer {
+            terminateExistingInstances()
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        defaults.set("Pacific/Kiritimati", forKey: "appTimeZoneIdentifier")
+        defaults.synchronize()
+        let environment = [
+            "CALENDAR_PRO_UI_TEST_DEFAULTS_SUITE": suiteName,
+            "CALENDAR_PRO_UI_TEST_NOW": "2026-12-31T12:30:00Z"
+        ]
+        let app = XCUIApplication(url: try applicationURL())
+        try launchApplication(app, environment: environment)
+        let year = app.buttons["calendar-popover-year"]
+        XCTAssertTrue(year.waitForExistence(timeout: 5))
+        XCTAssertTrue(year.label.contains("2027"))
+        attachScreenshot(app, name: "time-zone-kiritimati-new-year")
+
+        app.terminate()
+        defaults.set("Pacific/Honolulu", forKey: "appTimeZoneIdentifier")
+        defaults.synchronize()
+        try launchApplication(app, environment: environment)
+        XCTAssertTrue(year.waitForExistence(timeout: 5))
+        XCTAssertTrue(year.label.contains("2026"))
+        attachScreenshot(app, name: "time-zone-honolulu-previous-year")
+    }
+
+    @MainActor
     func testPopoverRendersMonthNavigation() throws {
-        let app = XCUIApplication(bundleIdentifier: bundleIdentifier)
+        let app = XCUIApplication(url: try applicationURL())
         try launchApplication(app)
 
         XCTAssertTrue(app.buttons["previous-month-button"].waitForExistence(timeout: 5))
@@ -56,7 +128,7 @@ final class CalendarPopoverUITests: XCTestCase {
         defaults.set(try JSONSerialization.data(withJSONObject: preferences), forKey: "menuBarPreferences")
         defaults.synchronize()
         let environment = ["CALENDAR_PRO_UI_TEST_DEFAULTS_SUITE": suiteName]
-        let app = XCUIApplication(bundleIdentifier: bundleIdentifier)
+        let app = XCUIApplication(url: try applicationURL())
         try launchApplication(app, environment: environment)
 
         let picker = app.segmentedControls["calendar-popover-event-view-picker"]
@@ -131,7 +203,9 @@ private extension CalendarPopoverUITests {
     }
 
     func terminateExistingInstances() {
+        guard let testAppURL = try? applicationURL().standardizedFileURL else { return }
         NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).forEach { runningApplication in
+            guard runningApplication.bundleURL?.standardizedFileURL == testAppURL else { return }
             _ = runningApplication.terminate()
         }
     }

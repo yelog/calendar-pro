@@ -6,6 +6,7 @@ final class SettingsStore: ObservableObject {
     @Published var menuBarPreferences: MenuBarPreferences
     @Published var pomodoroPreferences: PomodoroPreferences
     @Published var appLanguage: AppLanguage
+    @Published private(set) var timeZoneIdentifier: String?
     @Published private(set) var holidayDataRevision: Int = 0
     @Published private(set) var launchAtLoginStatus: LaunchAtLoginStatus = .disabled
     @Published private(set) var launchAtLoginEnabled: Bool = false
@@ -18,6 +19,7 @@ final class SettingsStore: ObservableObject {
     private let menuBarPreferencesKey = "menuBarPreferences"
     private let pomodoroPreferencesKey = "pomodoroPreferences"
     private let appLanguageKey = "appLanguage"
+    private let timeZoneIdentifierKey = "appTimeZoneIdentifier"
 
     init(
         userDefaults: UserDefaults = .standard,
@@ -25,6 +27,7 @@ final class SettingsStore: ObservableObject {
     ) {
         self.userDefaults = userDefaults
         self.launchAtLoginController = launchAtLoginController
+        timeZoneIdentifier = Self.validatedTimeZoneIdentifier(userDefaults.string(forKey: timeZoneIdentifierKey))
 
         if let rawValue = userDefaults.string(forKey: appLanguageKey),
            let appLanguage = AppLanguage(rawValue: rawValue) {
@@ -63,6 +66,32 @@ final class SettingsStore: ObservableObject {
         self.appLanguage = appLanguage
         userDefaults.set(appLanguage.rawValue, forKey: appLanguageKey)
         objectWillChange.send()
+    }
+
+    var effectiveTimeZone: TimeZone {
+        timeZoneIdentifier.flatMap(TimeZone.init(identifier:)) ?? .autoupdatingCurrent
+    }
+
+    var displayCalendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = effectiveTimeZone
+        calendar.firstWeekday = menuBarPreferences.weekStart == .monday ? 2 : 1
+        return calendar
+    }
+
+    func setTimeZoneIdentifier(_ identifier: String?) {
+        let validatedIdentifier = Self.validatedTimeZoneIdentifier(identifier)
+        timeZoneIdentifier = validatedIdentifier
+        if let validatedIdentifier {
+            userDefaults.set(validatedIdentifier, forKey: timeZoneIdentifierKey)
+        } else {
+            userDefaults.removeObject(forKey: timeZoneIdentifierKey)
+        }
+    }
+
+    private static func validatedTimeZoneIdentifier(_ identifier: String?) -> String? {
+        guard let identifier, TimeZone(identifier: identifier) != nil else { return nil }
+        return identifier
     }
 
     func setTokenEnabled(_ isEnabled: Bool, for token: DisplayTokenKind) {

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct MenuBarSettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.calendar) private var calendar
+    @Environment(\.timeZone) private var timeZone
     @ObservedObject var store: SettingsStore
     @State private var availableWidth: CGFloat = .zero
 
@@ -158,12 +160,14 @@ struct MenuBarSettingsView: View {
 
     private var previewText: String {
         let now = Date()
-        let factory = CalendarDayFactory(calendar: .autoupdatingCurrent, registry: .live)
+        let factory = CalendarDayFactory(calendar: calendar, registry: .live)
         let day = try? factory.makeDay(for: now, displayedMonth: now, preferences: store.menuBarPreferences)
 
         let baseText = clockRenderer.render(
             now: now,
             preferences: store.menuBarPreferences,
+            calendar: calendar,
+            timeZone: timeZone,
             supplementalText: MenuBarSupplementalText(
                 lunarText: day?.lunarText,
                 holidayText: day?.badges.first?.text,
@@ -487,19 +491,19 @@ struct MenuBarSettingsView: View {
 
     private func stylePreviewText(_ style: DisplayTokenStyle, for token: DisplayTokenKind) -> String {
         let now = Date()
-        let factory = CalendarDayFactory(calendar: .autoupdatingCurrent, registry: .live)
+        let factory = CalendarDayFactory(calendar: calendar, registry: .live)
         let day = try? factory.makeDay(for: now, displayedMonth: now, preferences: store.menuBarPreferences)
 
         switch token {
         case .date:
-            return clockRenderer.renderPreview(token: token, style: style, now: now)
+            return clockRenderer.renderPreview(token: token, style: style, now: now, calendar: calendar, timeZone: timeZone)
         case .time:
-            return clockRenderer.renderPreview(token: token, style: style, now: now)
+            return clockRenderer.renderPreview(token: token, style: style, now: now, calendar: calendar, timeZone: timeZone)
         case .weekday:
-            return clockRenderer.renderPreview(token: token, style: style, now: now)
+            return clockRenderer.renderPreview(token: token, style: style, now: now, calendar: calendar, timeZone: timeZone)
         case .lunar:
             let lunarService = LunarService()
-            let lunarDescriptor = lunarService.describe(date: now, timeZone: .autoupdatingCurrent)
+            let lunarDescriptor = lunarService.describe(date: now, timeZone: timeZone)
             let lunarStyle: LunarDisplayStyle
             switch style {
             case .short:

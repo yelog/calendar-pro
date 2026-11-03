@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct VacationOpportunityCardView: View {
+    @Environment(\.calendar) private var calendar
     let opportunity: VacationOpportunity
     let onLocate: (Date) -> Void
     @Environment(\.colorScheme) private var colorScheme
@@ -79,6 +80,8 @@ struct VacationOpportunityCardView: View {
     private var dateRangeText: String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.setLocalizedDateFormatFromTemplate("MMMd")
         return "\(formatter.string(from: opportunity.startDate)) - \(formatter.string(from: opportunity.endDate))"
     }
@@ -104,7 +107,7 @@ struct VacationOpportunityCardView: View {
     }
 
     private func dayText(for date: Date) -> String {
-        String(Calendar.current.component(.day, from: date))
+        String(calendar.component(.day, from: date))
     }
 
     private func segmentFillColor(for kind: VacationSegmentKind) -> Color {

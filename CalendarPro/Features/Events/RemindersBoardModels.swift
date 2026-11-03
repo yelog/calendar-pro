@@ -203,7 +203,9 @@ struct BoardSnapshot: Equatable {
         showCompleted: Bool,
         retentionSeconds: Int
     ) -> RemindersBoardRow {
-        let dueDate = reminder.dueDateComponents.flatMap { calendar.date(from: $0) }
+        let dueDate = reminder.dueDateComponents.flatMap {
+            CalendarItemDateResolver.reminderDate(from: $0, calendar: calendar)
+        }
         let hasExplicitTime = reminder.dueDateComponents.map { components in
             components.hour != nil || components.minute != nil || components.second != nil
         } ?? false
@@ -221,7 +223,7 @@ struct BoardSnapshot: Equatable {
             listColorHex: hexString(from: reminder.calendar?.color),
             isCompleted: reminder.isCompleted,
             dueDate: dueDate,
-            dueText: dueDate.map { dueText(for: $0, includesTime: hasExplicitTime) },
+            dueText: dueDate.map { dueText(for: $0, includesTime: hasExplicitTime, calendar: calendar) },
             priority: reminder.boardPriority,
             bucket: bucket,
             colorHex: resolveColorHex(
@@ -323,14 +325,14 @@ struct BoardSnapshot: Equatable {
 
     // MARK: - Display helpers
 
-    // Formatters are cached by (includesTime, locale): DateFormatter creation
-    // is expensive, and the lock guards the cache from tests off the main thread.
+    // DateFormatter creation is expensive; cache by precision, locale, calendar
+    // and time zone. The lock also guards tests running off the main thread.
     private nonisolated(unsafe) static var dueTextFormatters: [String: DateFormatter] = [:]
     private static let dueTextFormattersLock = NSLock()
 
-    private static func dueText(for date: Date, includesTime: Bool) -> String {
+    private static func dueText(for date: Date, includesTime: Bool, calendar: Calendar) -> String {
         let locale = AppLocalization.locale
-        let key = "\(includesTime)-\(locale.identifier)"
+        let key = "\(includesTime)-\(locale.identifier)-\(calendar.identifier)-\(calendar.timeZone.identifier)"
 
         dueTextFormattersLock.lock()
         defer { dueTextFormattersLock.unlock() }
@@ -341,6 +343,8 @@ struct BoardSnapshot: Equatable {
 
         let formatter = DateFormatter()
         formatter.locale = locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.setLocalizedDateFormatFromTemplate(includesTime ? "MdHm" : "Md")
         dueTextFormatters[key] = formatter
         return formatter.string(from: date)

@@ -20,12 +20,16 @@ struct CalendarEventCreationRequest: Equatable {
     var endDate: Date
     var isAllDay: Bool
     var notes: String?
+    var calendar: Calendar = .autoupdatingCurrent
+    var datesChanged: Bool = true
 
     static func make(
         title: String,
         calendarIdentifier: String,
         schedule: CalendarEventScheduleDraft,
-        notes: String?
+        notes: String?,
+        calendar: Calendar? = nil,
+        datesChanged: Bool = true
     ) throws -> CalendarEventCreationRequest {
         let request = CalendarEventCreationRequest(
             title: title,
@@ -33,7 +37,9 @@ struct CalendarEventCreationRequest: Equatable {
             startDate: schedule.startDate,
             endDate: schedule.endDate,
             isAllDay: schedule.isAllDay,
-            notes: notes
+            notes: notes,
+            calendar: CalendarItemDateResolver.snapshot(calendar ?? schedule.calendar),
+            datesChanged: datesChanged
         )
         try request.validateSchedule()
         return request
@@ -53,6 +59,7 @@ struct CalendarEventCreationRequest: Equatable {
         calendar: Calendar = .autoupdatingCurrent,
         now: Date = Date()
     ) -> CalendarEventCreationRequest {
+        let calendar = CalendarItemDateResolver.snapshot(calendar)
         let dayStart = calendar.startOfDay(for: selectedDate)
         let selectedHour = calendar.isDate(selectedDate, inSameDayAs: now)
             ? max(calendar.component(.hour, from: now) + 1, 9)
@@ -67,19 +74,50 @@ struct CalendarEventCreationRequest: Equatable {
             startDate: startDate,
             endDate: endDate,
             isAllDay: false,
-            notes: nil
+            notes: nil,
+            calendar: calendar
         )
     }
 
-    static func makeEditing(_ event: EKEvent) -> CalendarEventCreationRequest {
-        CalendarEventCreationRequest(
+    static func makeEditing(
+        _ event: EKEvent,
+        calendar: Calendar = .autoupdatingCurrent
+    ) -> CalendarEventCreationRequest {
+        let calendar = CalendarItemDateResolver.snapshot(calendar)
+        return CalendarEventCreationRequest(
             title: event.title ?? "",
             calendarIdentifier: event.calendar.calendarIdentifier,
-            startDate: event.startDate,
-            endDate: event.endDate,
+            startDate: CalendarItemDateResolver.eventDate(event.startDate, event: event, calendar: calendar),
+            endDate: CalendarItemDateResolver.eventDate(event.endDate, event: event, calendar: calendar),
             isAllDay: event.isAllDay,
-            notes: event.notes
+            notes: event.notes,
+            calendar: calendar,
+            datesChanged: false
         )
+    }
+
+    /// Applies to an in-memory item as well, so date conversions can be tested
+    /// without saving anything to the user's EventKit database.
+    func applySchedule(to event: EKEvent, isNew: Bool = false) {
+        guard isNew || datesChanged else { return }
+
+        let timeZone = isAllDay ? nil : (isNew ? calendar.timeZone : event.timeZone)
+        let usesWallClockDates = isAllDay || timeZone == nil
+        let systemCalendar = CalendarItemDateResolver.systemCalendar
+        // EventKit normalizes an all-day end to 23:59:59 and a non-nil zone
+        // makes it timed again. Assign the exclusive range while timed, then
+        // enable all-day last so neither setter can extend the covered dates.
+        event.isAllDay = false
+        event.timeZone = timeZone
+        event.startDate = usesWallClockDates
+            ? CalendarItemDateResolver.rebase(startDate, from: calendar, to: systemCalendar)
+            : startDate
+        event.endDate = usesWallClockDates
+            ? CalendarItemDateResolver.rebase(endDate, from: calendar, to: systemCalendar)
+            : endDate
+        if isAllDay {
+            event.isAllDay = true
+        }
     }
 }
 
@@ -89,6 +127,8 @@ struct ReminderCreationRequest: Equatable {
     var dueDate: Date
     var includesTime: Bool
     var notes: String?
+    var calendar: Calendar = .autoupdatingCurrent
+    var datesChanged: Bool = true
 
     static func makeDefault(
         selectedDate: Date,
@@ -96,6 +136,7 @@ struct ReminderCreationRequest: Equatable {
         calendar: Calendar = .autoupdatingCurrent,
         now: Date = Date()
     ) -> ReminderCreationRequest {
+        let calendar = CalendarItemDateResolver.snapshot(calendar)
         let dayStart = calendar.startOfDay(for: selectedDate)
         let selectedHour = calendar.isDate(selectedDate, inSameDayAs: now)
             ? max(calendar.component(.hour, from: now) + 1, 9)
@@ -110,13 +151,17 @@ struct ReminderCreationRequest: Equatable {
             calendarIdentifier: calendarIdentifier,
             dueDate: dueDate,
             includesTime: true,
-            notes: nil
+            notes: nil,
+            calendar: calendar
         )
     }
 
     static func makeEditing(_ reminder: EKReminder, calendar: Calendar = .autoupdatingCurrent) -> ReminderCreationRequest {
+        let calendar = CalendarItemDateResolver.snapshot(calendar)
         let components = reminder.dueDateComponents
-        let dueDate = components.flatMap { calendar.date(from: $0) } ?? Date()
+        let dueDate = components.flatMap {
+            CalendarItemDateResolver.reminderDate(from: $0, calendar: calendar)
+        } ?? Date()
         let includesTime = components?.hour != nil
             || components?.minute != nil
             || components?.second != nil
@@ -126,8 +171,36 @@ struct ReminderCreationRequest: Equatable {
             calendarIdentifier: reminder.calendar.calendarIdentifier,
             dueDate: dueDate,
             includesTime: includesTime,
-            notes: reminder.notes
+            notes: reminder.notes,
+            calendar: calendar,
+            datesChanged: false
         )
+    }
+
+    func applySchedule(to reminder: EKReminder, isNew: Bool = false) {
+        guard isNew || datesChanged else { return }
+
+        let originalComponents = isNew ? nil : reminder.dueDateComponents
+        var dueCalendar = calendar
+        if includesTime, let sourceTimeZone = originalComponents?.timeZone {
+            dueCalendar = originalComponents?.calendar ?? calendar
+            dueCalendar.timeZone = sourceTimeZone
+        }
+
+        let fields: Set<Calendar.Component> = includesTime
+            ? [.year, .month, .day, .hour, .minute]
+            : [.year, .month, .day]
+        var components = dueCalendar.dateComponents(fields, from: dueDate)
+        // Date-only values and existing floating reminders remain wall dates.
+        let isFloating = originalComponents != nil && originalComponents?.timeZone == nil
+        components.timeZone = includesTime && !isFloating ? dueCalendar.timeZone : nil
+        // With no explicit zone, EventKit still normalizes through the
+        // embedded calendar. Attach its default calendar to preserve the app
+        // wall components instead of converting them a second time on write.
+        components.calendar = components.timeZone == nil
+            ? CalendarItemDateResolver.systemCalendar
+            : dueCalendar
+        reminder.dueDateComponents = components
     }
 }
 
@@ -141,9 +214,11 @@ final class EventService: ObservableObject {
     @Published private(set) var storeChangeRevision: Int = 0
     
     private let eventStore = EKEventStore()
+    private let calendarProvider: () -> Calendar
     private var debounceTask: Task<Void, Never>?
     
-    init() {
+    init(calendarProvider: @escaping () -> Calendar = { .autoupdatingCurrent }) {
+        self.calendarProvider = calendarProvider
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleStoreChanged),
@@ -203,27 +278,40 @@ final class EventService: ObservableObject {
         reminderCalendars = eventStore.calendars(for: .reminder)
     }
     
-    func fetchEvents(for date: Date) -> [EKEvent] {
+    func fetchEvents(for date: Date, calendar: Calendar? = nil) -> [EKEvent] {
         guard isAuthorized else { return [] }
         
-        let calendar = Calendar.current
+        let calendar = CalendarItemDateResolver.snapshot(calendar ?? calendarProvider())
         let startOfDay = calendar.startOfDay(for: date)
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
+        let queryWindow = CalendarItemDateResolver.queryWindow(
+            from: startOfDay,
+            through: endOfDay,
+            calendar: calendar
+        )
         
         let predicate = eventStore.predicateForEvents(
-            withStart: startOfDay,
-            end: endOfDay,
+            withStart: queryWindow.start,
+            end: queryWindow.end,
             calendars: nil
         )
         
         return eventStore.events(matching: predicate)
-            .sorted { $0.startDate < $1.startDate }
+            .filter { Self.event($0, isOn: date, calendar: calendar) }
+            .sorted {
+                CalendarItemDateResolver.eventDate($0.startDate, event: $0, calendar: calendar)
+                    < CalendarItemDateResolver.eventDate($1.startDate, event: $1, calendar: calendar)
+            }
     }
     
-    func fetchReminders(for date: Date, enabledCalendarIDs: [String]) async -> [EKReminder] {
+    func fetchReminders(
+        for date: Date,
+        enabledCalendarIDs: [String],
+        calendar: Calendar? = nil
+    ) async -> [EKReminder] {
         guard remindersAuthorized else { return [] }
         
-        let calendar = Calendar.current
+        let calendar = CalendarItemDateResolver.snapshot(calendar ?? calendarProvider())
         let startOfDay = calendar.startOfDay(for: date)
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
         
@@ -236,16 +324,16 @@ final class EventService: ObservableObject {
         
         guard !calendarsToFetch.isEmpty else { return [] }
         
-        // Fetch incomplete reminders due on or before the selected day.
-        // Using nil as start date to catch recurring reminders whose original
-        // due date is before the target day.
+        // Keep the recurring-reminder start unbounded. The padded upper bound
+        // covers civil dates represented in another zone before local filtering.
         let incompletePredicate = eventStore.predicateForIncompleteReminders(
             withDueDateStarting: nil,
-            ending: endOfDay,
+            ending: CalendarItemDateResolver.reminderQueryEnd(after: endOfDay),
             calendars: calendarsToFetch
         )
         
-        // Fetch completed reminders that were due on the selected day
+        // Completion dates are absolute instants in the selected app day;
+        // resolved due dates are checked after fetching.
         let completedPredicate = eventStore.predicateForCompletedReminders(
             withCompletionDateStarting: startOfDay,
             ending: endOfDay,
@@ -353,12 +441,14 @@ final class EventService: ObservableObject {
         enabledCalendarIDs: [String],
         enabledReminderCalendarIDs: [String],
         showCalendarEvents: Bool,
-        showReminders: Bool
+        showReminders: Bool,
+        calendar: Calendar? = nil
     ) async -> [CalendarItem] {
+        let calendar = CalendarItemDateResolver.snapshot(calendar ?? calendarProvider())
         var items: [CalendarItem] = []
 
         if showCalendarEvents {
-            let events = fetchEvents(for: date)
+            let events = fetchEvents(for: date, calendar: calendar)
             let filteredEvents = events.filter { event in
                 enabledCalendarIDs.isEmpty || enabledCalendarIDs.contains(event.calendar.calendarIdentifier)
             }
@@ -366,25 +456,29 @@ final class EventService: ObservableObject {
         }
 
         if showReminders {
-            let reminders = await fetchReminders(for: date, enabledCalendarIDs: enabledReminderCalendarIDs)
+            let reminders = await fetchReminders(
+                for: date,
+                enabledCalendarIDs: enabledReminderCalendarIDs,
+                calendar: calendar
+            )
             items.append(contentsOf: reminders.map { .reminder($0) })
         }
 
-        let cal = Calendar.current
         return items.sorted { item1, item2 in
             // All-day items come first
             if item1.isAllDay != item2.isAllDay {
                 return item1.isAllDay
             }
 
-            guard let date1 = item1.startDate, let date2 = item2.startDate else {
-                return item1.startDate != nil
+            guard let date1 = item1.startDate(using: calendar),
+                  let date2 = item2.startDate(using: calendar) else {
+                return item1.startDate(using: calendar) != nil
             }
 
             // Compare by time-of-day so overdue reminders sort alongside
             // today's items with the same displayed time.
-            let c1 = cal.dateComponents([.hour, .minute], from: date1)
-            let c2 = cal.dateComponents([.hour, .minute], from: date2)
+            let c1 = calendar.dateComponents([.hour, .minute], from: date1)
+            let c2 = calendar.dateComponents([.hour, .minute], from: date2)
             let t1 = (c1.hour ?? 0) * 60 + (c1.minute ?? 0)
             let t2 = (c2.hour ?? 0) * 60 + (c2.minute ?? 0)
             return t1 < t2
@@ -401,21 +495,31 @@ final class EventService: ObservableObject {
         futureEnd: Date,
         enabledCalendarIDs: [String],
         includeReminders: Bool,
-        enabledReminderCalendarIDs: [String]
+        enabledReminderCalendarIDs: [String],
+        calendar: Calendar? = nil
     ) async -> [CalendarItem] {
+        let calendar = CalendarItemDateResolver.snapshot(calendar ?? calendarProvider())
+        guard pastStart < futureEnd else { return [] }
         var items: [CalendarItem] = []
 
         if isAuthorized {
+            let queryWindow = CalendarItemDateResolver.queryWindow(
+                from: pastStart,
+                through: futureEnd,
+                calendar: calendar
+            )
             let predicate = eventStore.predicateForEvents(
-                withStart: pastStart,
-                end: futureEnd,
+                withStart: queryWindow.start,
+                end: queryWindow.end,
                 calendars: nil
             )
             let events = eventStore.events(matching: predicate).filter {
                 Self.event(
                     $0,
                     isWithinUpcomingWindow: pastStart,
-                    enabledCalendarIDs: enabledCalendarIDs
+                    enabledCalendarIDs: enabledCalendarIDs,
+                    windowEnd: futureEnd,
+                    calendar: calendar
                 )
             }
             items.append(contentsOf: events.map { .event($0) })
@@ -425,13 +529,15 @@ final class EventService: ObservableObject {
             let reminders = await fetchUpcomingReminders(
                 from: pastStart,
                 through: futureEnd,
-                enabledCalendarIDs: enabledReminderCalendarIDs
+                enabledCalendarIDs: enabledReminderCalendarIDs,
+                calendar: calendar
             )
             items.append(contentsOf: reminders.map { .reminder($0) })
         }
 
         return items.sorted {
-            ($0.startDate ?? .distantFuture) < ($1.startDate ?? .distantFuture)
+            ($0.startDate(using: calendar) ?? .distantFuture)
+                < ($1.startDate(using: calendar) ?? .distantFuture)
         }
     }
 
@@ -441,7 +547,8 @@ final class EventService: ObservableObject {
     private func fetchUpcomingReminders(
         from windowStart: Date,
         through windowEnd: Date,
-        enabledCalendarIDs: [String]
+        enabledCalendarIDs: [String],
+        calendar: Calendar
     ) async -> [EKReminder] {
         guard remindersAuthorized else { return [] }
 
@@ -458,7 +565,7 @@ final class EventService: ObservableObject {
 
         let predicate = eventStore.predicateForIncompleteReminders(
             withDueDateStarting: nil,
-            ending: windowEnd,
+            ending: CalendarItemDateResolver.reminderQueryEnd(after: windowEnd),
             calendars: calendarsToFetch
         )
 
@@ -472,7 +579,12 @@ final class EventService: ObservableObject {
         var seen = Set<String>()
         return reminders.filter { reminder in
             guard !reminder.isCompleted else { return false }
-            guard Self.reminder(reminder, isDueWithin: windowStart, windowEnd: windowEnd) else {
+            guard Self.reminder(
+                reminder,
+                isDueWithin: windowStart,
+                windowEnd: windowEnd,
+                calendar: calendar
+            ) else {
                 return false
             }
             return seen.insert(reminder.calendarItemIdentifier).inserted
@@ -487,15 +599,29 @@ final class EventService: ObservableObject {
     static func event(
         _ event: EKEvent,
         isWithinUpcomingWindow windowStart: Date,
-        enabledCalendarIDs: [String]
+        enabledCalendarIDs: [String],
+        windowEnd: Date? = nil,
+        calendar: Calendar = .autoupdatingCurrent
     ) -> Bool {
-        guard event.startDate >= windowStart, event.endDate > windowStart else {
+        let startDate = CalendarItemDateResolver.eventDate(event.startDate, event: event, calendar: calendar)
+        let endDate = CalendarItemDateResolver.eventDate(event.endDate, event: event, calendar: calendar)
+        guard startDate >= windowStart,
+              endDate > windowStart,
+              windowEnd.map({ startDate < $0 }) ?? true else {
             return false
         }
         guard let calendarID = event.calendar?.calendarIdentifier else {
             return enabledCalendarIDs.isEmpty
         }
         return enabledCalendarIDs.isEmpty || enabledCalendarIDs.contains(calendarID)
+    }
+
+    static func event(_ event: EKEvent, isOn date: Date, calendar: Calendar) -> Bool {
+        let dayStart = calendar.startOfDay(for: date)
+        guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return false }
+        let startDate = CalendarItemDateResolver.eventDate(event.startDate, event: event, calendar: calendar)
+        let endDate = CalendarItemDateResolver.eventDate(event.endDate, event: event, calendar: calendar)
+        return startDate < dayEnd && endDate > dayStart
     }
 
     /// Whether the reminder falls in [windowStart, windowEnd). Recurring
@@ -506,10 +632,11 @@ final class EventService: ObservableObject {
         _ reminder: EKReminder,
         isDueWithin windowStart: Date,
         windowEnd: Date,
-        calendar: Calendar = .current
+        calendar: Calendar = .autoupdatingCurrent
     ) -> Bool {
         guard let components = reminder.dueDateComponents,
-              let dueDate = calendar.date(from: components) else {
+              let dueDate = CalendarItemDateResolver.reminderDate(from: components, calendar: calendar),
+              windowStart < windowEnd else {
             return false
         }
 
@@ -517,17 +644,33 @@ final class EventService: ObservableObject {
             return dueDate >= windowStart && dueDate < windowEnd
         }
 
-        let dueStart = calendar.startOfDay(for: dueDate)
-        var day = calendar.startOfDay(for: max(dueDate, windowStart))
-        let lastDay = calendar.startOfDay(for: windowEnd)
+        // Fixed-zone recurrences keep their source wall time across DST. Only
+        // their resulting instants are compared with the app's window.
+        var recurrenceCalendar = calendar
+        let includesTime = components.hour != nil || components.minute != nil || components.second != nil
+        if includesTime, let timeZone = components.timeZone {
+            recurrenceCalendar = components.calendar ?? calendar
+            recurrenceCalendar.timeZone = timeZone
+        }
+        let dueStart = recurrenceCalendar.startOfDay(for: dueDate)
+        var day = recurrenceCalendar.startOfDay(for: max(dueDate, windowStart))
+        let lastDay = recurrenceCalendar.startOfDay(for: windowEnd)
+        let timeComponents = recurrenceCalendar.dateComponents([.hour, .minute, .second], from: dueDate)
 
         while day <= lastDay {
-            if rules.contains(where: {
-                isOccurrence(of: $0, fromDate: dueStart, toDate: day, calendar: calendar)
+            var occurrenceComponents = recurrenceCalendar.dateComponents([.era, .year, .month, .day], from: day)
+            occurrenceComponents.hour = timeComponents.hour
+            occurrenceComponents.minute = timeComponents.minute
+            occurrenceComponents.second = timeComponents.second
+            let occurrenceDate = recurrenceCalendar.date(from: occurrenceComponents) ?? day
+            if occurrenceDate >= windowStart,
+               occurrenceDate < windowEnd,
+               rules.contains(where: {
+                isOccurrence(of: $0, fromDate: dueStart, toDate: day, calendar: recurrenceCalendar)
             }) {
                 return true
             }
-            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: day) else {
+            guard let nextDay = recurrenceCalendar.date(byAdding: .day, value: 1, to: day) else {
                 break
             }
             day = nextDay
@@ -557,28 +700,10 @@ final class EventService: ObservableObject {
         reminderCalendars.filter(\.allowsContentModifications)
     }
 
-    static func reminder(_ reminder: EKReminder, isDueOn date: Date, calendar: Calendar = .current) -> Bool {
-        guard let components = reminder.dueDateComponents,
-              let dueDate = calendar.date(from: components) else {
-            return false
-        }
-
-        guard let rules = reminder.recurrenceRules, !rules.isEmpty else {
-            return calendar.isDate(dueDate, inSameDayAs: date)
-        }
-
+    static func reminder(_ reminder: EKReminder, isDueOn date: Date, calendar: Calendar = .autoupdatingCurrent) -> Bool {
         let targetStart = calendar.startOfDay(for: date)
-        let dueStart = calendar.startOfDay(for: dueDate)
-
-        guard targetStart >= dueStart else { return false }
-
-        for rule in rules {
-            if isOccurrence(of: rule, fromDate: dueStart, toDate: targetStart, calendar: calendar) {
-                return true
-            }
-        }
-
-        return false
+        guard let targetEnd = calendar.date(byAdding: .day, value: 1, to: targetStart) else { return false }
+        return Self.reminder(reminder, isDueWithin: targetStart, windowEnd: targetEnd, calendar: calendar)
     }
 
     private static func isOccurrence(
@@ -685,9 +810,7 @@ final class EventService: ObservableObject {
         let event = EKEvent(eventStore: eventStore)
         event.calendar = calendar
         event.title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        event.startDate = request.startDate
-        event.endDate = request.endDate
-        event.isAllDay = request.isAllDay
+        request.applySchedule(to: event, isNew: true)
         event.notes = normalizedOptionalText(request.notes)
 
         try eventStore.save(event, span: .thisEvent, commit: true)
@@ -716,9 +839,7 @@ final class EventService: ObservableObject {
 
         event.calendar = calendar
         event.title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        event.startDate = request.startDate
-        event.endDate = request.endDate
-        event.isAllDay = request.isAllDay
+        request.applySchedule(to: event)
         event.notes = normalizedOptionalText(request.notes)
 
         try eventStore.save(event, span: .thisEvent, commit: true)
@@ -758,7 +879,7 @@ final class EventService: ObservableObject {
         reminder.calendar = calendar
         reminder.title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)
         reminder.notes = normalizedOptionalText(request.notes)
-        reminder.dueDateComponents = dueDateComponents(for: request.dueDate, includesTime: request.includesTime)
+        request.applySchedule(to: reminder, isNew: true)
 
         try eventStore.save(reminder, commit: true)
         return reminder
@@ -785,7 +906,7 @@ final class EventService: ObservableObject {
         reminder.calendar = calendar
         reminder.title = request.title.trimmingCharacters(in: .whitespacesAndNewlines)
         reminder.notes = normalizedOptionalText(request.notes)
-        reminder.dueDateComponents = dueDateComponents(for: request.dueDate, includesTime: request.includesTime)
+        request.applySchedule(to: reminder)
 
         try eventStore.save(reminder, commit: true)
     }
@@ -800,17 +921,6 @@ final class EventService: ObservableObject {
         }
 
         try eventStore.remove(reminder, commit: true)
-    }
-
-    private func dueDateComponents(for date: Date, includesTime: Bool) -> DateComponents {
-        let calendar = Calendar.autoupdatingCurrent
-        let components: Set<Calendar.Component> = includesTime
-            ? [.calendar, .timeZone, .year, .month, .day, .hour, .minute]
-            : [.calendar, .timeZone, .year, .month, .day]
-        var dateComponents = calendar.dateComponents(components, from: date)
-        dateComponents.calendar = calendar
-        dateComponents.timeZone = calendar.timeZone
-        return dateComponents
     }
 
     private func normalizedOptionalText(_ text: String?) -> String? {

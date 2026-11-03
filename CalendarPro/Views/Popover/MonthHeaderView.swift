@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MonthHeaderView: View {
+    @Environment(\.calendar) private var calendar
     let displayedMonth: Date
     let showVacationGuideButton: Bool
     let isVacationGuideEnabled: Bool
@@ -15,6 +16,8 @@ struct MonthHeaderView: View {
     private var yearText: String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.setLocalizedDateFormatFromTemplate("y")
         return formatter.string(from: displayedMonth)
     }
@@ -22,6 +25,8 @@ struct MonthHeaderView: View {
     private var monthText: String {
         let formatter = DateFormatter()
         formatter.locale = AppLocalization.locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
         formatter.setLocalizedDateFormatFromTemplate("MMMM")
         return formatter.string(from: displayedMonth)
     }
@@ -63,6 +68,7 @@ struct MonthHeaderView: View {
                         .foregroundStyle(.primary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("calendar-popover-year")
 
                 Button(action: onSelectMonth) {
                     Text(monthText)
@@ -70,6 +76,7 @@ struct MonthHeaderView: View {
                         .foregroundStyle(.primary)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("calendar-popover-month")
             }
             .lineLimit(1)
             .padding(.horizontal, 88)

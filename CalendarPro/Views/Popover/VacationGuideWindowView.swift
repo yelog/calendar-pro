@@ -53,20 +53,23 @@ struct VacationGuideWindowView: View {
     @State private var lastReportedPreferredHeight: CGFloat = 0
     @Environment(\.colorScheme) private var colorScheme
 
-    private let planningService: VacationPlanningService
+    private let planningService: VacationPlanningService?
     private let onPreferredHeightChange: ((CGFloat) -> Void)?
-    private let scrollTargetResolver: VacationGuideScrollTargetResolver
+    private let preferredMonth: Int
+    private var scrollTargetResolver: VacationGuideScrollTargetResolver {
+        VacationGuideScrollTargetResolver(calendar: settingsStore.displayCalendar, preferredMonth: preferredMonth)
+    }
 
     init(
         settingsStore: SettingsStore,
         referenceMonth: Date,
         cacheStore: HolidayCacheStore = .default,
-        planningService: VacationPlanningService = VacationPlanningService(),
+        planningService: VacationPlanningService? = nil,
         onLocateDate: @escaping (Date) -> Void,
         onClose: @escaping () -> Void,
         onPreferredHeightChange: ((CGFloat) -> Void)? = nil
     ) {
-        let scrollCalendar = Calendar.autoupdatingCurrent
+        let scrollCalendar = settingsStore.displayCalendar
 
         self.settingsStore = settingsStore
         self.cacheStore = cacheStore
@@ -74,10 +77,7 @@ struct VacationGuideWindowView: View {
         self.onLocateDate = onLocateDate
         self.onClose = onClose
         self.onPreferredHeightChange = onPreferredHeightChange
-        self.scrollTargetResolver = VacationGuideScrollTargetResolver(
-            calendar: scrollCalendar,
-            preferredMonth: scrollCalendar.component(.month, from: referenceMonth)
-        )
+        preferredMonth = scrollCalendar.component(.month, from: referenceMonth)
         _displayedYear = State(initialValue: scrollCalendar.component(.year, from: referenceMonth))
     }
 
@@ -97,6 +97,7 @@ struct VacationGuideWindowView: View {
         .frame(width: 460, alignment: .topLeading)
         .frame(maxHeight: .infinity, alignment: .topLeading)
         .background(surfaceBackground)
+        .appTimeContext(settingsStore)
         .background(
             HeightReporter { height in
                 containerHeight = height
@@ -260,7 +261,8 @@ struct VacationGuideWindowView: View {
         }
 
         do {
-            let opportunities = try planningService.opportunities(
+            let service = planningService ?? VacationPlanningService(calendar: settingsStore.displayCalendar)
+            let opportunities = try service.opportunities(
                 forYear: displayedYear,
                 activeRegionIDs: preferences.activeRegionIDs,
                 enabledHolidaySetIDs: preferences.enabledHolidayIDs

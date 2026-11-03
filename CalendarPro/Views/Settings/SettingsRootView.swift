@@ -110,6 +110,7 @@ struct SettingsRootView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(SettingsWindowPalette.windowBackground)
+        .appTimeContext(store)
         .onAppear {
             eventService.checkAuthorizationStatus()
             eventService.fetchCalendars()

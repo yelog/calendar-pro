@@ -46,6 +46,10 @@ struct GeneralSettingsView: View {
                 }
 
                 GeneralSettingsSection(L("Calendar Display")) {
+                    TimeZoneSettings(store: store)
+
+                    Divider()
+
                     GeneralSettingsRow(
                         title: L("Week Starts On"),
                         description: L("Week Starts On Description")
@@ -150,6 +154,155 @@ struct GeneralSettingsView: View {
         store.launchAtLoginStatus.detailText
     }
 
+}
+
+private struct TimeZoneSettings: View {
+    @Environment(\.calendar) private var calendar
+    @Environment(\.timeZone) private var timeZone
+    @ObservedObject var store: SettingsStore
+    @State private var isShowingPicker = false
+    @State private var searchText = ""
+
+    private var locale: Locale { AppLocalization.locale }
+
+    var body: some View {
+        GeneralSettingsRow(
+            title: L("Time Zone"),
+            description: L("Time Zone Description")
+        ) {
+            Button {
+                searchText = ""
+                isShowingPicker = true
+            } label: {
+                HStack(spacing: 8) {
+                    Text(selectionTitle)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 9, weight: .semibold))
+                }
+                .frame(width: 190, alignment: .leading)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("timeZonePicker")
+            .popover(isPresented: $isShowingPicker, arrowEdge: .bottom) {
+                timeZonePicker
+            }
+        } detail: {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(AppTimeZoneCatalog.localizedName(for: timeZone.identifier, locale: locale)) · \(timeZone.identifier)")
+                    .textSelection(.enabled)
+
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    HStack(spacing: 6) {
+                        Text(L("Current Time"))
+                        Text(Date.FormatStyle(
+                            date: .abbreviated,
+                            time: .standard,
+                            locale: locale,
+                            calendar: calendar,
+                            timeZone: timeZone
+                        ).format(context.date))
+                        .monospacedDigit()
+                    }
+                }
+            }
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
+        }
+    }
+
+    private var selectionTitle: String {
+        guard let identifier = store.timeZoneIdentifier else { return L("Follow System") }
+        return AppTimeZoneCatalog.localizedName(for: identifier, locale: locale)
+    }
+
+    private var timeZonePicker: some View {
+        TimelineView(.periodic(from: .now, by: 60)) { context in
+            timeZonePickerContent(at: context.date)
+        }
+    }
+
+    private func timeZonePickerContent(at date: Date) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            TextField(L("Search Time Zones"), text: $searchText)
+                .textFieldStyle(.roundedBorder)
+                .accessibilityIdentifier("timeZoneSearch")
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 2) {
+                    timeZoneOption(identifier: nil, at: date)
+
+                    Divider()
+                        .padding(.vertical, 4)
+
+                    let identifiers = AppTimeZoneCatalog.matchingIdentifiers(query: searchText, locale: locale, at: date)
+                    if identifiers.isEmpty {
+                        Text(L("No Time Zones Found"))
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                            .padding(8)
+                    }
+                    ForEach(identifiers, id: \.self) { identifier in
+                        timeZoneOption(identifier: identifier, at: date)
+                    }
+                }
+            }
+            .frame(height: 340)
+        }
+        .padding(14)
+        .frame(width: 390)
+    }
+
+    private func timeZoneOption(identifier: String?, at date: Date) -> some View {
+        let resolvedIdentifier = identifier ?? TimeZone.current.identifier
+        let resolvedTimeZone = TimeZone(identifier: resolvedIdentifier) ?? .autoupdatingCurrent
+        let isSelected = store.timeZoneIdentifier == identifier
+        return Button {
+            store.setTimeZoneIdentifier(identifier)
+            isShowingPicker = false
+        } label: {
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(identifier == nil ? L("Follow System") : AppTimeZoneCatalog.localizedName(for: resolvedIdentifier, locale: locale))
+                        .font(.system(size: 12))
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    Text(resolvedIdentifier)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                Spacer(minLength: 0)
+                Text(AppTimeZoneCatalog.utcOffsetText(for: resolvedTimeZone, at: date))
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .frame(minWidth: 66, alignment: .trailing)
+                    .accessibilityIdentifier("timeZoneOffset-\(identifier ?? "system")")
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 12)
+                    .opacity(isSelected ? 1 : 0)
+                    .accessibilityHidden(true)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 7)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isSelected ? Color.accentColor.opacity(0.08) : Color.clear)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityIdentifier("timeZoneOption-\(identifier ?? "system")")
+    }
 }
 
 private struct WeatherLocationSettings: View {

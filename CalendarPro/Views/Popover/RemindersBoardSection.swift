@@ -3,6 +3,7 @@ import EventKit
 
 /// Collapsible reminders board section; expanded content scrolls above 240pt.
 struct RemindersBoardSection: View {
+    @Environment(\.calendar) private var calendar
     private enum Metrics {
         static let expandedMaxHeight: CGFloat = 240
         static let chevronWidth: CGFloat = 12
@@ -27,7 +28,7 @@ struct RemindersBoardSection: View {
         BoardSnapshot.make(
             reminders: reminders,
             now: timeRefreshCoordinator.currentDate,
-            calendar: .autoupdatingCurrent,
+            calendar: calendar,
             groupingMode: groupingMode,
             colorMode: colorMode,
             colorPreferences: colorPreferences,

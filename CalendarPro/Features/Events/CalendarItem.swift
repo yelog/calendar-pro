@@ -320,12 +320,16 @@ enum CalendarItem: Identifiable {
     }
     
     var startDate: Date? {
+        startDate(using: .autoupdatingCurrent)
+    }
+
+    func startDate(using calendar: Calendar) -> Date? {
         switch self {
         case .event(let event):
-            return event.startDate
+            return CalendarItemDateResolver.eventDate(event.startDate, event: event, calendar: calendar)
         case .reminder(let reminder):
             guard let components = reminder.dueDateComponents else { return nil }
-            return Calendar.current.date(from: components)
+            return CalendarItemDateResolver.reminderDate(from: components, calendar: calendar)
         }
     }
     
@@ -385,9 +389,13 @@ enum CalendarItem: Identifiable {
     }
     
     var endDate: Date? {
+        endDate(using: .autoupdatingCurrent)
+    }
+
+    func endDate(using calendar: Calendar) -> Date? {
         switch self {
         case .event(let event):
-            return event.endDate
+            return CalendarItemDateResolver.eventDate(event.endDate, event: event, calendar: calendar)
         case .reminder:
             return nil
         }
@@ -424,8 +432,12 @@ enum CalendarItem: Identifiable {
     }
 
     var timelineDate: Date? {
+        timelineDate(using: .autoupdatingCurrent)
+    }
+
+    func timelineDate(using calendar: Calendar) -> Date? {
         guard hasExplicitTime else { return nil }
-        return startDate
+        return startDate(using: calendar)
     }
 
     var sourceTitle: String {
@@ -472,7 +484,7 @@ enum CalendarItem: Identifiable {
             return .allDay
         }
 
-        guard let date = timelineDate else {
+        guard let date = timelineDate(using: calendar) else {
             return .untimed
         }
 
@@ -484,13 +496,15 @@ enum CalendarItem: Identifiable {
     func timelineStatus(at now: Date, calendar: Calendar = .autoupdatingCurrent) -> CalendarItemTimelineStatus? {
         switch self {
         case .event(let event):
-            guard !event.isAllDay else { return nil }
-            if event.startDate <= now, now <= event.endDate {
+            guard !event.isAllDay,
+                  let startDate = startDate(using: calendar),
+                  let endDate = endDate(using: calendar) else { return nil }
+            if startDate <= now, now <= endDate {
                 return .ongoing
             }
-            return event.endDate < now ? .past : .future
+            return endDate < now ? .past : .future
         case .reminder:
-            guard let dueDate = timelineDate else { return nil }
+            guard let dueDate = timelineDate(using: calendar) else { return nil }
             if Self.isSameMinute(dueDate, now, calendar: calendar) {
                 return .ongoing
             }
@@ -502,18 +516,20 @@ enum CalendarItem: Identifiable {
         switch self {
         case .event(let event):
             guard !event.isAllDay,
-                  event.startDate <= now,
-                  now <= event.endDate else {
+                  let startDate = startDate(using: calendar),
+                  let endDate = endDate(using: calendar),
+                  startDate <= now,
+                  now <= endDate else {
                 return nil
             }
 
-            let duration = event.endDate.timeIntervalSince(event.startDate)
+            let duration = endDate.timeIntervalSince(startDate)
             guard duration > 0 else { return 0.5 }
 
-            let progress = now.timeIntervalSince(event.startDate) / duration
+            let progress = now.timeIntervalSince(startDate) / duration
             return min(max(progress, 0), 1)
         case .reminder:
-            guard let dueDate = timelineDate,
+            guard let dueDate = timelineDate(using: calendar),
                   Self.isSameMinute(dueDate, now, calendar: calendar) else {
                 return nil
             }
