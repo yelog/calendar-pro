@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.2.9</title>
+            <pubDate>Tue, 03 Nov 2026 09:48:49 +0000</pubDate>
+            <sparkle:version>02999</sparkle:version>
+            <sparkle:shortVersionString>0.2.9</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.2.9&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;choose an app time zone for the menu bar, calendar, events, and reminders&lt;/li&gt;&lt;li&gt;display current UTC offsets and filter time zones by offset&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;retry transient failures while stapling notarized release packages&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.2.9/CalendarPro-0.2.9-universal.dmg" length="8336072" type="application/octet-stream" sparkle:edSignature="5dCeBFCdhmumhQ5lP47Fq44p/cIvwTeWR4QO52MPRd7PLKMa2QVK861ORWaGPG44jDApCbbpushqj/Fn5KmPCw==" />
+        </item>
+        <item>
             <title>Version 0.2.8</title>
             <pubDate>Fri, 30 Oct 2026 03:37:50 +0000</pubDate>
             <sparkle:version>02899</sparkle:version>
