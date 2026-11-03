@@ -5,11 +5,14 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.9] - 2026-11-03
 
 ### Added
 - choose an app time zone for the menu bar, calendar, events, and reminders
 - display current UTC offsets and filter time zones by offset
+
+### Fixed
+- retry transient failures while stapling notarized release packages
 
 ## [0.2.8] - 2026-10-30
 
