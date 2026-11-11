@@ -1,6 +1,6 @@
 # Holiday Feed Automation Implementation
 
-**Status:** Implemented; feed publication and UI regression pending
+**Status:** Implemented and published; manual UI regression pending
 
 **Design:** [2026-11-11-holiday-feed-automation-design.md](./2026-11-11-holiday-feed-automation-design.md)
 
@@ -19,6 +19,7 @@
 - Cache read failures fall back to bundled data. Mainland records are additionally validated against the holiday-set ID that matches their kind.
 - Added a month-calendar notice and accurate vacation-guide empty states for missing or unreadable years.
 - Malformed bundle data no longer prevents the entire month grid from rendering.
+- Published the feed and 2027 payload on `main`, then shipped the client changes in [v0.3.0](https://github.com/yelog/calendar-pro/releases/tag/v0.3.0).
 
 ## Verification
 
@@ -30,12 +31,14 @@
 - A new-resource registration test in an isolated repository copy added `mainland-cn-2099.json` on the first run and made no project-file change on the second run.
 - Full unit suite passed: 554 tests.
 - `xcodebuild build -project CalendarPro.xcodeproj -scheme CalendarPro -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO` succeeded.
+- A manual `sync-holidays` workflow run passed, reported the feed as up to date, and created no pull request.
+- The `v0.3.0` release workflow passed. The universal DMG was signed, notarized, stapled, and published with a matching SHA256.
+- The downloaded DMG passed Gatekeeper assessment, contained arm64 and x86_64 binaries, and embedded all 34 records for 2027.
+- The stable and beta appcasts both contain the `0.3.0` entry with Sparkle version `03099`.
 - UI execution for the 2027 calendar case is still pending; see Remaining Risks.
 
 ## Remaining Risks
 
-- The current feed is not published. The working-tree feed changes must be committed, pushed, and merged before an installed app can download 2027 data from the default manifest URL.
-- The GitHub workflow has not executed remotely because no commit or push was performed. Its first scheduled or manual run must be observed, and the repository must allow GitHub Actions to create pull requests.
-- The new background refresh, cache fallback, and settings-status behavior requires a new application release; feed-only updates cannot deliver client code changes.
-- The 2027 UI test at `CalendarProUITests/CalendarPopoverUITests.swift` has not passed in this environment. The test runner launched, but the injected UI-test environment did not reach the app process reliably. Before release, manually verify February 2027 shows Spring Festival on February 6 and the adjustment workday on February 14.
+- The daily scheduled workflow has not yet run on its cron schedule; only its manual dispatch has been observed.
+- The 2027 UI test at `CalendarProUITests/CalendarPopoverUITests.swift` has not passed in this environment. The test runner launched, but the injected UI-test environment did not reach the app process reliably. For the next regression pass, manually verify February 2027 shows Spring Festival on February 6 and the adjustment workday on February 14.
 - The synchronizer automates mainland China only. Hong Kong, US, and UK data remain manually maintained.
