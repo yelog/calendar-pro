@@ -89,7 +89,12 @@ struct SettingsRootView: View {
     @State private var selectedItem: SettingsSidebarItem = .general
     @FocusState private var focusedSidebarItem: SettingsSidebarItem?
 
-    init(store: SettingsStore, eventService: EventService, pomodoroStatsStore: PomodoroStatsStore) {
+    init(
+        store: SettingsStore,
+        eventService: EventService,
+        pomodoroStatsStore: PomodoroStatsStore,
+        holidayRefreshScheduler: HolidayFeedRefreshScheduler? = nil
+    ) {
         self.store = store
         self.eventService = eventService
         self.pomodoroStatsStore = pomodoroStatsStore
@@ -97,7 +102,8 @@ struct SettingsRootView: View {
             wrappedValue: RegionSettingsViewModel(
                 store: store,
                 registry: .live,
-                feedClient: HolidayFeedClient.configuredClient()
+                feedClient: HolidayFeedClient.configuredClient(),
+                refreshScheduler: holidayRefreshScheduler
             )
         )
     }

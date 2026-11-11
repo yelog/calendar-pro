@@ -38,12 +38,37 @@ struct MainlandCNProvider: HolidayProvider {
     }
 
     func holidays(forYear year: Int) throws -> [HolidayOccurrence] {
-        let loaded = try loader.load(regionID: descriptor.id, year: year)
+        let loaded = try loader.load(
+            regionID: descriptor.id,
+            year: year,
+            validate: Self.isValidHolidaySetMapping
+        )
         let generated = Self.gregorianFestivalRules.compactMap {
             $0.makeOccurrence(year: year, regionID: descriptor.id)
         }
 
         return Self.deduplicated(loaded + generated)
+    }
+
+    func datasetAvailability(forYear year: Int) -> HolidayDatasetAvailability {
+        loader.datasetAvailability(
+            regionID: descriptor.id,
+            year: year,
+            validate: Self.isValidHolidaySetMapping
+        )
+    }
+
+    private static func isValidHolidaySetMapping(_ occurrence: HolidayOccurrence) -> Bool {
+        switch occurrence.kind {
+        case .statutoryHoliday:
+            return occurrence.holidaySetID == statutoryHolidaySetID
+        case .workingAdjustmentDay:
+            return occurrence.holidaySetID == adjustmentWorkdaySetID
+        case .festival:
+            return occurrence.holidaySetID == commemorativeFestivalSetID
+        case .publicHoliday:
+            return false
+        }
     }
 
     private static let gregorianFestivalRules: [GregorianFestivalRule] = [

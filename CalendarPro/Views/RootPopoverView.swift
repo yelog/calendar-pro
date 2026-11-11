@@ -291,6 +291,7 @@ struct RootPopoverView: View {
             weekdaySymbols: viewModel.weekdaySymbols(using: displayCalendar),
             weekendIndices: Self.weekendColumnIndices(for: displayCalendar),
             monthDays: displayedMonthDays,
+            holidayDataNotice: holidayDataNotice,
             highlightWeekends: settingsStore.menuBarPreferences.highlightWeekends,
             showEvents: settingsStore.menuBarPreferences.showEvents,
             emptyStateText: settingsStore.menuBarPreferences.eventListEmptyStateText,
@@ -399,6 +400,32 @@ struct RootPopoverView: View {
     private func handleDateSelection(_ date: Date) {
         dismissEventDetail()
         viewModel.selectDate(date)
+    }
+
+    private var holidayDataNotice: String? {
+        let preferences = settingsStore.menuBarPreferences
+        guard
+            preferences.activeRegionIDs.contains("mainland-cn"),
+            preferences.enabledHolidayIDs.isEmpty
+                || preferences.enabledHolidayIDs.contains(MainlandCNProvider.statutoryHolidaySetID),
+            let provider = HolidayProviderRegistry.live.provider(for: "mainland-cn")
+        else {
+            return nil
+        }
+
+        let year = viewModel.displayedYear
+        guard year >= viewModel.currentYear else {
+            return nil
+        }
+
+        switch provider.datasetAvailability(forYear: year) {
+        case .missing:
+            return LF("Holiday data for %d has not been synced", year)
+        case .invalid:
+            return LF("Holiday data for %d could not be read", year)
+        case .cache, .bundled:
+            return nil
+        }
     }
 
     private func handleOpenVacationGuide() {

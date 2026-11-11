@@ -7960,6 +7960,40 @@
           }
         }
       }
+    },
+    "Holiday data for %d could not be read" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Holiday data for %d could not be read."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取 %d 年法定节假日数据。"
+          }
+        }
+      }
+    },
+    "Holiday data for %d has not been synced" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Holiday data for %d has not been synced; statutory holiday markers may be missing."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未同步 %d 年法定节假日数据，相关日期可能缺少法定假日标记。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

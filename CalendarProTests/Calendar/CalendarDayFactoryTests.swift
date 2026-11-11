@@ -14,6 +14,30 @@ final class CalendarDayFactoryTests: XCTestCase {
         XCTAssertTrue(day.badges.contains { $0.kind == .statutoryHoliday })
     }
 
+    func testMonthGridDecoratesPublished2027StatutoryScheduleAndAdjustmentWorkday() throws {
+        var preferences = MenuBarPreferences.default
+        preferences.activeRegionIDs = ["mainland-cn"]
+        let factory = CalendarDayFactory.makePreview()
+        let februaryDays = try factory.makeMonthGrid(
+            for: makeDate(year: 2027, month: 2, day: 1),
+            preferences: preferences
+        )
+
+        let springFestival = try XCTUnwrap(
+            februaryDays.first {
+                $0.solarText == "5" && $0.isInDisplayedMonth
+            }
+        )
+        let adjustmentWorkday = try XCTUnwrap(
+            februaryDays.first {
+                $0.solarText == "14" && $0.isInDisplayedMonth
+            }
+        )
+
+        XCTAssertTrue(springFestival.badges.contains { $0.kind == .statutoryHoliday && $0.text == "春节" })
+        XCTAssertTrue(adjustmentWorkday.badges.contains { $0.kind == .workingAdjustmentDay })
+    }
+
     func testMonthGridDecoratesHongKongPublicHolidayWhenRegionEnabled() throws {
         var preferences = MenuBarPreferences.default
         preferences.activeRegionIDs = ["hong-kong"]

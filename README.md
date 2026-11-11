@@ -81,13 +81,15 @@ Calendar Pro 是一个以菜单栏为核心的 macOS 原生效率工具。它不
 - `SwiftUI` 负责弹层、设置页和详情界面，保持界面实现现代化且易维护。
 - `EventKit` 提供系统日历与提醒事项读写能力。
 - `Sparkle` 提供稳定版与预发布版自动更新能力。
-- 节假日数据采用"内置 JSON + 远程 Manifest + 本地缓存"策略，在离线场景下依然可用。
+- 节假日数据采用"内置 JSON + 远程 Manifest + 本地缓存"策略，在离线场景下依然可用；GitHub Actions 每日从官方公告镜像校验并创建或更新数据 PR，合并后即可更新 Feed，无需为新年度数据单独发版。
 - 天气数据通过远程 API 获取，默认使用 Open-Meteo；也可在设置中切换到和风天气，适合中国大陆网络与本地 AQI 口径。自动位置优先使用系统定位，失败时回落到 IP 定位。
 
 ## 节假日显示流程
 
 ```mermaid
 flowchart TD
+    N[GitHub Actions 每日校验官方公告\n并创建/更新数据 PR] --> O[合并后更新 feed/holidays manifest + payloads]
+    O --> A
     A[HolidayFeedClient 刷新远程 manifest] --> B[HolidayCacheStore 缓存各地区各年份 JSON]
     B --> C[BundledHolidayDataLoader 按 region/year 读取]
     D[App Bundle 内置 Holidays JSON] --> C
@@ -137,6 +139,17 @@ xcodebuild test \
 ```
 
 当前仓库包含较完整的单元测试与 UI 测试。
+
+节假日同步工具使用 Python 标准库，可单独校验：
+
+```bash
+python3 -m unittest discover -s tools/tests -p 'test_*.py'
+python3 tools/sync_holidays.py --years 2027 --dry-run
+```
+
+`tools/sync_holidays.py` 会校验 `gov.cn` 公告来源、放假/调休日期、重复项和跨年记录，只在内容变化时更新 Feed、内置资源与 Manifest。Manifest 版本采用带时间的单调值，保证同一天内的修订也能被客户端识别；跨年记录只有在目标年份已有完整年度数据时才合并，不会发布单独由邻年公告拼出的“半套年份”。`tools/add_holiday_resources.rb` 负责把新增年份注册为 Xcode 资源。
+
+`.github/workflows/sync-holidays.yml` 每天运行同步器并创建或更新 `automation/holiday-feed-sync` PR。仓库需要在 **Settings > Actions > General** 中允许 GitHub Actions 创建 Pull Request；数据在 PR 审核合并前不会上线。普通 Feed 数据更新不需要发版，但客户端刷新、缓存和提示逻辑的改动仍需随应用版本发布。
 
 ## 打包与分发
 
@@ -204,6 +217,7 @@ CalendarPro/
 CalendarProTests/              # 单元测试
 CalendarProUITests/            # UI 测试
 feed/holidays/                 # 远程节假日数据源
+tools/                         # 节假日同步与工程生成工具
 scripts/build/                 # 打包、签名、公证脚本
 docs/                          # appcast 与发布清单
 ```
@@ -235,4 +249,5 @@ docs/                          # appcast 与发布清单
 ## 维护说明
 
 - 如果你修改了节假日数据结构，请同时检查 [feed/holidays](./feed/holidays) 与 [docs/appcast.xml](./docs/appcast.xml) 相关流程。
+- 新年度放假安排发布后，运行 `python3 tools/sync_holidays.py --years <year>`；日常同步由 `.github/workflows/sync-holidays.yml` 自动执行。同步产生的 PR 需要人工审核合并后才会进入线上 Feed。
 - 如果你调整了发布逻辑，请同步更新 [scripts/build/package-app.sh](./scripts/build/package-app.sh) 和 [scripts/build/codesign-and-notarize.sh](./scripts/build/codesign-and-notarize.sh)。

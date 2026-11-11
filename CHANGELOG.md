@@ -5,6 +5,23 @@ All notable changes to CalendarPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- add the published 2027 mainland China statutory holiday and adjustment-workday schedule
+- validate official holiday notices daily and create or update a data pull request through GitHub Actions
+- refresh holiday data on launch, wake, activation, and expiration while the app remains running
+- distinguish cached, bundled, missing, and invalid holiday datasets in the calendar and vacation guide
+
+### Changed
+- use monotonic timestamp versions so same-day feed revisions are always recognized
+- skip partial cross-year payloads until the target year's own official schedule is available
+- skip payload downloads when the remote manifest and local cache are already complete
+- validate all downloaded payloads before replacing cached holiday data
+- fall back to bundled data when a cached payload cannot be read or violates provider constraints
+- reflect background holiday refresh results and failures in the region settings page
+- report remote refresh failures instead of presenting a fallback cache as unchanged data
+
 ## [0.2.9] - 2026-11-03
 
 ### Added

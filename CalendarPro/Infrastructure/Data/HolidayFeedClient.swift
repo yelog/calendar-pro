@@ -17,6 +17,8 @@ struct HolidayFeedClient: Sendable {
         let manifestVersion: String
         let generatedAt: Date
         let refreshedPayloadCount: Int
+        let didUpdatePayloads: Bool
+        let fallbackReason: String?
     }
 
     let session: URLSession
@@ -60,15 +62,16 @@ struct HolidayFeedClient: Sendable {
     func refreshIfNeeded(force: Bool = false) async throws -> RefreshResult {
         if
             !force,
-            let cachedManifest = try cache.cachedManifest(),
+            let cachedManifest = validCachedManifest(),
             let modifiedAt = cache.manifestModifiedAt(),
-            now().timeIntervalSince(modifiedAt) < refreshInterval
+            now().timeIntervalSince(modifiedAt) < refreshInterval,
+            hasCompleteCachedPayloads(for: cachedManifest)
         {
             return makeCachedResult(from: cachedManifest)
         }
 
         guard let manifestURL else {
-            if let cachedManifest = try cache.cachedManifest() {
+            if let cachedManifest = validCachedManifest() {
                 return makeCachedResult(from: cachedManifest)
             }
 
@@ -78,27 +81,69 @@ struct HolidayFeedClient: Sendable {
         do {
             let manifestData = try await fetchData(from: manifestURL)
             let manifest = try HolidayFeedManifest.decoder.decode(HolidayFeedManifest.self, from: manifestData)
+            try manifest.validate()
 
+            if
+                let cachedManifest = validCachedManifest(),
+                cachedManifest == manifest,
+                hasCompleteCachedPayloads(for: manifest)
+            {
+                do {
+                    try cache.markManifestChecked(at: now())
+                } catch {
+                    // Valid cached data remains usable. The scheduler falls back
+                    // to a full refresh interval when the check time is stale.
+                }
+                return RefreshResult(
+                    source: .remote,
+                    manifestVersion: manifest.version,
+                    generatedAt: manifest.generatedAt,
+                    refreshedPayloadCount: 0,
+                    didUpdatePayloads: false,
+                    fallbackReason: nil
+                )
+            }
+
+            var downloadedPayloads: [(payload: HolidayFeedManifest.Payload, data: Data)] = []
             for payload in manifest.payloads {
                 guard let payloadURL = payload.resolvedURL(relativeTo: manifestURL) else {
                     throw HolidayFeedClientError.invalidPayloadURL(payload.path)
                 }
 
                 let payloadData = try await fetchData(from: payloadURL)
-                try cache.saveHolidayData(payloadData, regionID: payload.regionID, year: payload.year)
+                _ = try BundledHolidayDataLoader.decode(
+                    data: payloadData,
+                    regionID: payload.regionID,
+                    year: payload.year,
+                    source: .remoteFeed
+                )
+                downloadedPayloads.append((payload, payloadData))
             }
 
-            try cache.saveManifest(manifest)
+            try cache.commitSnapshot(
+                HolidayCacheStore.Snapshot(
+                    manifest: manifest,
+                    payloads: downloadedPayloads.map { download in
+                        HolidayCacheStore.Snapshot.Payload(
+                            regionID: download.payload.regionID,
+                            year: download.payload.year,
+                            data: download.data
+                        )
+                    }
+                )
+            )
 
             return RefreshResult(
                 source: .remote,
                 manifestVersion: manifest.version,
                 generatedAt: manifest.generatedAt,
-                refreshedPayloadCount: manifest.payloads.count
+                refreshedPayloadCount: downloadedPayloads.count,
+                didUpdatePayloads: true,
+                fallbackReason: nil
             )
         } catch {
-            if let cachedManifest = try cache.cachedManifest() {
-                return makeCachedResult(from: cachedManifest)
+            if let cachedManifest = validCachedManifest() {
+                return makeCachedResult(from: cachedManifest, fallbackReason: error.localizedDescription)
             }
 
             throw error
@@ -115,12 +160,58 @@ struct HolidayFeedClient: Sendable {
         return data
     }
 
+    private func hasCompleteCachedPayloads(for manifest: HolidayFeedManifest) -> Bool {
+        manifest.payloads.allSatisfy { payload in
+            guard
+                let data = try? cache.loadHolidayData(
+                    regionID: payload.regionID,
+                    year: payload.year
+                )
+            else {
+                return false
+            }
+
+            return (try? BundledHolidayDataLoader.decode(
+                data: data,
+                regionID: payload.regionID,
+                year: payload.year,
+                source: .remoteFeed
+            )) != nil
+        }
+    }
+
+    private func validCachedManifest() -> HolidayFeedManifest? {
+        guard
+            let manifest = try? cache.cachedManifest(),
+            (try? manifest.validate()) != nil
+        else {
+            return nil
+        }
+        return manifest
+    }
+
     private func makeCachedResult(from manifest: HolidayFeedManifest) -> RefreshResult {
         RefreshResult(
             source: .cache,
             manifestVersion: manifest.version,
             generatedAt: manifest.generatedAt,
-            refreshedPayloadCount: manifest.payloads.count
+            refreshedPayloadCount: manifest.payloads.count,
+            didUpdatePayloads: false,
+            fallbackReason: nil
+        )
+    }
+
+    private func makeCachedResult(
+        from manifest: HolidayFeedManifest,
+        fallbackReason: String
+    ) -> RefreshResult {
+        RefreshResult(
+            source: .cache,
+            manifestVersion: manifest.version,
+            generatedAt: manifest.generatedAt,
+            refreshedPayloadCount: manifest.payloads.count,
+            didUpdatePayloads: false,
+            fallbackReason: fallbackReason
         )
     }
 }

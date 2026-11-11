@@ -26,4 +26,8 @@ struct HongKongProvider: HolidayProvider {
     func holidays(forYear year: Int) throws -> [HolidayOccurrence] {
         try loader.load(regionID: descriptor.id, year: year)
     }
+
+    func datasetAvailability(forYear year: Int) -> HolidayDatasetAvailability {
+        loader.datasetAvailability(regionID: descriptor.id, year: year)
+    }
 }

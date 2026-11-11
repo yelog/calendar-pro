@@ -22,6 +22,23 @@ final class VacationPlanningServiceTests: XCTestCase {
         XCTAssertTrue(opportunities.contains { $0.holidayName == "中秋节、国庆节" && $0.summary == "请3休13" })
     }
 
+    func testVacationOpportunitiesIncludePublished2027Schedule() throws {
+        let service = VacationPlanningService(
+            registry: HolidayProviderRegistry(providers: [MainlandCNProvider()]),
+            calendar: .gregorianMondayFirst
+        )
+
+        let opportunities = try service.opportunities(
+            forYear: 2027,
+            activeRegionIDs: ["mainland-cn"],
+            enabledHolidaySetIDs: []
+        )
+
+        XCTAssertFalse(opportunities.isEmpty)
+        XCTAssertTrue(opportunities.contains { $0.holidayName == "春节" })
+        XCTAssertTrue(opportunities.contains { $0.holidayName == "国庆节" })
+    }
+
     func testSpringFestivalOpportunityMarksAdjustmentWorkdayInSegments() throws {
         let service = VacationPlanningService(
             registry: HolidayProviderRegistry(providers: [MainlandCNProvider()]),

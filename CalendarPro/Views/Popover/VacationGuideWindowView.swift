@@ -43,6 +43,7 @@ struct VacationGuideWindowView: View {
 
     @ObservedObject var settingsStore: SettingsStore
     let cacheStore: HolidayCacheStore
+    let registry: HolidayProviderRegistry
     let onLocateDate: (Date) -> Void
     let onClose: () -> Void
 
@@ -64,6 +65,7 @@ struct VacationGuideWindowView: View {
         settingsStore: SettingsStore,
         referenceMonth: Date,
         cacheStore: HolidayCacheStore = .default,
+        registry: HolidayProviderRegistry = .live,
         planningService: VacationPlanningService? = nil,
         onLocateDate: @escaping (Date) -> Void,
         onClose: @escaping () -> Void,
@@ -73,6 +75,7 @@ struct VacationGuideWindowView: View {
 
         self.settingsStore = settingsStore
         self.cacheStore = cacheStore
+        self.registry = registry
         self.planningService = planningService
         self.onLocateDate = onLocateDate
         self.onClose = onClose
@@ -85,8 +88,8 @@ struct VacationGuideWindowView: View {
         VStack(alignment: .leading, spacing: 14) {
             header
 
-            if showsAdjustmentWarning {
-                warningBanner
+            if let adjustmentWarningText {
+                warningBanner(adjustmentWarningText)
             }
 
             content
@@ -223,8 +226,8 @@ struct VacationGuideWindowView: View {
         .buttonStyle(.plain)
     }
 
-    private var warningBanner: some View {
-        Text("当前未启用调休上班日，推荐结果可能不完整。")
+    private func warningBanner(_ text: String) -> some View {
+        Text(text)
             .font(.system(size: 11, weight: .medium, design: .rounded))
             .foregroundStyle(Color.orange)
             .padding(.horizontal, 10)
@@ -261,7 +264,10 @@ struct VacationGuideWindowView: View {
         }
 
         do {
-            let service = planningService ?? VacationPlanningService(calendar: settingsStore.displayCalendar)
+            let service = planningService ?? VacationPlanningService(
+                registry: registry,
+                calendar: settingsStore.displayCalendar
+            )
             let opportunities = try service.opportunities(
                 forYear: displayedYear,
                 activeRegionIDs: preferences.activeRegionIDs,
@@ -269,10 +275,7 @@ struct VacationGuideWindowView: View {
             )
 
             guard !opportunities.isEmpty else {
-                return .message(
-                    title: "当年放假安排尚未发布",
-                    detail: "当前没有可用的节假日数据，休假建议会在数据可用后自动生成。"
-                )
+                return missingDataState
             }
 
             return .list(opportunities)
@@ -284,21 +287,72 @@ struct VacationGuideWindowView: View {
         }
     }
 
-    private var showsAdjustmentWarning: Bool {
+    private var adjustmentWarningText: String? {
         let preferences = settingsStore.menuBarPreferences
-        return preferences.activeRegionIDs.contains("mainland-cn")
-            && !isHolidaySetEnabled("adjustment-workdays", in: preferences)
+        guard preferences.activeRegionIDs.contains("mainland-cn") else {
+            return nil
+        }
+
+        if !isHolidaySetEnabled("adjustment-workdays", in: preferences) {
+            return "当前未启用调休上班日，推荐结果可能不完整。"
+        }
+
+        guard
+            let mainlandProvider,
+            let holidays = try? mainlandProvider.holidays(forYear: displayedYear),
+            holidays.contains(where: { $0.kind == .statutoryHoliday }),
+            !holidays.contains(where: { $0.kind == .workingAdjustmentDay })
+        else {
+            return nil
+        }
+
+        return "\(displayedYear) 年数据未包含调休上班日记录，推荐结果仅基于现有数据。"
     }
 
     private var dataStatusText: String {
-        if
-            let manifest = try? cacheStore.cachedManifest(),
-            manifest.payloads.contains(where: { $0.regionID == "mainland-cn" && $0.year == displayedYear })
-        {
-            return "基于缓存节假日数据 v\(manifest.version) 生成"
+        switch mainlandDatasetAvailability {
+        case .cache:
+            if let manifest = try? cacheStore.cachedManifest() {
+                return "基于缓存节假日数据 v\(manifest.version) 生成"
+            }
+            return "基于缓存节假日数据生成"
+        case .bundled:
+            return "基于内置节假日数据生成"
+        case .missing:
+            return "未找到 \(displayedYear) 年法定节假日数据"
+        case .invalid:
+            return "\(displayedYear) 年法定节假日数据无法读取"
+        case nil:
+            return "节假日数据来源不可用"
         }
+    }
 
-        return "基于内置节假日数据生成"
+    private var mainlandProvider: (any HolidayProvider)? {
+        registry.provider(for: "mainland-cn")
+    }
+
+    private var mainlandDatasetAvailability: HolidayDatasetAvailability? {
+        mainlandProvider?.datasetAvailability(forYear: displayedYear)
+    }
+
+    private var missingDataState: ContentState {
+        switch mainlandDatasetAvailability {
+        case .missing:
+            return .message(
+                title: "\(displayedYear)年法定节假日数据尚未同步",
+                detail: "CalendarPro 尚未获取到该年份的法定节假日与调休数据。联网后可在“设置 > 地区与节假日”中手动刷新，或等待自动更新。"
+            )
+        case .invalid:
+            return .message(
+                title: "\(displayedYear)年法定节假日数据无法读取",
+                detail: "节假日数据文件可能已损坏。请检查网络后重试，或在“设置 > 地区与节假日”中手动刷新。"
+            )
+        case .cache, .bundled, nil:
+            return .message(
+                title: "未找到可用休假机会",
+                detail: "当前节假日数据未生成可用的拼假方案。"
+            )
+        }
     }
 
     private func isHolidaySetEnabled(_ holidaySetID: String, in preferences: MenuBarPreferences) -> Bool {

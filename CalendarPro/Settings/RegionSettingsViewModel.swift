@@ -23,25 +23,38 @@ final class RegionSettingsViewModel: ObservableObject {
     private let store: SettingsStore
     private let registry: HolidayProviderRegistry
     private let feedClient: HolidayFeedClient?
+    private let refreshScheduler: HolidayFeedRefreshScheduler?
     private let cacheStore: HolidayCacheStore
-    private var cancellable: AnyCancellable?
+    private var cancellables = Set<AnyCancellable>()
 
     init(
         store: SettingsStore,
         registry: HolidayProviderRegistry = .default,
         feedClient: HolidayFeedClient? = nil,
+        refreshScheduler: HolidayFeedRefreshScheduler? = nil,
         cacheStore: HolidayCacheStore = .default
     ) {
         self.store = store
         self.registry = registry
         self.feedClient = feedClient
+        self.refreshScheduler = refreshScheduler
         self.cacheStore = cacheStore
         refreshStatusMessage = Self.makeRefreshStatus(cacheStore: cacheStore, feedClient: feedClient)
 
-        cancellable = store.$menuBarPreferences
+        store.$menuBarPreferences
             .sink { [weak self] preferences in
                 self?.rebuild(from: preferences)
             }
+            .store(in: &cancellables)
+
+        if let refreshScheduler {
+            refreshScheduler.$latestOutcome
+                .compactMap { $0 }
+                .sink { [weak self] outcome in
+                    self?.apply(outcome)
+                }
+                .store(in: &cancellables)
+        }
 
         rebuild(from: store.menuBarPreferences)
     }
@@ -55,11 +68,11 @@ final class RegionSettingsViewModel: ObservableObject {
     }
 
     var canRefreshRemoteFeed: Bool {
-        feedClient != nil
+        refreshScheduler != nil || feedClient != nil
     }
 
     func refreshHolidayFeed() async {
-        guard let feedClient else {
+        guard canRefreshRemoteFeed else {
             refreshStatusMessage = Self.makeRefreshStatus(cacheStore: cacheStore, feedClient: nil)
             return
         }
@@ -68,11 +81,39 @@ final class RegionSettingsViewModel: ObservableObject {
         defer { isRefreshingFeed = false }
 
         do {
-            let result = try await feedClient.refreshIfNeeded(force: true)
+            let result: HolidayFeedClient.RefreshResult
+            if let refreshScheduler {
+                result = try await refreshScheduler.refresh(force: true)
+            } else if let feedClient {
+                result = try await feedClient.refreshIfNeeded(force: true)
+            } else {
+                refreshStatusMessage = Self.makeRefreshStatus(cacheStore: cacheStore, feedClient: nil)
+                return
+            }
+
             refreshStatusMessage = Self.makeRefreshStatus(from: result)
-            store.noteHolidayDataUpdated()
+            if result.didUpdatePayloads, refreshScheduler == nil {
+                store.noteHolidayDataUpdated()
+            }
         } catch {
-            refreshStatusMessage = Self.makeRefreshStatus(cacheStore: cacheStore, feedClient: feedClient, error: error)
+            refreshStatusMessage = Self.makeRefreshStatus(
+                cacheStore: cacheStore,
+                feedClient: feedClient,
+                errorDescription: error.localizedDescription
+            )
+        }
+    }
+
+    private func apply(_ outcome: HolidayFeedRefreshScheduler.Outcome) {
+        switch outcome {
+        case let .success(result):
+            refreshStatusMessage = Self.makeRefreshStatus(from: result)
+        case let .failure(message):
+            refreshStatusMessage = Self.makeRefreshStatus(
+                cacheStore: cacheStore,
+                feedClient: feedClient,
+                errorDescription: message
+            )
         }
     }
 
@@ -103,16 +144,16 @@ final class RegionSettingsViewModel: ObservableObject {
     private static func makeRefreshStatus(
         cacheStore: HolidayCacheStore,
         feedClient: HolidayFeedClient?,
-        error: Error? = nil
+        errorDescription: String? = nil
     ) -> String {
         if let cachedManifest = try? cacheStore.cachedManifest() {
-            if error == nil {
+            if errorDescription == nil {
                 return LF("Using cached holiday data v%@", cachedManifest.version)
             }
             return LF("Using cached holiday data v%@, remote refresh failed", cachedManifest.version)
         }
 
-        if error != nil {
+        if errorDescription != nil {
             return L("Remote refresh failed, using bundled holiday data")
         }
 
@@ -126,9 +167,15 @@ final class RegionSettingsViewModel: ObservableObject {
     private static func makeRefreshStatus(from result: HolidayFeedClient.RefreshResult) -> String {
         switch result.source {
         case .remote:
-            LF("Refreshed remote holiday data v%@", result.manifestVersion)
+            if result.didUpdatePayloads {
+                return LF("Refreshed remote holiday data v%@", result.manifestVersion)
+            }
+            return LF("Remote holiday data unchanged v%@", result.manifestVersion)
         case .cache:
-            LF("Remote holiday data unchanged v%@", result.manifestVersion)
+            if result.fallbackReason != nil {
+                return LF("Using cached holiday data v%@, remote refresh failed", result.manifestVersion)
+            }
+            return LF("Using cached holiday data v%@", result.manifestVersion)
         }
     }
 

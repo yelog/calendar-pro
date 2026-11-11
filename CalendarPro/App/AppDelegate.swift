@@ -28,6 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var statusBarController: StatusBarController?
     private var uiTestWindow: NSWindow?
     private var settingsWindow: NSWindow?
+    private var holidayFeedRefreshScheduler: HolidayFeedRefreshScheduler?
     private lazy var uiTestEventDetailWindowController = EventDetailWindowController(settingsStore: settingsStore)
     private let uiTestVacationGuideWindowController = VacationGuideWindowController()
     private lazy var uiTestWeatherDetailWindowController = WeatherDetailWindowController(settingsStore: settingsStore)
@@ -64,8 +65,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // 初始化 Sparkle 自动更新
         UpdateChecker.shared.initialize()
 
-        Task {
-            await refreshHolidayFeedIfNeeded()
+        if let client = HolidayFeedClient.configuredClient() {
+            let scheduler = HolidayFeedRefreshScheduler(client: client) { [weak self] _ in
+                self?.settingsStore.noteHolidayDataUpdated()
+            }
+            holidayFeedRefreshScheduler = scheduler
+            scheduler.start()
         }
     }
 
@@ -80,7 +85,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             rootView: SettingsRootView(
                 store: settingsStore,
                 eventService: eventService,
-                pomodoroStatsStore: pomodoroStatsStore
+                pomodoroStatsStore: pomodoroStatsStore,
+                holidayRefreshScheduler: holidayFeedRefreshScheduler
             )
         )
         let window = NSWindow(
@@ -172,19 +178,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return date
         }
         return Date()
-    }
-
-    private func refreshHolidayFeedIfNeeded() async {
-        guard let client = HolidayFeedClient.configuredClient() else { return }
-
-        do {
-            let result = try await client.refreshIfNeeded()
-            if result.source == .remote {
-                settingsStore.noteHolidayDataUpdated()
-            }
-        } catch {
-            // 启动时静默失败，不影响用户体验
-        }
     }
 
     private func presentUITestWindow() {

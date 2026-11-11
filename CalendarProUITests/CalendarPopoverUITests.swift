@@ -100,6 +100,32 @@ final class CalendarPopoverUITests: XCTestCase {
     }
 
     @MainActor
+    func testPublished2027HolidayScheduleAppearsInCalendar() throws {
+        let suiteName = "CalendarPopover2027HolidayUITests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer {
+            terminateExistingInstances()
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        let environment = [
+            "CALENDAR_PRO_UI_TEST_DEFAULTS_SUITE": suiteName,
+            "CALENDAR_PRO_UI_TEST_NOW": "2027-02-10T12:00:00Z"
+        ]
+        let app = XCUIApplication(url: try applicationURL())
+        try launchApplication(app, environment: environment)
+
+        let springFestival = app.descendants(matching: .any)["calendar-day-2027-02-06"]
+        XCTAssertTrue(springFestival.waitForExistence(timeout: 5))
+        XCTAssertTrue(springFestival.label.contains("春节"))
+        XCTAssertTrue(springFestival.label.contains("OFF"))
+
+        let adjustmentWorkday = app.descendants(matching: .any)["calendar-day-2027-02-14"]
+        XCTAssertTrue(adjustmentWorkday.exists)
+        XCTAssertTrue(adjustmentWorkday.label.contains("WRK"))
+        attachScreenshot(app, name: "holiday-schedule-2027")
+    }
+
+    @MainActor
     func testEventViewSwitchShowsOneListAndRemembersSelection() throws {
         let suiteName = "CalendarPopoverUITests-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))

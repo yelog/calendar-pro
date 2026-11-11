@@ -31,6 +31,7 @@ struct CalendarPopoverView: View {
     let weekdaySymbols: [String]
     let weekendIndices: Set<Int>
     let monthDays: [CalendarDay]
+    let holidayDataNotice: String?
     let highlightWeekends: Bool
     let showEvents: Bool
     let emptyStateText: String
@@ -154,6 +155,19 @@ struct CalendarPopoverView: View {
                 weekendIndices: weekendIndices,
                 onSelectDate: onSelectDate
             )
+
+            if let holidayDataNotice {
+                Text(holidayDataNotice)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(.orange)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background {
+                        RoundedRectangle(cornerRadius: 9, style: .continuous)
+                            .fill(Color.orange.opacity(0.12))
+                    }
+            }
 
             SelectedDateSummaryView(summary: selectedDateSummary)
 

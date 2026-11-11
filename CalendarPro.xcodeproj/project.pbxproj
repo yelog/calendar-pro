@@ -62,6 +62,7 @@
 		4D3C803EA8C3E68350DE621A /* MeetingLinkDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67CD3DB2C1E25326B2FE8F12 /* MeetingLinkDetectorTests.swift */; };
 		4DFDE7F104BF51F7D6B55235 /* CalendarProTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4477F685C48BFF512233C077 /* CalendarProTests.swift */; };
 		4E8519E20577144B3C95C904 /* mainland-cn-2026.json in Resources */ = {isa = PBXBuildFile; fileRef = EEE3E23E80EA824D02886236 /* mainland-cn-2026.json */; };
+		B2C3D4E5F60718293A4B5C6D /* mainland-cn-2027.json in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* mainland-cn-2027.json */; };
 		4F25D2DEDDC1A99C3BF14C67 /* MeetingActionOpenerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F60206FAE434B5798A27334 /* MeetingActionOpenerTests.swift */; };
 		5062E21C3CEF8E6C6B07313C /* uk-2025.json in Resources */ = {isa = PBXBuildFile; fileRef = FD65228C9CEF3CEA925BE538 /* uk-2025.json */; };
 		522FE330CFEDC94F60FECEC0 /* HolidayProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12FD2B5D7D4DA1B7A4B1108 /* HolidayProvider.swift */; };
@@ -123,6 +124,7 @@
 		B1BC02A7E2A7DCFFB84AB639 /* MeetingLinkDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D4BEC76F1F9E997E8D82EB7 /* MeetingLinkDetector.swift */; };
 		B370FB5BA1C770D2C8128B9D /* SelectedDateSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9323895FF6DBC7C945673257 /* SelectedDateSummaryTests.swift */; };
 		B499B01E81C37715BDF9F8EB /* HolidayFeedClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95860B60FB2D87A55C964972 /* HolidayFeedClient.swift */; };
+		C3D4E5F60718293A4B5C6D7E /* HolidayFeedRefreshScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F60718293A4B5C6D7E8F /* HolidayFeedRefreshScheduler.swift */; };
 		B4D147ABD23274CBE4BDA1B8 /* WeatherServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D940067408A9DC72E3CF3A3 /* WeatherServiceTests.swift */; };
 		BC13C1B891683EEADB9EC050 /* PopoverController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44D3F8206EF5C9393D3BFBF4 /* PopoverController.swift */; };
 		BCF6C39724C9810093A408D5 /* MonthCalendarServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F5C2563B92ADB285B27CC6 /* MonthCalendarServiceTests.swift */; };
@@ -290,6 +292,7 @@
 		A18A33B4DE63A64E4C83E9F8 /* CalendarPopoverViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarPopoverViewModelTests.swift; sourceTree = "<group>"; };
 		A2E90B226CA993AEDEF7F705 /* us-2026.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "us-2026.json"; sourceTree = "<group>"; };
 		A351ECE31BB64D1AFF99C0E4 /* HolidayCacheStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayCacheStore.swift; sourceTree = "<group>"; };
+		D4E5F60718293A4B5C6D7E8F /* HolidayFeedRefreshScheduler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayFeedRefreshScheduler.swift; sourceTree = "<group>"; };
 		A45E45EC26483642D886B42A /* ClockRenderServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClockRenderServiceTests.swift; sourceTree = "<group>"; };
 		AB0815430E15C41D66280A16 /* AlmanacService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AlmanacService.swift; sourceTree = "<group>"; };
 		AD2AA02734457C9F608FFDA8 /* PomodoroStatisticsWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroStatisticsWindowController.swift; sourceTree = "<group>"; };
@@ -327,6 +330,7 @@
 		EC2C0CF9501DA42ADE6C6CF3 /* PopoverSizing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PopoverSizing.swift; sourceTree = "<group>"; };
 		EEE3C618A488BEF00946B7A5 /* UpcomingEventsSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpcomingEventsSection.swift; sourceTree = "<group>"; };
 		EEE3E23E80EA824D02886236 /* mainland-cn-2026.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "mainland-cn-2026.json"; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* mainland-cn-2027.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "mainland-cn-2027.json"; sourceTree = "<group>"; };
 		EF51BF6E9DF0E7CAB17760E5 /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		F2A2B722FD4463062F2495AB /* UpcomingSnapshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpcomingSnapshotTests.swift; sourceTree = "<group>"; };
 		F2EEAE8290BCC5A8EDF8B58F /* CalendarDayFactory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarDayFactory.swift; sourceTree = "<group>"; };
@@ -504,6 +508,7 @@
 			children = (
 				A351ECE31BB64D1AFF99C0E4 /* HolidayCacheStore.swift */,
 				95860B60FB2D87A55C964972 /* HolidayFeedClient.swift */,
+				D4E5F60718293A4B5C6D7E8F /* HolidayFeedRefreshScheduler.swift */,
 				6AB8DA30E4B0C2583166BC67 /* HolidayFeedManifest.swift */,
 			);
 			name = Data;
@@ -596,6 +601,7 @@
 				5530465AE93CC19EADEE1AB8 /* mainland-cn-2024.json */,
 				9B93AFD313FF4439C1DFD81A /* mainland-cn-2025.json */,
 				EEE3E23E80EA824D02886236 /* mainland-cn-2026.json */,
+				A1B2C3D4E5F60718293A4B5C /* mainland-cn-2027.json */,
 			);
 			name = "mainland-cn";
 			path = "mainland-cn";
@@ -1024,6 +1030,7 @@
 				4314677F809DE7EF158C39BC /* mainland-cn-2024.json in Resources */,
 				121440B88444C392692E65FF /* mainland-cn-2025.json in Resources */,
 				4E8519E20577144B3C95C904 /* mainland-cn-2026.json in Resources */,
+				B2C3D4E5F60718293A4B5C6D /* mainland-cn-2027.json in Resources */,
 				5062E21C3CEF8E6C6B07313C /* uk-2025.json in Resources */,
 				D4659DB225FDCEEE345E9267 /* uk-2026.json in Resources */,
 				1EFE35688C8380AEEF1F6AF3 /* us-2025.json in Resources */,
@@ -1128,6 +1135,7 @@
 				19EB0B06B076DC2728BC5114 /* AppLocalization.swift in Sources */,
 				757F18F928D5099E67651D34 /* HolidayCacheStore.swift in Sources */,
 				B499B01E81C37715BDF9F8EB /* HolidayFeedClient.swift in Sources */,
+				C3D4E5F60718293A4B5C6D7E /* HolidayFeedRefreshScheduler.swift in Sources */,
 				46B800F8E8953E8C9CB731C4 /* HolidayFeedManifest.swift in Sources */,
 				090668906DB6544ED820B0DF /* LocaleFeatureAvailability.swift in Sources */,
 				1BA78EAFAF465321E051F89A /* TimeRefreshCoordinator.swift in Sources */,

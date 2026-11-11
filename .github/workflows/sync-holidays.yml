@@ -1,0 +1,70 @@
+name: sync-holidays
+
+on:
+  schedule:
+    - cron: "17 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: holiday-feed-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Test synchronizer
+        run: python3 -m unittest discover -s tools/tests -p "test_*.py"
+
+      - name: Sync official holidays
+        run: python3 tools/sync_holidays.py
+
+      - name: Register new bundled holiday resources
+        run: |
+          gem install xcodeproj --no-document
+          ruby tools/add_holiday_resources.rb
+
+      - name: Create or update holiday feed pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add feed/holidays CalendarPro/Resources/Holidays/mainland-cn CalendarPro.xcodeproj/project.pbxproj
+
+          if git diff --cached --quiet; then
+            echo "No holiday feed changes"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B automation/holiday-feed-sync
+          git commit -m "chore(holidays): sync official holiday data"
+          git push --force origin HEAD:refs/heads/automation/holiday-feed-sync
+
+          if gh pr list --head automation/holiday-feed-sync --state open --json number --jq '.[].number' | grep -q .; then
+            echo "Updated the existing holiday feed pull request"
+            exit 0
+          fi
+
+          gh pr create \
+            --base main \
+            --head automation/holiday-feed-sync \
+            --title "chore(holidays): sync official holiday data" \
+            --body $'Automated holiday feed update.\n\n- Validated the official gov.cn source and CalendarPro payload schema.\n- Synchronized current and next year data.\n- Registered any newly bundled year as an Xcode resource.\n\nReview the data diff and run the app before merging.'
