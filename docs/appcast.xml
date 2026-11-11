@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.3.0</title>
+            <pubDate>Wed, 11 Nov 2026 10:05:39 +0000</pubDate>
+            <sparkle:version>03099</sparkle:version>
+            <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.3.0&lt;/h2&gt;&lt;h4&gt;Added&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add the published 2027 mainland China statutory holiday and adjustment-workday schedule&lt;/li&gt;&lt;li&gt;validate official holiday notices daily and create or update a data pull request through GitHub Actions&lt;/li&gt;&lt;li&gt;refresh holiday data on launch, wake, activation, and expiration while the app remains running&lt;/li&gt;&lt;li&gt;distinguish cached, bundled, missing, and invalid holiday datasets in the calendar and vacation guide&lt;/li&gt;&lt;/ul&gt;&lt;h4&gt;Changed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;use monotonic timestamp versions so same-day feed revisions are always recognized&lt;/li&gt;&lt;li&gt;skip partial cross-year payloads until the target year's own official schedule is available&lt;/li&gt;&lt;li&gt;skip payload downloads when the remote manifest and local cache are already complete&lt;/li&gt;&lt;li&gt;validate all downloaded payloads before replacing cached holiday data&lt;/li&gt;&lt;li&gt;fall back to bundled data when a cached payload cannot be read or violates provider constraints&lt;/li&gt;&lt;li&gt;reflect background holiday refresh results and failures in the region settings page&lt;/li&gt;&lt;li&gt;report remote refresh failures instead of presenting a fallback cache as unchanged data&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.3.0/CalendarPro-0.3.0-universal.dmg" length="8428560" type="application/octet-stream" sparkle:edSignature="I2QSfko9H+3VmQt1tj3o/GYy6qlk/7/jwtolEtu9GKPc4JOd5T1Kt/9jgfFnvqerBzjyblSPVJm69SXT2TxpAA==" />
+        </item>
+        <item>
             <title>Version 0.2.9</title>
             <pubDate>Tue, 03 Nov 2026 09:48:49 +0000</pubDate>
             <sparkle:version>02999</sparkle:version>
