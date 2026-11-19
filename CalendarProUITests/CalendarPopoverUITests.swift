@@ -60,6 +60,55 @@ final class CalendarPopoverUITests: XCTestCase {
     }
 
     @MainActor
+    func testWeatherProviderPickerListsEveryProvider() throws {
+        let suiteName = "CalendarPopoverWeatherProviderUITests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer {
+            terminateExistingInstances()
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        let preferences: [String: Any] = [
+            "tokens": [],
+            "separator": " ",
+            "showLunarInMenuBar": true,
+            "activeRegionIDs": ["mainland-cn"],
+            "enabledHolidayIDs": [],
+            "weekStart": "monday",
+            "showEvents": true,
+            "enabledCalendarIDs": [],
+            "showReminders": true,
+            "enabledReminderCalendarIDs": [],
+            "showWeather": true,
+            "weatherProvider": "openMeteo",
+            "locationMode": "manual",
+            "manualLocation": [
+                "latitude": 31.2304,
+                "longitude": 121.4737,
+                "name": "Shanghai",
+                "country": "China",
+                "admin1": "Shanghai"
+            ]
+        ]
+        defaults.set(try JSONSerialization.data(withJSONObject: preferences), forKey: "menuBarPreferences")
+        defaults.synchronize()
+
+        let app = XCUIApplication(url: try applicationURL())
+        try launchApplication(app, environment: ["CALENDAR_PRO_UI_TEST_DEFAULTS_SUITE": suiteName])
+        let settingsButton = app.buttons["calendar-popover-settings"]
+        XCTAssertTrue(settingsButton.waitForExistence(timeout: 5))
+        settingsButton.click()
+
+        let picker = app.popUpButtons["weatherProviderPicker"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        picker.click()
+
+        for provider in ["Open-Meteo", "和风天气", "wttr.in", "7Timer"] {
+            XCTAssertTrue(app.menuItems[provider].waitForExistence(timeout: 2), "Missing \(provider)")
+        }
+        attachScreenshot(app, name: "weather-provider-picker")
+    }
+
+    @MainActor
     func testPopoverUsesPersistedAppTimeZoneAcrossYearBoundary() throws {
         let suiteName = "CalendarPopoverTimeZoneUITests-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
@@ -210,6 +259,11 @@ final class CalendarPopoverUITests: XCTestCase {
             throw error
         }
 
+        let testApplicationPath = appURL.resolvingSymlinksInPath().standardizedFileURL.path
+        let testApplication = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier)
+            .first { $0.bundleURL?.resolvingSymlinksInPath().standardizedFileURL.path == testApplicationPath }
+        testApplication?.activate(options: [.activateAllWindows])
+        app.activate()
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
     }
 }

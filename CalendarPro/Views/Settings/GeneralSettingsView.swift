@@ -328,8 +328,9 @@ private struct WeatherLocationSettings: View {
                     }
                 }
                 .labelsHidden()
-                .pickerStyle(.segmented)
+                .pickerStyle(.menu)
                 .frame(width: 210)
+                .accessibilityIdentifier("weatherProviderPicker")
             }
 
             if store.menuBarPreferences.weatherProvider == .qWeather {
