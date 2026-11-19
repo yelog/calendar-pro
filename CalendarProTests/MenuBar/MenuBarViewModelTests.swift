@@ -43,6 +43,46 @@ final class MenuBarViewModelTests: XCTestCase {
         XCTAssertNotEqual(viewModel.displayText, initialText)
     }
 
+    func testWeekdayPickerDistinguishesLocalizedAndFixedChineseStyles() throws {
+        let store = makeStore(name: #function)
+        store.setTimeZoneIdentifier("UTC")
+        let calendar = store.displayCalendar
+        let monday = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 11, day: 16, hour: 12)))
+        let settingsView = MenuBarSettingsView(store: store)
+
+        withAppLanguage(.simplifiedChinese) {
+            let options = settingsView.stylePreviews(for: .weekday, at: monday, calendar: calendar, timeZone: calendar.timeZone)
+
+            XCTAssertEqual(options.map(\.style), [.short, .full, .chineseWeekday])
+            XCTAssertEqual(options.map(\.label), ["周一（随语言）", "星期一", "周一（固定）"])
+        }
+    }
+
+    func testSettingsPreviewsMatchLiveMenuBarInBothAppLanguages() throws {
+        let store = makeStore(name: #function)
+        store.setTimeZoneIdentifier("UTC")
+        store.menuBarPreferences.tokens = [
+            DisplayTokenPreference(token: .weekday, isEnabled: true, order: 0, style: .full)
+        ]
+        store.pomodoroPreferences = .default
+        let calendar = store.displayCalendar
+        let monday = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 11, day: 16, hour: 12)))
+        let settingsView = MenuBarSettingsView(store: store)
+        let expectedWeekdays: [(AppLanguage, String)] = [(.simplifiedChinese, "星期一"), (.english, "Monday")]
+
+        for (language, expectedWeekday) in expectedWeekdays {
+            withAppLanguage(language) {
+                let viewModel = MenuBarViewModel(settingsStore: store, registry: .default, now: { monday })
+                let preview = settingsView.previewText(at: monday, calendar: calendar, timeZone: calendar.timeZone)
+                let options = settingsView.stylePreviews(for: .weekday, at: monday, calendar: calendar, timeZone: calendar.timeZone)
+
+                XCTAssertEqual(viewModel.displayText, expectedWeekday)
+                XCTAssertEqual(preview, viewModel.displayText)
+                XCTAssertEqual(options.first { $0.style == .full }?.label, viewModel.displayText)
+            }
+        }
+    }
+
     func testLocaleChangeNotificationPostedOffMainThreadRerendersDisplayText() async {
         let store = makeStore(name: #function)
         let notificationCenter = NotificationCenter()
@@ -166,6 +206,18 @@ final class MenuBarViewModelTests: XCTestCase {
         ]
 
         XCTAssertNil(MenuBarViewModel.menuBarWeatherText(for: makeWeatherDescriptor(), preferences: preferences))
+    }
+
+    private func withAppLanguage(_ language: AppLanguage, perform: () -> Void) {
+        let defaults = UserDefaults.standard
+        let domain = UserDefaults.argumentDomain
+        let originalArguments = defaults.volatileDomain(forName: domain)
+        var arguments = originalArguments
+        arguments[AppLocalization.appLanguageDefaultsKey] = language.rawValue
+        defaults.setVolatileDomain(arguments, forName: domain)
+        defer { defaults.setVolatileDomain(originalArguments, forName: domain) }
+
+        perform()
     }
 
     private func makeStore(name: String) -> SettingsStore {

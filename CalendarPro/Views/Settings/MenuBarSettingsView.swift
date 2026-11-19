@@ -59,14 +59,9 @@ struct MenuBarSettingsView: View {
 
                                     HStack(alignment: .center, spacing: 12) {
                                         if styleOptions(for: token.token).count > 1 {
-                                            Picker(L("Style"), selection: styleBinding(for: token.token)) {
-                                                ForEach(styleOptions(for: token.token), id: \.self) { style in
-                                                    Text(stylePreviewText(style, for: token.token)).tag(style)
-                                                }
-                                            }
-                                            .labelsHidden()
-                                            .frame(maxWidth: 160, alignment: .leading)
-                                            .disabled(weatherControlsDisabled)
+                                            stylePicker(for: token.token)
+                                                .frame(maxWidth: 160, alignment: .leading)
+                                                .disabled(weatherControlsDisabled)
                                         }
 
                                         Spacer(minLength: 0)
@@ -89,14 +84,9 @@ struct MenuBarSettingsView: View {
                                         .disabled(weatherControlsDisabled)
 
                                     if styleOptions(for: token.token).count > 1 {
-                                        Picker(L("Style"), selection: styleBinding(for: token.token)) {
-                                            ForEach(styleOptions(for: token.token), id: \.self) { style in
-                                                Text(stylePreviewText(style, for: token.token)).tag(style)
-                                            }
-                                        }
-                                        .labelsHidden()
-                                        .frame(width: 120)
-                                        .disabled(weatherControlsDisabled)
+                                        stylePicker(for: token.token)
+                                            .frame(width: 120)
+                                            .disabled(weatherControlsDisabled)
                                     }
 
                                     if weatherControlsDisabled {
@@ -158,14 +148,14 @@ struct MenuBarSettingsView: View {
         availableWidth > 0 && availableWidth < 500
     }
 
-    private var previewText: String {
-        let now = Date()
+    func previewText(at now: Date, calendar: Calendar, timeZone: TimeZone) -> String {
         let factory = CalendarDayFactory(calendar: calendar, registry: .live)
         let day = try? factory.makeDay(for: now, displayedMonth: now, preferences: store.menuBarPreferences)
 
         let baseText = clockRenderer.render(
             now: now,
             preferences: store.menuBarPreferences,
+            locale: AppLocalization.locale,
             calendar: calendar,
             timeZone: timeZone,
             supplementalText: MenuBarSupplementalText(
@@ -209,7 +199,8 @@ struct MenuBarSettingsView: View {
     }
 
     private var previewMenuBarText: some View {
-        let renderResult = textImageRenderer.render(text: previewText, style: textStyle, indicator: nil)
+        let text = previewText(at: Date(), calendar: calendar, timeZone: timeZone)
+        let renderResult = textImageRenderer.render(text: text, style: textStyle, indicator: nil)
 
         return RoundedRectangle(cornerRadius: 8, style: .continuous)
             .fill(previewBackgroundColor)
@@ -489,18 +480,52 @@ struct MenuBarSettingsView: View {
         }
     }
 
-    private func stylePreviewText(_ style: DisplayTokenStyle, for token: DisplayTokenKind) -> String {
+    private func stylePicker(for token: DisplayTokenKind) -> some View {
         let now = Date()
-        let factory = CalendarDayFactory(calendar: calendar, registry: .live)
-        let day = try? factory.makeDay(for: now, displayedMonth: now, preferences: store.menuBarPreferences)
+        return Picker(L("Style"), selection: styleBinding(for: token)) {
+            ForEach(stylePreviews(for: token, at: now, calendar: calendar, timeZone: timeZone), id: \.style) { option in
+                Text(option.label).tag(option.style)
+            }
+        }
+        .labelsHidden()
+    }
 
+    func stylePreviews(
+        for token: DisplayTokenKind,
+        at now: Date,
+        calendar: Calendar,
+        timeZone: TimeZone
+    ) -> [(style: DisplayTokenStyle, label: String)] {
+        styleOptions(for: token).map { style in
+            (style, stylePreviewText(style, for: token, at: now, calendar: calendar, timeZone: timeZone))
+        }
+    }
+
+    private func stylePreviewText(
+        _ style: DisplayTokenStyle,
+        for token: DisplayTokenKind,
+        at now: Date,
+        calendar: Calendar,
+        timeZone: TimeZone
+    ) -> String {
         switch token {
-        case .date:
-            return clockRenderer.renderPreview(token: token, style: style, now: now, calendar: calendar, timeZone: timeZone)
-        case .time:
-            return clockRenderer.renderPreview(token: token, style: style, now: now, calendar: calendar, timeZone: timeZone)
-        case .weekday:
-            return clockRenderer.renderPreview(token: token, style: style, now: now, calendar: calendar, timeZone: timeZone)
+        case .date, .time, .weekday:
+            let sample = clockRenderer.renderPreview(
+                token: token,
+                style: style,
+                now: now,
+                locale: AppLocalization.locale,
+                calendar: calendar,
+                timeZone: timeZone
+            )
+            switch (token, style) {
+            case (.weekday, .short):
+                return LF("%@ (Localized)", sample)
+            case (.weekday, .chineseWeekday):
+                return LF("%@ (Fixed)", sample)
+            default:
+                return sample
+            }
         case .lunar:
             let lunarService = LunarService()
             let lunarDescriptor = lunarService.describe(date: now, timeZone: timeZone)
@@ -517,6 +542,8 @@ struct MenuBarSettingsView: View {
             }
             return lunarDescriptor.displayText(style: lunarStyle)
         case .holiday:
+            let factory = CalendarDayFactory(calendar: calendar, registry: .live)
+            let day = try? factory.makeDay(for: now, displayedMonth: now, preferences: store.menuBarPreferences)
             return day?.badges.first?.text ?? L("Holiday")
         case .weather:
             return weatherStylePreviewText(style)

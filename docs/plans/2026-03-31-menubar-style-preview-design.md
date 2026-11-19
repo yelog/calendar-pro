@@ -15,7 +15,7 @@
 - **理由**：性能更好，实现简单，用户体验已足够
 
 ### 显示方式
-- **决策**：直接替换原有文本
+- **决策**：以实际渲染示例为主。两种星期简写分别加上“随语言”和“固定”，即使示例相同也能分辨。
 - **示例**："中文月日" → "03月31日"
 - **理由**：更直观简洁
 
@@ -30,7 +30,7 @@
 **修改 `MenuBarSettingsView`：**
 
 1. 将 `styleDisplayName(_ style:)` 方法改为 `stylePreviewText(style:for:)`
-2. 使用当前时间生成实际预览文本
+2. 使用当前时间生成实际预览文本。下拉示例和菜单栏总览均使用 `AppLocalization.locale`，与实际菜单栏一致。
 3. 在 Picker 中使用预览文本
 
 **预览文本示例：**
@@ -41,9 +41,9 @@
 | date | short | 03/31 |
 | date | full | 2026/03/31 |
 | date | chineseMonthDay | 03月31日 |
-| weekday | short | Tue |
-| weekday | full | Tuesday |
-| weekday | chineseWeekday | 周二 |
+| weekday | short | 周二（随语言） |
+| weekday | full | 星期二 |
+| weekday | chineseWeekday | 周二（固定） |
 | time | numeric | 14:30 |
 | time | short | 14:30 |
 | time | full | 14:30:45 |
@@ -65,4 +65,5 @@
 1. 各样式预览文本显示正确
 2. 时间随系统时间更新
 3. 不同时区/语言环境下预览正确
-4. 保存设置后实际菜单栏显示与预览一致
+4. 在简体中文下分别缩窄和拉宽设置窗口，确认星期下拉菜单中两个简写样式标签不同，且均可选择。
+5. 将应用语言设置为与 macOS 不同的语言，确认切换星期样式后，下拉示例、设置页总览和实际菜单栏显示同一种语言。

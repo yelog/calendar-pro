@@ -24,6 +24,40 @@
         }
       }
     },
+    "%@ (Fixed)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (Fixed)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@（固定）"
+          }
+        }
+      }
+    },
+    "%@ (Localized)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (Localized)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@（随语言）"
+          }
+        }
+      }
+    },
     "%d days" : {
       "extractionState" : "manual",
       "localizations" : {
