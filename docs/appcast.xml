@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.3.2</title>
+            <pubDate>Thu, 19 Nov 2026 08:12:04 +0000</pubDate>
+            <sparkle:version>03299</sparkle:version>
+            <sparkle:shortVersionString>0.3.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.3.2&lt;/h2&gt;&lt;h4&gt;Fixed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;show all weather providers in the settings menu picker&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.3.2/CalendarPro-0.3.2-universal.dmg" length="8430091" type="application/octet-stream" sparkle:edSignature="oM5hAI5B6tdYxcvfQwkmTXpUwUW03oo/iKUtdRy+IpWDiaRQGQOySZaD1pY3PeR09eB23rpMkebQWjKW/3oQCg==" />
+        </item>
+        <item>
             <title>Version 0.3.1</title>
             <pubDate>Thu, 19 Nov 2026 07:42:46 +0000</pubDate>
             <sparkle:version>03199</sparkle:version>
