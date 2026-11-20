@@ -83,6 +83,7 @@
 		6DB146A15608EFD3FC9C6240 /* hong-kong-2023.json in Resources */ = {isa = PBXBuildFile; fileRef = BBB27E8518993D4B8098D76F /* hong-kong-2023.json */; };
 		6E924FC65E61C6151E90F079 /* BoardColorPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7623D4BD6D90268A9AB7409E /* BoardColorPreferences.swift */; };
 		70CE2D91090A537B0F239FAF /* hong-kong-2026.json in Resources */ = {isa = PBXBuildFile; fileRef = C8D3B838D99C15CBAE74150E /* hong-kong-2026.json */; };
+		93D578CFCB5440DA8F0A9602 /* hong-kong-2027.json in Resources */ = {isa = PBXBuildFile; fileRef = E8BB69DF58774B5DBD33F715 /* hong-kong-2027.json */; };
 		75446C2F6FF0CD48C67661F3 /* WeatherDetailWindowSizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97E2C0D16E482C6E2CF4B2FF /* WeatherDetailWindowSizing.swift */; };
 		7570CA23B5AEB679FDABB944 /* HolidayResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21BF9E5A20BC57BF3CAE1828 /* HolidayResolver.swift */; };
 		757F18F928D5099E67651D34 /* HolidayCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A351ECE31BB64D1AFF99C0E4 /* HolidayCacheStore.swift */; };
@@ -308,6 +309,7 @@
 		C1F13690F9653A9344C69089 /* EventDetailWindowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventDetailWindowView.swift; sourceTree = "<group>"; };
 		C8898610AA2CE511623549E6 /* EventDetailWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventDetailWindowController.swift; sourceTree = "<group>"; };
 		C8D3B838D99C15CBAE74150E /* hong-kong-2026.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "hong-kong-2026.json"; sourceTree = "<group>"; };
+		E8BB69DF58774B5DBD33F715 /* hong-kong-2027.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "hong-kong-2027.json"; sourceTree = "<group>"; };
 		C9258F6E038CA59E403D6F53 /* BoardSnapshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BoardSnapshotTests.swift; sourceTree = "<group>"; };
 		CAC4373A59AC7F843B80849C /* EventDetailWindowSizing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventDetailWindowSizing.swift; sourceTree = "<group>"; };
 		CBA06582DC774730C2FA5CCB /* UpdateCheckerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UpdateCheckerTests.swift; sourceTree = "<group>"; };
@@ -858,6 +860,7 @@
 				62B105D8D1BBC27A89D4C802 /* hong-kong-2024.json */,
 				79CD5CFF03EC69BEE289E9CA /* hong-kong-2025.json */,
 				C8D3B838D99C15CBAE74150E /* hong-kong-2026.json */,
+				E8BB69DF58774B5DBD33F715 /* hong-kong-2027.json */,
 			);
 			name = "hong-kong";
 			path = "hong-kong";
@@ -1024,6 +1027,7 @@
 				BF367E707A89131C352532EB /* hong-kong-2024.json in Resources */,
 				629436BEED0A6DE02EDBC0E3 /* hong-kong-2025.json in Resources */,
 				70CE2D91090A537B0F239FAF /* hong-kong-2026.json in Resources */,
+				93D578CFCB5440DA8F0A9602 /* hong-kong-2027.json in Resources */,
 				BDC45EB896FE7B8CA15778AA /* mainland-cn-2021.json in Resources */,
 				45282CF83C6FBBDC42883B3F /* mainland-cn-2022.json in Resources */,
 				CAD5E56555C460999BAE9DC7 /* mainland-cn-2023.json in Resources */,
