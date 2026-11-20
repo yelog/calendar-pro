@@ -25,6 +25,6 @@ final class HolidayProviderRegistryTests: XCTestCase {
         let lunarNewYearSubstitute = try XCTUnwrap(calendar.date(from: DateComponents(year: 2027, month: 2, day: 9)))
 
         XCTAssertEqual(holidays.first { $0.date == newYear }?.isObserved, false)
-        XCTAssertEqual(holidays.first { $0.date == lunarNewYearSubstitute }?.isObserved, true)
+        XCTAssertEqual(holidays.filter(\.isObserved).map(\.date), [lunarNewYearSubstitute])
     }
 }

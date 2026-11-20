@@ -1,6 +1,6 @@
 {
-  "version": "2026.11.20.212012",
-  "generatedAt": "2026-11-20T13:20:12Z",
+  "version": "2026.11.20.213022",
+  "generatedAt": "2026-11-20T13:30:22Z",
   "payloads": [
     { "regionID": "hong-kong", "year": 2021, "path": "hong-kong-2021.json" },
     { "regionID": "hong-kong", "year": 2022, "path": "hong-kong-2022.json" },
