@@ -7,6 +7,15 @@
         <language>zh-CN</language>
 
         <item>
+            <title>Version 0.3.3</title>
+            <pubDate>Fri, 20 Nov 2026 14:25:11 +0000</pubDate>
+            <sparkle:version>03399</sparkle:version>
+            <sparkle:shortVersionString>0.3.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>&lt;h2&gt;CalendarPro 0.3.3&lt;/h2&gt;&lt;h4&gt;Changed&lt;/h4&gt;&lt;ul&gt;&lt;li&gt;add Hong Kong 2027 public holidays, including the February 9 Lunar New Year substitute holiday&lt;/li&gt;&lt;/ul&gt;</description>
+            <enclosure url="https://github.com/yelog/calendar-pro/releases/download/v0.3.3/CalendarPro-0.3.3-universal.dmg" length="8428471" type="application/octet-stream" sparkle:edSignature="JDvuyNNY8Xt9FOpP1wq04ci/0KLmxpidgKRjlgufD1/sSsihtq+FsGLdLhMjrfjsaxk6jjnqG2yl2sqkdrITAA==" />
+        </item>
+        <item>
             <title>Version 0.3.2</title>
             <pubDate>Thu, 19 Nov 2026 08:12:04 +0000</pubDate>
             <sparkle:version>03299</sparkle:version>
