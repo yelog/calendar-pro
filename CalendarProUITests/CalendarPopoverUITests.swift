@@ -175,6 +175,113 @@ final class CalendarPopoverUITests: XCTestCase {
     }
 
     @MainActor
+    func testUnitedKingdom2027ObservedHolidaysAppearInCalendar() throws {
+        let suiteName = "CalendarProUK2027HolidayUITests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer {
+            terminateExistingInstances()
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        defaults.set(
+            try JSONSerialization.data(withJSONObject: holidayPreferences(activeRegionIDs: ["uk"])),
+            forKey: "menuBarPreferences"
+        )
+        defaults.synchronize()
+
+        let app = XCUIApplication(url: try applicationURL())
+        try launchApplication(
+            app,
+            environment: [
+                "CALENDAR_PRO_UI_TEST_DEFAULTS_SUITE": suiteName,
+                "CALENDAR_PRO_UI_TEST_NOW": "2027-12-01T12:00:00Z"
+            ],
+            language: "english"
+        )
+
+        let christmas = app.descendants(matching: .any)["calendar-day-2027-12-27"]
+        XCTAssertTrue(christmas.waitForExistence(timeout: 5))
+        XCTAssertTrue(christmas.label.contains("Christmas Day (Observed)"))
+        XCTAssertTrue(christmas.label.contains("OFF"))
+
+        let boxingDay = app.descendants(matching: .any)["calendar-day-2027-12-28"]
+        XCTAssertTrue(boxingDay.exists)
+        XCTAssertTrue(boxingDay.label.contains("Boxing Day (Observed)"))
+        XCTAssertTrue(boxingDay.label.contains("OFF"))
+
+        let actualChristmas = app.descendants(matching: .any)["calendar-day-2027-12-25"]
+        XCTAssertTrue(actualChristmas.exists)
+        XCTAssertFalse(actualChristmas.label.contains("Christmas Day"))
+        let actualBoxingDay = app.descendants(matching: .any)["calendar-day-2027-12-26"]
+        XCTAssertTrue(actualBoxingDay.exists)
+        XCTAssertFalse(actualBoxingDay.label.contains("Boxing Day"))
+        attachScreenshot(app, name: "uk-2027-observed-holidays")
+    }
+
+    @MainActor
+    func testUnitedStates2027FederalHolidaysUseOriginalDates() throws {
+        let suiteName = "CalendarProUS2027HolidayUITests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer {
+            terminateExistingInstances()
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        defaults.set(
+            try JSONSerialization.data(withJSONObject: holidayPreferences(activeRegionIDs: ["us"])),
+            forKey: "menuBarPreferences"
+        )
+        defaults.synchronize()
+
+        let app = XCUIApplication(url: try applicationURL())
+        try launchApplication(
+            app,
+            environment: [
+                "CALENDAR_PRO_UI_TEST_DEFAULTS_SUITE": suiteName,
+                "CALENDAR_PRO_UI_TEST_NOW": "2027-06-15T12:00:00Z"
+            ],
+            language: "english"
+        )
+
+        let juneteenth = app.descendants(matching: .any)["calendar-day-2027-06-19"]
+        XCTAssertTrue(juneteenth.waitForExistence(timeout: 5))
+        XCTAssertTrue(juneteenth.label.contains("Juneteenth"))
+        XCTAssertTrue(juneteenth.label.contains("OFF"))
+        let juneteenthObserved = app.descendants(matching: .any)["calendar-day-2027-06-18"]
+        XCTAssertTrue(juneteenthObserved.exists)
+        XCTAssertFalse(juneteenthObserved.label.contains("Juneteenth"))
+
+        app.buttons["next-month-button"].click()
+        let independenceDay = app.descendants(matching: .any)["calendar-day-2027-07-04"]
+        XCTAssertTrue(independenceDay.waitForExistence(timeout: 5))
+        XCTAssertTrue(independenceDay.label.contains("Independence Day"))
+        XCTAssertTrue(independenceDay.label.contains("OFF"))
+        let independenceDayObserved = app.descendants(matching: .any)["calendar-day-2027-07-05"]
+        XCTAssertTrue(independenceDayObserved.exists)
+        XCTAssertFalse(independenceDayObserved.label.contains("Independence Day"))
+
+        app.terminate()
+        try launchApplication(
+            app,
+            environment: [
+                "CALENDAR_PRO_UI_TEST_DEFAULTS_SUITE": suiteName,
+                "CALENDAR_PRO_UI_TEST_NOW": "2027-12-01T12:00:00Z"
+            ],
+            language: "english"
+        )
+
+        let christmas = app.descendants(matching: .any)["calendar-day-2027-12-25"]
+        XCTAssertTrue(christmas.waitForExistence(timeout: 5))
+        XCTAssertTrue(christmas.label.contains("Christmas Day"))
+        XCTAssertTrue(christmas.label.contains("OFF"))
+        let christmasObserved = app.descendants(matching: .any)["calendar-day-2027-12-24"]
+        XCTAssertTrue(christmasObserved.exists)
+        XCTAssertFalse(christmasObserved.label.contains("Christmas Day"))
+        let newYearsObserved = app.descendants(matching: .any)["calendar-day-2027-12-31"]
+        XCTAssertTrue(newYearsObserved.exists)
+        XCTAssertFalse(newYearsObserved.label.contains("New Year's Day"))
+        attachScreenshot(app, name: "us-2027-original-dates")
+    }
+
+    @MainActor
     func testEventViewSwitchShowsOneListAndRemembersSelection() throws {
         let suiteName = "CalendarPopoverUITests-\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
@@ -237,13 +344,17 @@ final class CalendarPopoverUITests: XCTestCase {
     }
 
     @MainActor
-    private func launchApplication(_ app: XCUIApplication, environment: [String: String] = [:]) throws {
+    private func launchApplication(
+        _ app: XCUIApplication,
+        environment: [String: String] = [:],
+        language: String = "simplifiedChinese"
+    ) throws {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
         configuration.createsNewApplicationInstance = true
         configuration.environment = ["CALENDAR_PRO_UI_TEST_MODE": "popover-window"]
             .merging(environment) { _, override in override }
-        configuration.arguments = ["-appLanguage", "simplifiedChinese"]
+        configuration.arguments = ["-appLanguage", language]
 
         let appURL = try applicationURL()
         let launchExpectation = expectation(description: "launch CalendarPro")
@@ -269,6 +380,27 @@ final class CalendarPopoverUITests: XCTestCase {
 }
     
 private extension CalendarPopoverUITests {
+    func holidayPreferences(activeRegionIDs: [String]) -> [String: Any] {
+        [
+            "tokens": [],
+            "separator": " ",
+            "showLunarInMenuBar": false,
+            "activeRegionIDs": activeRegionIDs,
+            "enabledHolidayIDs": [],
+            "weekStart": "monday",
+            "showEvents": false,
+            "showCalendarEvents": false,
+            "enabledCalendarIDs": [],
+            "showReminders": false,
+            "enabledReminderCalendarIDs": [],
+            "showAlmanac": false,
+            "showWeather": false,
+            "showUpcomingSection": false,
+            "upcomingIncludeReminders": false,
+            "showRemindersBoard": false
+        ]
+    }
+
     func applicationURL() throws -> URL {
         let productsDirectory = Bundle.main.bundleURL.deletingLastPathComponent()
         let appURL = productsDirectory.appendingPathComponent("CalendarPro.app")

@@ -28,6 +28,7 @@
 		1CE67B81748FA4F447CE81E6 /* WeatherDetailWindowSizingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68DDCDBA0907C153B9A22365 /* WeatherDetailWindowSizingTests.swift */; };
 		1EFE35688C8380AEEF1F6AF3 /* us-2025.json in Resources */ = {isa = PBXBuildFile; fileRef = 37720B55E06FA365035C4049 /* us-2025.json */; };
 		20F56C47FD164C91286488B4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B80CAF5E50828E0667EA7760 /* Cocoa.framework */; };
+		642AE91E15C59B5B33C63EEF /* uk-2027.json in Resources */ = {isa = PBXBuildFile; fileRef = B87720EFD99A8DA83B3F121F /* uk-2027.json */; };
 		24282A6674D021863D3EBFEE /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = EF51BF6E9DF0E7CAB17760E5 /* Localizable.xcstrings */; };
 		2487A5F50A24C9E980D3EA06 /* LunarDateDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D04B7146D8E13EC69CE4AE3 /* LunarDateDescriptor.swift */; };
 		26F3A639382E5B3F13CB303B /* TraditionalFestivalResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8BECE063D05CB3EEF61889 /* TraditionalFestivalResolver.swift */; };
@@ -143,6 +144,7 @@
 		D4659DB225FDCEEE345E9267 /* uk-2026.json in Resources */ = {isa = PBXBuildFile; fileRef = 55E92785247A5EB01769107F /* uk-2026.json */; };
 		D4DDD728210E3A6A1E8743E6 /* WeatherStripView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AC571DCA57DA0A8908D48B3 /* WeatherStripView.swift */; };
 		DA0820E8858563EB740AE2AA /* MonthPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59E8D3675E7433C652F23AB4 /* MonthPickerView.swift */; };
+		DDB9ED1B696125D1B7D65BB8 /* us-2027.json in Resources */ = {isa = PBXBuildFile; fileRef = B7B8B11E833EA8F6C1EB093D /* us-2027.json */; };
 		DAFE1B698F1FAE83F0197F28 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C8793D59CB6FF03E294547 /* SettingsStore.swift */; };
 		DCD00178119ED8FE02CD53AB /* VacationOpportunityCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94CDF24CBAE4E3086931EFBF /* VacationOpportunityCardView.swift */; };
 		DE4BF36F50279E91767B3EF3 /* CalendarDayFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2EEAE8290BCC5A8EDF8B58F /* CalendarDayFactory.swift */; };
@@ -295,6 +297,8 @@
 		A351ECE31BB64D1AFF99C0E4 /* HolidayCacheStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayCacheStore.swift; sourceTree = "<group>"; };
 		D4E5F60718293A4B5C6D7E8F /* HolidayFeedRefreshScheduler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HolidayFeedRefreshScheduler.swift; sourceTree = "<group>"; };
 		A45E45EC26483642D886B42A /* ClockRenderServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClockRenderServiceTests.swift; sourceTree = "<group>"; };
+		B7B8B11E833EA8F6C1EB093D /* us-2027.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "us-2027.json"; sourceTree = "<group>"; };
+		B87720EFD99A8DA83B3F121F /* uk-2027.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "uk-2027.json"; sourceTree = "<group>"; };
 		AB0815430E15C41D66280A16 /* AlmanacService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AlmanacService.swift; sourceTree = "<group>"; };
 		AD2AA02734457C9F608FFDA8 /* PomodoroStatisticsWindowController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PomodoroStatisticsWindowController.swift; sourceTree = "<group>"; };
 		AD71368B6FFCC754BA25B26D /* EventServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = EventServiceTests.swift; sourceTree = "<group>"; };
@@ -668,6 +672,7 @@
 			children = (
 				37720B55E06FA365035C4049 /* us-2025.json */,
 				A2E90B226CA993AEDEF7F705 /* us-2026.json */,
+				B7B8B11E833EA8F6C1EB093D /* us-2027.json */,
 			);
 			name = us;
 			path = us;
@@ -787,6 +792,7 @@
 			children = (
 				FD65228C9CEF3CEA925BE538 /* uk-2025.json */,
 				55E92785247A5EB01769107F /* uk-2026.json */,
+				B87720EFD99A8DA83B3F121F /* uk-2027.json */,
 			);
 			name = uk;
 			path = uk;
@@ -1037,8 +1043,10 @@
 				B2C3D4E5F60718293A4B5C6D /* mainland-cn-2027.json in Resources */,
 				5062E21C3CEF8E6C6B07313C /* uk-2025.json in Resources */,
 				D4659DB225FDCEEE345E9267 /* uk-2026.json in Resources */,
+				642AE91E15C59B5B33C63EEF /* uk-2027.json in Resources */,
 				1EFE35688C8380AEEF1F6AF3 /* us-2025.json in Resources */,
 				9EC116F12A7C0C8EE53B647E /* us-2026.json in Resources */,
+				DDB9ED1B696125D1B7D65BB8 /* us-2027.json in Resources */,
 				24282A6674D021863D3EBFEE /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
